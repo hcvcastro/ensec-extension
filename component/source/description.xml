@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<description xmlns="http://openoffice.org/extensions/description/2006" xmlns:d="http://openoffice.org/extensions/description/2006" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <identifier value="bolivia@shell:Ensec"/>
+    <version value="0.0.1"/>
+    <platform value="@PLATFORM@" />
+    <display-name>
+        <name lang="en-es">E.N.S.E.C</name>
+    </display-name>
+    <dependencies>
+        <OpenOffice.org-minimal-version value="3.0" d:name="OpenOffice.org 3.0 or StarOffice 9"/>
+    </dependencies>
+    <publisher>
+        <name xlink:href="http://hcvcastro.github.com/libre-impuestos" lang="en-es">Bolivia@SHELL:$_ Libre Impuestos by Henry Castro &lt;hcvcastro@gmail.com&gt; </name>
+    </publisher>
+    <icon>
+      <default xlink:href="bolivia.shell.png" />
+    </icon>
+    <extension-description>
+        <src xlink:href="description-en-es.txt" lang="en-es"/>
+    </extension-description>
+</description>

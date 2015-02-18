@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<oor:component-data xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema" oor:name="Addons" oor:package="org.openoffice.Office">
+  <node oor:name="AddonUI">
+    <node oor:name="AddonMenu">
+      <node oor:name="bolivia.shell.ensec.Calendario" oor:op="replace">
+	<prop oor:name="URL" oor:type="xs:string">
+	  <value>bolivia@shell.ensec:Calendario</value>
+	</prop>
+	<prop oor:name="Title" oor:type="xs:string">
+	  <value>Calendario ...</value>
+	</prop>
+      </node>
+      <node oor:name="bolivia.shell.ensec.Reporte" oor:op="replace">
+	<prop oor:name="URL" oor:type="xs:string">
+	  <value>bolivia@shell.ensec:Reporte</value>
+	</prop>
+	<prop oor:name="Title" oor:type="xs:string">
+	  <value>Reporte ENSEC</value>
+	</prop>
+      </node>
+      <node oor:name="bolivia.shell.ensec.Notas" oor:op="replace">
+	<prop oor:name="URL" oor:type="xs:string">
+	  <value>bolivia@shell.ensec:Notas</value>
+	</prop>
+	<prop oor:name="Title" oor:type="xs:string">
+	  <value>Notas ...</value>
+	</prop>
+      </node>
+    </node>
+    <node oor:name="OfficeMenuBar">
+      <node oor:name="bolivia.shell.ensec.main" oor:op="replace">
+	<prop oor:name="Title" oor:type="xs:string">
+	  <value>ENSEC</value>
+	</prop>
+	<node oor:name="Submenu">
+	  <node oor:name="bolivia.shell.ensec.submenu.Calendario" oor:op="replace">      
+	    <prop oor:name="URL" oor:type="xs:string">
+	      <value>bolivia@shell.ensec:Calendario</value>
+	    </prop>
+	    <prop oor:name="Title" oor:type="xs:string">
+	      <value>Calendario ...</value>
+	    </prop>
+	  </node>
+	  <node oor:name="bolivia.shell.ensec.submenu.CalendarioReporte" oor:op="replace">
+	    <prop oor:name="URL" oor:type="xs:string">
+	      <value>bolivia@shell.ensec:ReporteCalendario</value>
+	    </prop>
+	    <prop oor:name="Title" oor:type="xs:string">
+	      <value>Calendario Reporte ...</value>
+	    </prop>
+	  </node>
+	  <node oor:name="bolivia.shell.ensec.submenu.Notas" oor:op="replace">      
+	    <prop oor:name="URL" oor:type="xs:string">
+	      <value>bolivia@shell.ensec:Notas</value>
+	    </prop>
+	    <prop oor:name="Title" oor:type="xs:string">
+	      <value>Notas ...</value>
+	    </prop>
+	  </node>
+	  <node oor:name="bolivia.shell.ensec.submenu.NotasReporte" oor:op="replace">      
+	    <prop oor:name="URL" oor:type="xs:string">
+	      <value>bolivia@shell.ensec:ReporteNotas</value>
+	    </prop>
+	    <prop oor:name="Title" oor:type="xs:string">
+	      <value>Notas Reporte...</value>
+	    </prop>
+	  </node>
+	  <node oor:name="bolivia.shell.ensec.submenu.NotasAnualReporte" oor:op="replace">      
+	    <prop oor:name="URL" oor:type="xs:string">
+	      <value>bolivia@shell.ensec:ReporteAnualNotas</value>
+	    </prop>
+	    <prop oor:name="Title" oor:type="xs:string">
+	      <value>Notas Anual Reporte...</value>
+	    </prop>
+	  </node>
+	  <node oor:name="bolivia.shell.ensec.submenu.NotasSheet" oor:op="replace">      
+	    <prop oor:name="URL" oor:type="xs:string">
+	      <value>bolivia@shell.ensec:SheetNotas</value>
+	    </prop>
+	    <prop oor:name="Title" oor:type="xs:string">
+	      <value>Notas Sheet...</value>
+	    </prop>
+	  </node>
+	</node>
+      </node>
+    </node>
+  </node>
+</oor:component-data>
