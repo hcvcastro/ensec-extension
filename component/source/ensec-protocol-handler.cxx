@@ -296,39 +296,46 @@
 
 #include <com/sun/star/xml/sax/XExtendedDocumentHandler.hpp>
 
-using namespace com::sun::star::uno;
-using namespace com::sun::star::frame;
-using com::sun::star::util::URL;
+namespace uno = com::sun::star::uno;
+namespace frame = com::sun::star::frame;
+namespace util = com::sun::star::util;
+namespace sax = com::sun::star::xml::sax;
+namespace container = com::sun::star::container;
+namespace awt = com::sun::star::awt;
+namespace lang = com::sun::star::lang;
+namespace sdbc = com::sun::star::sdbc;
+namespace beans = ::com::sun::star::beans;
+namespace io = ::com::sun::star::io;
+namespace sheet = ::com::sun::star::sheet;
+namespace table = ::com::sun::star::table;
+namespace xml = ::com::sun::star::xml;
+namespace sdb = ::com::sun::star::sdb;
+namespace sdbcx = ::com::sun::star::sdbcx;
 
 
-
-typedef ::com::sun::star::uno::Reference< ::com::sun::star::xml::sax::XDocumentHandler > pFuncImportDialogModel (
-    ::com::sun::star::uno::Reference<
-    ::com::sun::star::container::XNameContainer > const & xDialogModel,
-    ::com::sun::star::uno::Reference<
-    ::com::sun::star::uno::XComponentContext > const & xContext,
-    ::com::sun::star::uno::Reference<
-        ::com::sun::star::frame::XModel > const & xDocument );
+typedef uno::Reference<sax::XDocumentHandler> pFuncImportDialogModel (
+    uno::Reference<container::XNameContainer> const & xDialogModel,
+    uno::Reference<uno::XComponentContext> const & xContext,
+    uno::Reference<frame::XModel> const & xDocument );
 
 
-
-typedef ::cppu::WeakImplHelper1 < ::com::sun::star::awt::XActionListener > ClickHandlerBase;
-typedef ::cppu::WeakImplHelper1 < ::com::sun::star::awt::XTextListener > EditHandlerBase;
+typedef ::cppu::WeakImplHelper1 <awt::XActionListener> ClickHandlerBase;
+typedef ::cppu::WeakImplHelper1 <awt::XTextListener> EditHandlerBase;
 
 class ClickHandler : public ClickHandlerBase
 {
 private:
-  Reference < ::com::sun::star::awt::XDialog > mxDialog;
+  Reference <awt::XDialog> mxDialog;
 public:
-  ClickHandler( Reference < ::com::sun::star::awt::XDialog > &aDialog ) : mxDialog(aDialog) {};
+  ClickHandler( Reference <awt::XDialog> &aDialog ) : mxDialog(aDialog) {};
 protected:
   // XActionListener
-  virtual void SAL_CALL actionPerformed( const ::com::sun::star::awt::ActionEvent& rEvent ) throw (RuntimeException);
+  virtual void SAL_CALL actionPerformed( const awt::ActionEvent& rEvent ) throw (RuntimeException);
   // XEventListener
-  virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& Source ) throw (RuntimeException);
+  virtual void SAL_CALL disposing( const lang::EventObject& Source ) throw (RuntimeException);
 };
 
-void SAL_CALL ClickHandler::actionPerformed( const ::com::sun::star::awt::ActionEvent& rEvent ) throw (RuntimeException)
+void SAL_CALL ClickHandler::actionPerformed( const awt::ActionEvent& rEvent ) throw (RuntimeException)
 {
   if (rEvent.ActionCommand.compareToAscii("OK")==0) {
     mxDialog->endExecute();
@@ -337,7 +344,7 @@ void SAL_CALL ClickHandler::actionPerformed( const ::com::sun::star::awt::Action
     mxDialog->endExecute();
 }
 
-void SAL_CALL ClickHandler::disposing( const ::com::sun::star::lang::EventObject& /*Source*/ ) throw (RuntimeException)
+void SAL_CALL ClickHandler::disposing( const lang::EventObject& /*Source*/ ) throw (RuntimeException)
 {
   // not interested in
 }
@@ -346,14 +353,14 @@ void SAL_CALL ClickHandler::disposing( const ::com::sun::star::lang::EventObject
 class UpdateHandler : public ClickHandlerBase
 {
 private:
-    Reference < ::com::sun::star::sdbc::XConnection > mxConnection;
-    Reference < ::com::sun::star::awt::XDialog > mxDialog;
+    Reference <sdbc::XConnection> mxConnection;
+    Reference <awt::XDialog> mxDialog;
     sal_Int32 mnGestion;
     sal_Int32 mnPeriodo;
     ::rtl::OUString mstrAsignatura;
 public:
-    UpdateHandler( const Reference< ::com::sun::star::sdbc::XConnection >& aConnection, 
-                   const Reference < ::com::sun::star::awt::XDialog >& aDialog,
+    UpdateHandler( const Reference<sdbc::XConnection>& aConnection, 
+                   const Reference <awt::XDialog>& aDialog,
                    sal_Int32 aGestion,
                    sal_Int32 aPeriodo,
                    ::rtl::OUString astrAsignatura ) : mxConnection(aConnection), 
@@ -364,20 +371,20 @@ public:
     {}
 protected:
     // XActionListener
-    virtual void SAL_CALL actionPerformed( const ::com::sun::star::awt::ActionEvent& rEvent ) throw (RuntimeException);
+    virtual void SAL_CALL actionPerformed( const awt::ActionEvent& rEvent ) throw (RuntimeException);
     // XEventListener
-    virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& Source ) throw (RuntimeException);
+    virtual void SAL_CALL disposing( const lang::EventObject& Source ) throw (RuntimeException);
 };
 
-void SAL_CALL UpdateHandler::actionPerformed( const ::com::sun::star::awt::ActionEvent& rEvent ) throw (RuntimeException)
+void SAL_CALL UpdateHandler::actionPerformed( const awt::ActionEvent& rEvent ) throw (RuntimeException)
 {
-    Reference < ::com::sun::star::awt::XControlContainer > xControlContainer ( mxDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XControl > xControl ( rEvent.Source , ::com::sun::star::uno::UNO_QUERY );
-    Reference < ::com::sun::star::awt::XTextComponent > xText;
-    Reference < ::com::sun::star::awt::XFixedText > xFixedText;
-    Reference < ::com::sun::star::beans::XPropertySet > xPropFixedText;  
-    Reference < ::com::sun::star::awt::XButton > xButton ( xControl , ::com::sun::star::uno::UNO_QUERY );
-    Reference < ::com::sun::star::beans::XPropertySet > xPropButton ( xControl->getModel(), ::com::sun::star::uno::UNO_QUERY );
+    Reference <awt::XControlContainer> xControlContainer ( mxDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XControl> xControl ( rEvent.Source , uno::UNO_QUERY );
+    Reference <awt::XTextComponent> xText;
+    Reference <awt::XFixedText> xFixedText;
+    Reference <beans::XPropertySet> xPropFixedText;  
+    Reference <awt::XButton> xButton ( xControl , uno::UNO_QUERY );
+    Reference <beans::XPropertySet> xPropButton ( xControl->getModel(), uno::UNO_QUERY );
     ::rtl::OUString strLabel;
 
     xPropButton->getPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label"))) >>= strLabel;
@@ -390,10 +397,10 @@ void SAL_CALL UpdateHandler::actionPerformed( const ::com::sun::star::awt::Actio
         ::rtl::OUString::number(mnPeriodo);
 
 
-    Reference< ::com::sun::star::sdbc::XStatement > xStatement ( mxConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XStatement > xUpdate ( mxConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XResultSet > xResultSet ( xStatement->executeQuery(strSQL), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XRow > xRow ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference<sdbc::XStatement> xStatement ( mxConnection->createStatement(), uno::UNO_QUERY_THROW );
+    Reference<sdbc::XStatement> xUpdate ( mxConnection->createStatement(), uno::UNO_QUERY_THROW );
+    Reference<sdbc::XResultSet> xResultSet ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
+    Reference<sdbc::XRow> xRow ( xResultSet, uno::UNO_QUERY_THROW );  
 
     ::rtl::OUString strTag;
     ::rtl::OUString strInsert;
@@ -411,19 +418,19 @@ void SAL_CALL UpdateHandler::actionPerformed( const ::com::sun::star::awt::Actio
                 ::rtl::OUString::number(mnPeriodo) + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(", ")) ;
 
             xControl.set (xControlContainer->getControl( xRow->getString(1) + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("_label"))), 
-                          ::com::sun::star::uno::UNO_QUERY );
-            xFixedText.set ( xControl, ::com::sun::star::uno::UNO_QUERY );
+                          uno::UNO_QUERY );
+            xFixedText.set ( xControl, uno::UNO_QUERY );
             if ( xControl.is() && xFixedText.is() ) {
-                xPropFixedText.set ( xControl->getModel() , ::com::sun::star::uno::UNO_QUERY );              
+                xPropFixedText.set ( xControl->getModel() , uno::UNO_QUERY );              
                 xPropFixedText->getPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strTag;
                 strInsert += strTag + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(", ")) ;
             }
 
             xControl.set (xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante"))), 
-                          ::com::sun::star::uno::UNO_QUERY );
-            xFixedText.set ( xControl, ::com::sun::star::uno::UNO_QUERY );
+                          uno::UNO_QUERY );
+            xFixedText.set ( xControl, uno::UNO_QUERY );
             if ( xControl.is() && xFixedText.is() ) {
-                xPropFixedText.set ( xControl->getModel() , ::com::sun::star::uno::UNO_QUERY );              
+                xPropFixedText.set ( xControl->getModel() , uno::UNO_QUERY );              
                 xPropFixedText->getPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strTag;
                 strInsert += strTag + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(", ")) ;
             }
@@ -432,8 +439,8 @@ void SAL_CALL UpdateHandler::actionPerformed( const ::com::sun::star::awt::Actio
             strInsert += ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("NULL, ")) ;
 
             xControl.set (xControlContainer->getControl( xRow->getString(1)), 
-                          ::com::sun::star::uno::UNO_QUERY );
-            xText.set ( xControl, ::com::sun::star::uno::UNO_QUERY );
+                          uno::UNO_QUERY );
+            xText.set ( xControl, uno::UNO_QUERY );
             if ( xControl.is() && xText.is() ) {
                 strTag = xText->getText();
                 strInsert += strTag + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(" )")) ;                
@@ -443,7 +450,7 @@ void SAL_CALL UpdateHandler::actionPerformed( const ::com::sun::star::awt::Actio
             xUpdate->executeUpdate( strInsert );
         }
         xButton->setLabel(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Done")));
-        xPropButton->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), ::com::sun::star::uno::makeAny(sal_False));
+        xPropButton->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), uno::makeAny(sal_False));
     }
     else if ( strLabel.compareToAscii("Update") == 0 ) {
         while (xResultSet->next()){
@@ -451,24 +458,24 @@ void SAL_CALL UpdateHandler::actionPerformed( const ::com::sun::star::awt::Actio
             strUpdate = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("UPDATE NOTA SET FECHA=NULL, NOTA="));
 
             xControl.set (xControlContainer->getControl(xRow->getString(1) + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("_label"))), 
-                          ::com::sun::star::uno::UNO_QUERY );
-            xFixedText.set ( xControl, ::com::sun::star::uno::UNO_QUERY );
+                          uno::UNO_QUERY );
+            xFixedText.set ( xControl, uno::UNO_QUERY );
             if ( xControl.is() && xFixedText.is() ) {
-                xPropFixedText.set ( xControl->getModel() , ::com::sun::star::uno::UNO_QUERY );              
+                xPropFixedText.set ( xControl->getModel(), uno::UNO_QUERY );              
                 xPropFixedText->getPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strEvaluacion;
             }
 
             xControl.set (xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante"))), 
-                          ::com::sun::star::uno::UNO_QUERY );
-            xFixedText.set ( xControl, ::com::sun::star::uno::UNO_QUERY );
+                          uno::UNO_QUERY );
+            xFixedText.set ( xControl, uno::UNO_QUERY );
             if ( xControl.is() && xFixedText.is() ) {
-                xPropFixedText.set ( xControl->getModel() , ::com::sun::star::uno::UNO_QUERY );              
+                xPropFixedText.set ( xControl->getModel() , uno::UNO_QUERY );              
                 xPropFixedText->getPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strEstudiante;
             }
 
             xControl.set (xControlContainer->getControl(xRow->getString(1)), 
-                          ::com::sun::star::uno::UNO_QUERY );
-            xText.set ( xControl, ::com::sun::star::uno::UNO_QUERY );
+                          uno::UNO_QUERY );
+            xText.set ( xControl, uno::UNO_QUERY );
             if ( xControl.is() && xText.is() ) {
                 strUpdate += xText->getText() + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(" ")) ;                
             }
@@ -485,11 +492,11 @@ void SAL_CALL UpdateHandler::actionPerformed( const ::com::sun::star::awt::Actio
             
         }
         xButton->setLabel(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Done")));
-        xPropButton->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), ::com::sun::star::uno::makeAny(sal_False));
+        xPropButton->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), uno::makeAny(sal_False));
     }
 }
 
-void SAL_CALL UpdateHandler::disposing( const ::com::sun::star::lang::EventObject& /*Source*/ ) throw (RuntimeException)
+void SAL_CALL UpdateHandler::disposing( const lang::EventObject& /*Source*/ ) throw (RuntimeException)
 {
   // not interested in
 }
@@ -499,44 +506,43 @@ void SAL_CALL UpdateHandler::disposing( const ::com::sun::star::lang::EventObjec
 class EditHandler : public EditHandlerBase
 {
 private:
-    Reference < ::com::sun::star::sdbc::XConnection > mxConnection;
-    Reference < ::com::sun::star::awt::XDialog > mxDialog;
+    Reference <sdbc::XConnection> mxConnection;
+    Reference <awt::XDialog> mxDialog;
     sal_Int32 mnGestion;
     sal_Int32 mnPeriodo;
     ::rtl::OUString mstrAsignatura;
 
 public:
-    EditHandler( const Reference< ::com::sun::star::sdbc::XConnection >& aConnection, 
-                 const Reference < ::com::sun::star::awt::XDialog >& aDialog,
+    EditHandler( const Reference<sdbc::XConnection>& aConnection, 
+                 const Reference <awt::XDialog>& aDialog,
                  sal_Int32 aGestion,
                  sal_Int32 aPeriodo,
                  ::rtl::OUString astrAsignatura ) : mxConnection(aConnection), mxDialog(aDialog), mnGestion(aGestion), mnPeriodo(aPeriodo), mstrAsignatura(astrAsignatura) {};
 protected:
   // XTextListener           -> modify setzen
-  virtual void SAL_CALL textChanged(const  ::com::sun::star::awt::TextEvent& rEvent) throw( ::com::sun::star::uno::RuntimeException );
+  virtual void SAL_CALL textChanged(const awt::TextEvent& rEvent) throw( uno::RuntimeException );
   // XEventListener
-  virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& Source ) throw (RuntimeException);
+  virtual void SAL_CALL disposing( const lang::EventObject& Source ) throw (RuntimeException);
 
 };
  
 
-void SAL_CALL EditHandler::textChanged(const  ::com::sun::star::awt::TextEvent& rEvent) throw( ::com::sun::star::uno::RuntimeException )
+void SAL_CALL EditHandler::textChanged(const awt::TextEvent& rEvent) throw( uno::RuntimeException )
 {
-    ::com::sun::star::util::Color clrGreenColor = 0x0000FF00;
-    ::com::sun::star::util::Color clrRedColor = 0x00FF0000;
-    //::com::sun::star::util::Color clrBlueColor = 0x000000FF;
+    util::Color clrGreenColor = 0x0000FF00;
+    util::Color clrRedColor = 0x00FF0000;
+    //util::Color clrBlueColor = 0x000000FF;
     sal_Int32 nIDEstudiante = -1;
     bool bNotas = false;
 
-    Reference < ::com::sun::star::awt::XControlContainer > xControlContainer ( mxDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XTextComponent > xText ( rEvent.Source , ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XButton > xButton;
-    Reference < ::com::sun::star::awt::XTextComponent > xEditText;
-    Reference < ::com::sun::star::awt::XFixedText > xFixedText (xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante"))), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XControlContainer> xControlContainer ( mxDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XTextComponent> xText ( rEvent.Source , uno::UNO_QUERY_THROW );
+    Reference <awt::XButton> xButton;
+    Reference <awt::XTextComponent> xEditText;
+    Reference <awt::XFixedText> xFixedText (xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante"))), uno::UNO_QUERY_THROW );
 
-    Reference < ::com::sun::star::awt::XControl > xControl ( xFixedText, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::beans::XPropertySet > xPropTextModel ( xControl->getModel() , ::com::sun::star::uno::UNO_QUERY_THROW );  
-
+    Reference <awt::XControl> xControl ( xFixedText, uno::UNO_QUERY_THROW );
+    Reference <beans::XPropertySet> xPropTextModel ( xControl->getModel() , uno::UNO_QUERY_THROW );  
 
     ::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT ESTUDIANTE.NOMBRE, ESTUDIANTE.ESTUDIANTE_ID FROM INSCRIPCION INNER JOIN ESTUDIANTE ON INSCRIPCION.GESTION=")) +
           ::rtl::OUString::number(mnGestion) +
@@ -546,9 +552,9 @@ void SAL_CALL EditHandler::textChanged(const  ::com::sun::star::awt::TextEvent& 
           xText->getText().toAsciiUpperCase() +
            ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("%'"));
 
-    Reference< ::com::sun::star::sdbc::XStatement > xStatement ( mxConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XResultSet > xResultSet ( xStatement->executeQuery(strSQL), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XRow > xRow ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference<sdbc::XStatement> xStatement ( mxConnection->createStatement(), uno::UNO_QUERY_THROW );
+    Reference<sdbc::XResultSet> xResultSet ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
+    Reference<sdbc::XRow> xRow ( xResultSet, uno::UNO_QUERY_THROW );  
 
     ::rtl::OUString strFound = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ESTUDIANTE NO ENCONTRADO!"));
     sal_Int32 nCounter = 0;
@@ -572,13 +578,13 @@ void SAL_CALL EditHandler::textChanged(const  ::com::sun::star::awt::TextEvent& 
             ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("' AND PERIODO =")) +
             ::rtl::OUString::number(mnPeriodo);
 
-        //xStatement.set ( mxConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
-        xResultSet.set ( xStatement->executeQuery(strSQL), ::com::sun::star::uno::UNO_QUERY_THROW );
-        xRow.set ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
+        //xStatement.set ( mxConnection->createStatement(), uno::UNO_QUERY_THROW );
+        xResultSet.set ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
+        xRow.set ( xResultSet, uno::UNO_QUERY_THROW );  
 
 
         while ( xResultSet->next() ) {
-            xEditText.set (xControlContainer->getControl( xRow->getString(1) ), ::com::sun::star::uno::UNO_QUERY );
+            xEditText.set (xControlContainer->getControl( xRow->getString(1) ), uno::UNO_QUERY );
             if ( xEditText.is() )
                 xEditText->setText( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("0")));
         }
@@ -593,14 +599,13 @@ void SAL_CALL EditHandler::textChanged(const  ::com::sun::star::awt::TextEvent& 
             ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(" AND NOTA.ESTUDIANTE =")) + 
             ::rtl::OUString::number(nIDEstudiante);
 
-        //xStatement.set ( mxConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
-        xResultSet.set ( xStatement->executeQuery(strSQL), ::com::sun::star::uno::UNO_QUERY_THROW );
-        xRow.set ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
-
+        //xStatement.set ( mxConnection->createStatement(), uno::UNO_QUERY_THROW );
+        xResultSet.set ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
+        xRow.set ( xResultSet, uno::UNO_QUERY_THROW );  
 
         while ( xResultSet->next() ) {
             bNotas = true;
-            xEditText.set (xControlContainer->getControl( xRow->getString(1) ), ::com::sun::star::uno::UNO_QUERY );
+            xEditText.set (xControlContainer->getControl( xRow->getString(1) ), uno::UNO_QUERY );
             if ( xEditText.is() )
                 xEditText->setText( ::rtl::OUString::number(xRow->getInt(9)));
         }
@@ -612,51 +617,51 @@ void SAL_CALL EditHandler::textChanged(const  ::com::sun::star::awt::TextEvent& 
             ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("' AND PERIODO =")) +
             ::rtl::OUString::number(mnPeriodo);
 
-        //xStatement.set ( mxConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
-        xResultSet.set ( xStatement->executeQuery(strSQL), ::com::sun::star::uno::UNO_QUERY_THROW );
-        xRow.set ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
+        //xStatement.set ( mxConnection->createStatement(), uno::UNO_QUERY_THROW );
+        xResultSet.set ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
+        xRow.set ( xResultSet, uno::UNO_QUERY_THROW );  
 
 
         while ( xResultSet->next() ) {
-            xEditText.set (xControlContainer->getControl( xRow->getString(1) ), ::com::sun::star::uno::UNO_QUERY );
+            xEditText.set (xControlContainer->getControl( xRow->getString(1) ), uno::UNO_QUERY );
             if ( xEditText.is() )
                 xEditText->setText( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("0")));
         }
     }
 
     ::rtl::OUString strTag;
-    Reference < ::com::sun::star::beans::XPropertySet > xPropControl;
+    Reference <beans::XPropertySet> xPropControl;
 
     if (nCounter == 1) {
-        xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TextColor")), ::com::sun::star::uno::makeAny(clrGreenColor) );
-        Sequence< Reference< ::com::sun::star::awt::XControl > > controls = xControlContainer->getControls();
+        xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TextColor")), uno::makeAny(clrGreenColor) );
+        Sequence<Reference<awt::XControl>> controls = xControlContainer->getControls();
 
         for( sal_Int32 nIterator = 0; nIterator < controls.getLength(); nIterator++) {
-            xPropControl.set (controls[nIterator]->getModel(), ::com::sun::star::uno::UNO_QUERY );
+            xPropControl.set (controls[nIterator]->getModel(), uno::UNO_QUERY );
             if (xPropControl.is()) {
                 xPropControl->getPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strTag;
                 if ( strTag.getLength() != 0 ) {
-                    xPropControl->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), ::com::sun::star::uno::makeAny( sal_True ) );
+                    xPropControl->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), uno::makeAny( sal_True ) );
                 }
             }
         }
     }
     else  {
-        xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TextColor")), ::com::sun::star::uno::makeAny(clrRedColor) );
-        Sequence< Reference< ::com::sun::star::awt::XControl > > controls = xControlContainer->getControls();
+        xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TextColor")), uno::makeAny(clrRedColor) );
+        Sequence<Reference<awt::XControl>> controls = xControlContainer->getControls();
 
         for( sal_Int32 nIterator = 0; nIterator < controls.getLength(); nIterator++) {
-            xPropControl.set (controls[nIterator]->getModel(), ::com::sun::star::uno::UNO_QUERY );
+            xPropControl.set (controls[nIterator]->getModel(), uno::UNO_QUERY );
             if (xPropControl.is()) {
                 xPropControl->getPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strTag;
                 if ( strTag.getLength() != 0 )
-                    xPropControl->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), ::com::sun::star::uno::makeAny( sal_False ) );
+                    xPropControl->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), uno::makeAny( sal_False ) );
             }
         }
     }
 
-    xButton.set (xControlContainer->getControl( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnUpdate"))), ::com::sun::star::uno::UNO_QUERY);
-    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), ::com::sun::star::uno::makeAny(::rtl::OUString::number(nIDEstudiante)) );
+    xButton.set (xControlContainer->getControl( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnUpdate"))), uno::UNO_QUERY);
+    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), uno::makeAny(::rtl::OUString::number(nIDEstudiante)) );
     xFixedText->setText(strFound);
 
     if ( bNotas )
@@ -666,7 +671,7 @@ void SAL_CALL EditHandler::textChanged(const  ::com::sun::star::awt::TextEvent& 
 
 }
 
-void SAL_CALL EditHandler::disposing( const ::com::sun::star::lang::EventObject& /*Source*/ ) throw (RuntimeException)
+void SAL_CALL EditHandler::disposing( const lang::EventObject& /*Source*/ ) throw (RuntimeException)
 {
   // not interested in
 }
@@ -675,37 +680,37 @@ void SAL_CALL EditHandler::disposing( const ::com::sun::star::lang::EventObject&
 class NotaHandler : public EditHandlerBase
 {
 private:
-    Reference < ::com::sun::star::awt::XDialog > mxDialog;
+    Reference <awt::XDialog> mxDialog;
 
 public:
-    NotaHandler( const Reference < ::com::sun::star::awt::XDialog >& aDialog ) : mxDialog(aDialog) {};
+    NotaHandler( const Reference <awt::XDialog>& aDialog ) : mxDialog(aDialog) {};
 protected:
     // XTextListener           -> modify setzen
-    virtual void SAL_CALL textChanged(const  ::com::sun::star::awt::TextEvent& rEvent) throw( ::com::sun::star::uno::RuntimeException );
+    virtual void SAL_CALL textChanged(const awt::TextEvent& rEvent) throw( uno::RuntimeException );
     // XEventListener
-    virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& Source ) throw (RuntimeException);
-    static void updateNotaFinal( const Reference < ::com::sun::star::awt::XDialog >& );
+    virtual void SAL_CALL disposing( const lang::EventObject& Source ) throw (RuntimeException);
+    static void updateNotaFinal( const Reference <awt::XDialog>& );
 
 };
 
-void SAL_CALL NotaHandler::textChanged(const  ::com::sun::star::awt::TextEvent& rEvent) throw( ::com::sun::star::uno::RuntimeException )
+void SAL_CALL NotaHandler::textChanged(const awt::TextEvent& rEvent) throw( uno::RuntimeException )
 {
     float fPonderacion = 0.0;
     float fNota = 0.0;
     ::rtl::OUString strTag;
     ::rtl::OUString strNota;
 
-    Reference < ::com::sun::star::awt::XControlContainer > xControlContainer ( mxDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XTextComponent > xTextComponent ( rEvent.Source , ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XControl > xControlText ( xTextComponent , ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::beans::XPropertySet > xPropTextModel ( xControlText->getModel() , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <awt::XControlContainer> xControlContainer ( mxDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XTextComponent> xTextComponent ( rEvent.Source , uno::UNO_QUERY_THROW );
+    Reference <awt::XControl> xControlText ( xTextComponent , uno::UNO_QUERY_THROW );
+    Reference <beans::XPropertySet> xPropTextModel ( xControlText->getModel() , uno::UNO_QUERY_THROW );  
 
     xPropTextModel->getPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strTag;
-    Reference < ::com::sun::star::awt::XFixedText > xFixedText (xControlContainer->getControl(strTag), ::com::sun::star::uno::UNO_QUERY );
+    Reference <awt::XFixedText> xFixedText (xControlContainer->getControl(strTag), uno::UNO_QUERY );
     
     if ( xFixedText.is() ) {
-        Reference < ::com::sun::star::awt::XControl > xControlFixedText ( xFixedText, ::com::sun::star::uno::UNO_QUERY );
-        Reference < ::com::sun::star::beans::XPropertySet > xPropFixedTextModel ( xControlFixedText->getModel() , ::com::sun::star::uno::UNO_QUERY_THROW );  
+        Reference <awt::XControl> xControlFixedText ( xFixedText, uno::UNO_QUERY );
+        Reference <beans::XPropertySet> xPropFixedTextModel ( xControlFixedText->getModel(), uno::UNO_QUERY_THROW );  
 
         xPropFixedTextModel->getPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strTag;
         fPonderacion = strTag.toFloat();
@@ -721,15 +726,15 @@ void SAL_CALL NotaHandler::textChanged(const  ::com::sun::star::awt::TextEvent& 
 }
 
 
-void NotaHandler::updateNotaFinal(const Reference < ::com::sun::star::awt::XDialog >& aDialog )
+void NotaHandler::updateNotaFinal(const Reference <awt::XDialog>& aDialog )
 {
-    Reference < ::com::sun::star::awt::XControlContainer > xControlContainer ( aDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Sequence< Reference< ::com::sun::star::awt::XControl > > controls = xControlContainer->getControls();
-    Reference< ::com::sun::star::awt::XControl > xControl;
-    Reference< ::com::sun::star::awt::XTextComponent > xEditControl;
-    Reference < ::com::sun::star::beans::XPropertySet > xPropEditControl;  
-    Reference < ::com::sun::star::awt::XFixedText > xFixedText;
-    Reference < ::com::sun::star::beans::XPropertySet > xPropFixedControl;  
+    Reference <awt::XControlContainer> xControlContainer ( aDialog, uno::UNO_QUERY_THROW );
+    Sequence<Reference<awt::XControl>> controls = xControlContainer->getControls();
+    Reference<awt::XControl> xControl;
+    Reference<awt::XTextComponent> xEditControl;
+    Reference <beans::XPropertySet> xPropEditControl;  
+    Reference <awt::XFixedText> xFixedText;
+    Reference <beans::XPropertySet> xPropFixedControl;  
     float fPonderacion;
     float fNota;
     float fNotaFinal = 0.0;
@@ -738,16 +743,16 @@ void NotaHandler::updateNotaFinal(const Reference < ::com::sun::star::awt::XDial
     for( sal_Int32 nIterator = 0; nIterator < controls.getLength(); nIterator++) {
         fNota = 0.0;
         fPonderacion = 0.0;
-        xControl.set ( controls[nIterator], ::com::sun::star::uno::UNO_QUERY );
-        xEditControl.set ( xControl, ::com::sun::star::uno::UNO_QUERY );
+        xControl.set ( controls[nIterator], uno::UNO_QUERY );
+        xEditControl.set ( xControl, uno::UNO_QUERY );
         if (xEditControl.is()) {
-            xPropEditControl.set ( xControl->getModel(), ::com::sun::star::uno::UNO_QUERY );
+            xPropEditControl.set ( xControl->getModel(), uno::UNO_QUERY );
             fNota = xEditControl->getText().toFloat();            
             xPropEditControl->getPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strTag;
-            xControl.set (xControlContainer->getControl (strTag), ::com::sun::star::uno::UNO_QUERY );
-            xFixedText.set ( xControl, ::com::sun::star::uno::UNO_QUERY );
+            xControl.set (xControlContainer->getControl (strTag), uno::UNO_QUERY );
+            xFixedText.set ( xControl, uno::UNO_QUERY );
             if (xControl.is() && xFixedText.is()) {
-                xPropFixedControl.set (xControl->getModel(), ::com::sun::star::uno::UNO_QUERY );
+                xPropFixedControl.set (xControl->getModel(), uno::UNO_QUERY );
                 xPropFixedControl->getPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strTag;
                 fPonderacion = strTag.toFloat();
                 fNota = fNota * fPonderacion;
@@ -757,12 +762,12 @@ void NotaHandler::updateNotaFinal(const Reference < ::com::sun::star::awt::XDial
         fNotaFinal += fNota;
     }
 
-    xFixedText.set( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("nota_final"))), ::com::sun::star::uno::UNO_QUERY );
+    xFixedText.set( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("nota_final"))), uno::UNO_QUERY );
     xFixedText->setText(::rtl::OUString::number( fNotaFinal));
 }
 
 
-void SAL_CALL NotaHandler::disposing( const ::com::sun::star::lang::EventObject& /*Source*/ ) throw (RuntimeException)
+void SAL_CALL NotaHandler::disposing( const lang::EventObject& /*Source*/ ) throw (RuntimeException)
 {
   // not interested in
 }
@@ -778,17 +783,17 @@ EnsecProtocolHandler::~EnsecProtocolHandler( )
 // Initializes the object.
 //
 void SAL_CALL 
-EnsecProtocolHandler::initialize( const Sequence< Any >& aArguments ) 
+EnsecProtocolHandler::initialize( const Sequence<Any>& aArguments ) 
   throw ( Exception, RuntimeException )
 {
-  Reference < XFrame > xFrame;
+    Reference <frame::XFrame> xFrame;
   if ( aArguments.getLength() ) {
     aArguments[0] >>= xFrame;
     mxFrame = xFrame;
   }
 
   // Create the toolkit to have access to it later
-  mxToolkit = Reference< ::com::sun::star::awt::XToolkit >( ::com::sun::star::awt::Toolkit::create(mxContext), UNO_QUERY_THROW );
+  mxToolkit = Reference<awt::XToolkit>( awt::Toolkit::create(mxContext), UNO_QUERY_THROW );
 }
 
 
@@ -796,13 +801,13 @@ EnsecProtocolHandler::initialize( const Sequence< Any >& aArguments )
 // -------------------------------------------------------------------------------------------
 // Searches for an XDispatch for the specified URL within the specified target frame. 
 //
-Reference< XDispatch > SAL_CALL 
-EnsecProtocolHandler::queryDispatch( const URL& aURL, 
+Reference< frame::XDispatch > SAL_CALL 
+EnsecProtocolHandler::queryDispatch( const util::URL& aURL, 
 				      const ::rtl::OUString& sTargetFrameName, 
 				      sal_Int32 nSearchFlags )
   throw( RuntimeException )
 {
-  Reference < XDispatch > xRet;
+    Reference <frame::XDispatch> xRet;
 
   if ( sTargetFrameName.isEmpty() && nSearchFlags ) {
   }
@@ -819,12 +824,12 @@ EnsecProtocolHandler::queryDispatch( const URL& aURL,
 // ----------------------------------------------------------------------------------------------
 // Actually this method is redundant to XDispatchProvider::queryDispatch() to avoid multiple remote calls.
 //
-Sequence < Reference< XDispatch > > SAL_CALL 
-EnsecProtocolHandler::queryDispatches( const Sequence < DispatchDescriptor >& seqDescripts )
+Sequence <Reference<frame::XDispatch>> SAL_CALL 
+EnsecProtocolHandler::queryDispatches( const Sequence <frame::DispatchDescriptor>& seqDescripts )
   throw( RuntimeException )
 {
   sal_Int32 nCount = seqDescripts.getLength();
-  Sequence < Reference < XDispatch > > lDispatcher( nCount );
+  Sequence <Reference<frame::XDispatch>> lDispatcher( nCount );
  
   for( sal_Int32 i=0; i<nCount; ++i )
     lDispatcher[i] = queryDispatch( seqDescripts[i].FeatureURL, seqDescripts[i].FrameName, seqDescripts[i].SearchFlags );
@@ -869,71 +874,11 @@ EnsecProtocolHandler::getSupportedServiceNames(  )
 // dispatch to process commands
 //
 void SAL_CALL 
-EnsecProtocolHandler::dispatch( const URL& aURL, 
-				 const Sequence < ::com::sun::star::beans::PropertyValue >& lArgs ) 
+EnsecProtocolHandler::dispatch( const util::URL& aURL, 
+				 const Sequence <beans::PropertyValue>& lArgs ) 
   throw (RuntimeException)
 {
     lArgs.getLength();
-
-    /*const Reference< ::com::sun::star::deployment::XPackageInformationProvider > xPackageInfo = 
-        ::com::sun::star::deployment::PackageInformationProvider::get(mxContext);
-    Reference < ::com::sun::star::util::XURLTransformer > xTransformer ( ::com::sun::star::util::URLTransformer::create( mxContext ) );
-    Reference < ::com::sun::star::ucb::XSimpleFileAccess3 > xSFI = ::com::sun::star::ucb::SimpleFileAccess::create(mxContext);
-
-    ::rtl::OUString strRoot = xPackageInfo->getPackageLocation(::rtl::OUString("bolivia@shell:Ensec"));
-    ::com::sun::star::util::URL oURL;
-
-    oURL.Complete = strRoot + ::rtl::OUString("/dialogo.xdl");
-    xTransformer->parseStrict(oURL);
-
-    //showMessageBox (mxToolkit, mxFrame, ::rtl::OUString("Path"), oURL.Path);
-    //showMessageBox (mxToolkit, mxFrame, ::rtl::OUString("Main"), oURL.Main);
-    //showMessageBox (mxToolkit, mxFrame, ::rtl::OUString("Complete"), oURL.Complete);
-
-    try {
-
-        oslGenericFunction pSym = NULL;
-        pFuncImportDialogModel * ptrFuncImportDialogModel;
-        Reference< ::com::sun::star::io::XInputStream > xInput; // = xSFI->openFileRead( oURL.Complete );
-        
-        if (!xInput.is()) {
-            ::rtl::OUString uri = "vnd.sun.star.expand:$LO_LIB_DIR/libxmlscriptlo.so";
-            uri = cppu::bootstrap_expandUri(uri);
-            ::rtl::OUString moduleUri(uri);
-            oslModule lib = osl_loadModule(moduleUri.pData, SAL_LOADMODULE_LAZY | SAL_LOADMODULE_GLOBAL );
-
-            if (! lib) {
-                ::rtl::OUString const msg("loading component library failed: " + moduleUri);
-                showMessageBox (mxToolkit, mxFrame, "error" , strRoot);                            
-            }
-
-            ::rtl::OUString aGetImportName = ::rtl::OUString("xmlscript::importDialogModel(com::sun::star::uno::Reference<com::sun::star::io::XInputStream> const&, com::sun::star::uno::Reference<com::sun::star::container::XNameContainer> const&, com::sun::star::uno::Reference<com::sun::star::uno::XComponentContext> const&, com::sun::star::uno::Reference<com::sun::star::frame::XModel> const&)");
-            //::rtl::OUString aGetImportName = ::rtl::OUString("_ZN9xmlscript17importDialogModelERKN3com3sun4star3uno9ReferenceINS2_2io12XInputStreamEEERKNS4_INS2_9container14XNameContainerEEERKNS4_INS3_17XComponentContextEEERKNS4_INS2_5frame6XModelEEE");
-
-
-
-            if ( lib )
-                pSym = osl_getFunctionSymbol( lib, aGetImportName.pData );
-
-            if (pSym != 0) {
-                ptrFuncImportDialogModel = (pFuncImportDialogModel*) pSym;
-                showMessageBox (mxToolkit, mxFrame, "Success" , aGetImportName);             }
-            else
-                showMessageBox (mxToolkit, mxFrame, "Failed" , aGetImportName);
-        }
-            
-    }
-    catch( Exception& ) {
-        showMessageBox (mxToolkit, mxFrame, ::rtl::OUString("Excepcion"), strRoot);            
-    }
-
-
-    showMessageBox (mxToolkit, mxFrame, ::rtl::OUString("Terminado"), strRoot); */
-
-
-
-    /*Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager ( mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW );
-      Reference < ::com::sun::star::uno::XInterface > xInter(xServiceManager->createInstanceWithContext(::rtl::OUString("com.sun.star.sheet.SpreadsheetDocument"),mxContext), ::com::sun::star::uno::UNO_QUERY_THROW);*/
 
   if ( aURL.Protocol.compareToAscii("bolivia@shell.ensec:") == 0 ) {
     if ( aURL.Path.equalsAsciiL( RTL_CONSTASCII_STRINGPARAM("Calendario" ) ) ) {
@@ -957,22 +902,20 @@ EnsecProtocolHandler::dispatch( const URL& aURL,
   }
 }
 
-
-Reference< ::com::sun::star::container::XNameContainer > lcl_createControlModel(
-  const Reference< XComponentContext >& xContext) {
-    Reference< ::com::sun::star::lang::XMultiComponentFactory > xSMgr_( xContext->getServiceManager(), UNO_QUERY_THROW );
-    Reference< ::com::sun::star::container::XNameContainer > xControlModel( xSMgr_->createInstanceWithContext("com.sun.star.awt.UnoControlDialogModel", xContext ), UNO_QUERY_THROW );
+Reference<container::XNameContainer> lcl_createControlModel(
+  const Reference<XComponentContext>& xContext) {
+    Reference<lang::XMultiComponentFactory> xSMgr_( xContext->getServiceManager(), UNO_QUERY_THROW );
+    Reference<container::XNameContainer> xControlModel( xSMgr_->createInstanceWithContext("com.sun.star.awt.UnoControlDialogModel", xContext ), UNO_QUERY_THROW );
     return xControlModel;
 }
 
-
-Reference< ::com::sun::star::container::XNameContainer > lcl_createDialogModel(
-        const Reference< XComponentContext >& xContext,
-        const Reference< ::com::sun::star::io::XInputStream >& xInput,
-        const Reference< ::com::sun::star::frame::XModel >& xModel
+Reference<container::XNameContainer> lcl_createDialogModel(
+        const Reference< XComponentContext>& xContext,
+        const Reference<io::XInputStream>& xInput,
+        const Reference<frame::XModel>& xModel
         ) throw ( Exception ) {
     
-    Reference< ::com::sun::star::container::XNameContainer > xDialogModel( lcl_createControlModel(xContext) );
+    Reference<container::XNameContainer> xDialogModel( lcl_createControlModel(xContext) );
 
     //::xmlscript::importDialogModel( xInput, xDialogModel, xContext, xModel );
     xInput.is();
@@ -987,7 +930,7 @@ void
 EnsecProtocolHandler::sheetNotas()
 {
     // get Data Source ensec
-    Reference< ::com::sun::star::sdbc::XDataSource > xDataSource = getDataSource();
+    Reference<sdbc::XDataSource> xDataSource = getDataSource();
 
     if (!xDataSource.is()) {
         showMessageBox (mxToolkit, mxFrame, 
@@ -996,7 +939,7 @@ EnsecProtocolHandler::sheetNotas()
         return;
     }
 
-    Reference< ::com::sun::star::sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference<sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), uno::UNO_QUERY_THROW );
 
 
     // connect database
@@ -1046,7 +989,7 @@ EnsecProtocolHandler::sheetNotas()
 
 
     // get Document Sheet 
-    Reference< ::com::sun::star::sheet::XSpreadsheetDocument > xDocSheet = getDocumentSheet();
+    Reference<sheet::XSpreadsheetDocument> xDocSheet = getDocumentSheet();
     if (!xDocSheet.is()) {
         showMessageBox (mxToolkit, mxFrame, 
                         ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
@@ -1055,7 +998,7 @@ EnsecProtocolHandler::sheetNotas()
     }
 
     // get Current Sheet 
-    Reference< ::com::sun::star::sheet::XSpreadsheet > xSheet = getCurrentSheet();
+    Reference<sheet::XSpreadsheet> xSheet = getCurrentSheet();
 
     if (!xSheet.is()) {
         showMessageBox (mxToolkit, mxFrame, 
@@ -1073,8 +1016,8 @@ EnsecProtocolHandler::sheetNotas()
 }
 
 void
-EnsecProtocolHandler::sheetNotas ( const Reference< ::com::sun::star::sdbc::XConnection>& xConnection,
-                                   const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet,
+EnsecProtocolHandler::sheetNotas ( const Reference<sdbc::XConnection>& xConnection,
+                                   const Reference<sheet::XSpreadsheet>& xSheet,
                                    sal_Int32 nGestion,
                                    const ::rtl::OUString& strAsignatura,
                                    sal_Int32 nPeriodo,
@@ -1088,8 +1031,8 @@ EnsecProtocolHandler::sheetNotas ( const Reference< ::com::sun::star::sdbc::XCon
 
 
 void
-EnsecProtocolHandler::sheetNotasEstudiante ( const Reference< ::com::sun::star::sdbc::XConnection>& xConnection, 
-                                             const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet,
+EnsecProtocolHandler::sheetNotasEstudiante ( const Reference<sdbc::XConnection>& xConnection, 
+                                             const Reference<sheet::XSpreadsheet >& xSheet,
                                              sal_Int32 nGestion,                                         
                                              const ::rtl::OUString& strAsignatura,                                         
                                              sal_Int32 nPeriodo,
@@ -1099,164 +1042,51 @@ EnsecProtocolHandler::sheetNotasEstudiante ( const Reference< ::com::sun::star::
 {
     ::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT EVALUACION.TITULO, NOTA.NOTA FROM NOTA INNER JOIN EVALUACION ON NOTA.GESTION = EVALUACION.GESTION AND NOTA.ASIGNATURA = EVALUACION.ASIGNATURA AND NOTA.PERIODO = EVALUACION.PERIODO AND NOTA.EVALUACION = EVALUACION.ID  WHERE NOTA.GESTION = ? AND NOTA.ASIGNATURA = ? AND NOTA.PERIODO = ? AND NOTA.ESTUDIANTE = ?"));
 
-    Reference< ::com::sun::star::sdbc::XPreparedStatement > xPreparedStatement ( xConnection->prepareStatement(strSQL), ::com::sun::star::uno::UNO_QUERY );
-    Reference< ::com::sun::star::sdbc::XParameters > xParameters ( xPreparedStatement, ::com::sun::star::uno::UNO_QUERY );
+    Reference<sdbc::XPreparedStatement> xPreparedStatement ( xConnection->prepareStatement(strSQL), uno::UNO_QUERY );
+    Reference<sdbc::XParameters> xParameters ( xPreparedStatement, uno::UNO_QUERY );
 
     xParameters->setInt(1, nGestion);
     xParameters->setString(2, strAsignatura);
     xParameters->setInt(3, nPeriodo);
     xParameters->setInt(4, nEstudiante);
 
-    Reference< ::com::sun::star::sdbc::XResultSet > xResult = xPreparedStatement->executeQuery();
-    Reference< ::com::sun::star::sdbc::XRow > xRow ( xResult, ::com::sun::star::uno::UNO_QUERY );  
-    Reference< ::com::sun::star::sdbc::XColumnLocate > xColumn ( xResult, ::com::sun::star::uno::UNO_QUERY );
-
-    Reference< ::com::sun::star::table::XCell > xCell;
-    Reference< ::com::sun::star::beans::XPropertySet > xCellProp; 
+    Reference<sdbc::XResultSet> xResult = xPreparedStatement->executeQuery();
+    Reference<sdbc::XRow> xRow ( xResult, uno::UNO_QUERY );  
+    Reference<sdbc::XColumnLocate> xColumn ( xResult, uno::UNO_QUERY );
+    Reference<table::XCell> xCell;
+    Reference<beans::XPropertySet> xCellProp; 
 
     while (xResult->next()) {
         nCol = findColumn(xSheet, xRow->getString(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TITULO")))));
         if ( nCol != -1 ) {
-            xCell.set (xSheet->getCellByPosition(nCol, nRow), ::com::sun::star::uno::UNO_QUERY);
-            xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
+            xCell.set (xSheet->getCellByPosition(nCol, nRow), uno::UNO_QUERY);
+            xCellProp.set (xCell, uno::UNO_QUERY);
             xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                        ::com::sun::star::uno::makeAny(sal_Int32(2)) );
+                                        uno::makeAny(sal_Int32(2)) );
             xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                        ::com::sun::star::uno::makeAny(sal_Int32(2)) );
+                                        uno::makeAny(sal_Int32(2)) );
             xCell->setValue(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("NOTA")))));
         }
     }
-
-    /*nCol = findColumn(xSheet, ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Formula_Practico")));
-    if ( nCol != -1 ) {
-        xCell.set (xSheet->getCellByPosition(nCol, nRow), ::com::sun::star::uno::UNO_QUERY);
-        xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(2)) );
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(2)) );
-        xCell->setFormula(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("=C")) + 
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(" * 3")));
-    }
-
-    nCol = findColumn(xSheet, ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Formula_DPS")));
-    if ( nCol != -1 ) {
-        xCell.set (xSheet->getCellByPosition(nCol, nRow), ::com::sun::star::uno::UNO_QUERY);
-        xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(2)) );
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(2)) );
-        xCell->setFormula(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("=SUM(E")) + 
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(";F")) +
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(";G")) +
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(";H")) +
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(";I")) +
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(") * (2/10)")));
-    }
-
-    nCol = findColumn(xSheet, ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Formula_Parcial")));
-    if ( nCol != -1 ) {
-        xCell.set (xSheet->getCellByPosition(nCol, nRow), ::com::sun::star::uno::UNO_QUERY);
-        xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(2)) );
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(2)) );
-        xCell->setFormula(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("=SUM(K")) + 
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(";L")) +
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(";M")) +
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(") * (20/100)")));
-    }
-
-    nCol = findColumn(xSheet, ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Formula_DPS_Parcial")));
-    if ( nCol != -1 ) {
-        xCell.set (xSheet->getCellByPosition(nCol, nRow), ::com::sun::star::uno::UNO_QUERY);
-        xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(2)) );
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(2)) );
-        xCell->setFormula(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("=SUM(J")) + 
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(";N")) +
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(")")));
-    }
-
-    nCol = findColumn(xSheet, ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Formula_Trimestre")));
-    if ( nCol != -1 ) {
-        xCell.set (xSheet->getCellByPosition(nCol, nRow), ::com::sun::star::uno::UNO_QUERY);
-        xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(2)) );
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(2)) );
-        xCell->setFormula(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("=SUM(D")) + 
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(";O")) +
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(")")));
-    }
-
-    nCol = findColumn(xSheet, ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Formula_Final")));
-    if ( nCol != -1 ) {
-        xCell.set (xSheet->getCellByPosition(nCol, nRow), ::com::sun::star::uno::UNO_QUERY);
-        xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(2)) );
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(2)) );
-        xCell->setFormula(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("=SUM(P")) + 
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(";Q")) +
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(")")));
-    }
-
-
-    nCol = findColumn(xSheet, ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Formula_Aprobado")));
-    if ( nCol != -1 ) {
-        xCell.set (xSheet->getCellByPosition(nCol, nRow), ::com::sun::star::uno::UNO_QUERY);
-        xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(1)) );
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                    ::com::sun::star::uno::makeAny(sal_Int32(2)) );
-        xCell->setFormula(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("=IF(R")) + 
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("=0;\"SIN NOTA\";IF(R")) +
-                          ::rtl::OUString::valueOf(nRow + 1) +
-                          ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(">=51;\"APROBADO\";\"REPROBADO\"))")));
-                          }*/
 }
 
-sal_Int32 EnsecProtocolHandler::findColumn ( const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet,
+sal_Int32 EnsecProtocolHandler::findColumn ( const Reference<sheet::XSpreadsheet>& xSheet,
                                              const ::rtl::OUString& strColumn )
 {
     sal_Int32 nCol = 0;
     sal_Int32 nRet = -1;
-    Reference< ::com::sun::star::sheet::XCellAddressable > xCellAddress;
-    Reference< ::com::sun::star::table::XCell > xCellFound;
-    Reference< ::com::sun::star::table::XCell > xCell;
-    Reference< ::com::sun::star::beans::XPropertySet > xCellProp; 
-    Reference< ::com::sun::star::container::XNameContainer > xAttributes;
-    ::com::sun::star::xml::AttributeData rAttribute;
-    ::com::sun::star::table::CellAddress rCellAddress;
+    Reference<sheet::XCellAddressable> xCellAddress;
+    Reference<table::XCell> xCellFound;
+    Reference<table::XCell> xCell;
+    Reference<beans::XPropertySet> xCellProp; 
+    Reference<container::XNameContainer> xAttributes;
+    xml::AttributeData rAttribute;
+    table::CellAddress rCellAddress;
 
-    xCell.set (xSheet->getCellByPosition(nCol, 0), ::com::sun::star::uno::UNO_QUERY);
-    xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
+    xCell.set (xSheet->getCellByPosition(nCol, 0), uno::UNO_QUERY);
+    xCellProp.set (xCell, uno::UNO_QUERY);
 
-    while (xCell->getType() != ::com::sun::star::table::CellContentType_EMPTY) {
+    while (xCell->getType() != table::CellContentType_EMPTY) {
         xCellProp->getPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("UserDefinedAttributes"))) >>= xAttributes;        
         if (xAttributes.is() && xAttributes->hasByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")))) {
             xAttributes->getByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= rAttribute;
@@ -1266,12 +1096,12 @@ sal_Int32 EnsecProtocolHandler::findColumn ( const Reference< ::com::sun::star::
             }
         }
         
-        xCell.set (xSheet->getCellByPosition(++nCol, 0), ::com::sun::star::uno::UNO_QUERY);
-        xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
+        xCell.set (xSheet->getCellByPosition(++nCol, 0), uno::UNO_QUERY);
+        xCellProp.set (xCell, uno::UNO_QUERY);
     }
 
     if ( xCellFound.is () ) {
-        xCellAddress.set (xCellFound, ::com::sun::star::uno::UNO_QUERY);
+        xCellAddress.set (xCellFound, uno::UNO_QUERY);
         rCellAddress = xCellAddress->getCellAddress();
         nRet = rCellAddress.Column;
     }
@@ -1281,8 +1111,8 @@ sal_Int32 EnsecProtocolHandler::findColumn ( const Reference< ::com::sun::star::
 
 
 void
-EnsecProtocolHandler::sheetNotasRow( const Reference< ::com::sun::star::sdbc::XConnection>& xConnection, 
-                                     const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet,
+EnsecProtocolHandler::sheetNotasRow( const Reference<sdbc::XConnection>& xConnection, 
+                                     const Reference<sheet::XSpreadsheet >& xSheet,
                                      sal_Int32 nGestion,                                         
                                      const ::rtl::OUString& strAsignatura,                                         
                                      sal_Int32 nPeriodo,
@@ -1292,30 +1122,30 @@ EnsecProtocolHandler::sheetNotasRow( const Reference< ::com::sun::star::sdbc::XC
     sal_Int32 nIterator = 1;
     ::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT ESTUDIANTE.* FROM INSCRIPCION INNER JOIN ESTUDIANTE ON INSCRIPCION.ESTUDIANTE = ESTUDIANTE.ESTUDIANTE_ID WHERE INSCRIPCION.GESTION = ? AND INSCRIPCION.ASIGNATURA = ? ORDER BY ESTUDIANTE.NOMBRE"));
 
-    Reference< ::com::sun::star::sdbc::XPreparedStatement > xPreparedStatement ( xConnection->prepareStatement(strSQL), ::com::sun::star::uno::UNO_QUERY );
-    Reference< ::com::sun::star::sdbc::XParameters > xParameters ( xPreparedStatement, ::com::sun::star::uno::UNO_QUERY );
+    Reference<sdbc::XPreparedStatement> xPreparedStatement ( xConnection->prepareStatement(strSQL), uno::UNO_QUERY );
+    Reference<sdbc::XParameters> xParameters ( xPreparedStatement, uno::UNO_QUERY );
 
     xParameters->setInt(1, nGestion);
     xParameters->setString(2, strAsignatura);
 
-    Reference< ::com::sun::star::sdbc::XResultSet > xResult = xPreparedStatement->executeQuery();
-    Reference< ::com::sun::star::sdbc::XRow > xRow ( xResult, ::com::sun::star::uno::UNO_QUERY );  
-    Reference< ::com::sun::star::sdbc::XColumnLocate > xColumn ( xResult, ::com::sun::star::uno::UNO_QUERY );
+    Reference<sdbc::XResultSet> xResult = xPreparedStatement->executeQuery();
+    Reference<sdbc::XRow> xRow ( xResult, uno::UNO_QUERY );  
+    Reference<sdbc::XColumnLocate> xColumn ( xResult, uno::UNO_QUERY );
 
-    Reference< ::com::sun::star::table::XCell > xCell;
-    Reference< ::com::sun::star::beans::XPropertySet > xCellProp; 
+    Reference<table::XCell> xCell;
+    Reference<beans::XPropertySet> xCellProp; 
 
     while (xResult->next()) {
-        xCell.set (xSheet->getCellByPosition(nCol++, nRow), ::com::sun::star::uno::UNO_QUERY);
-        xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
+        xCell.set (xSheet->getCellByPosition(nCol++, nRow), uno::UNO_QUERY);
+        xCellProp.set (xCell, uno::UNO_QUERY);
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                     ::com::sun::star::uno::makeAny(sal_Int32(2)) );
+                                     uno::makeAny(sal_Int32(2)) );
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                     ::com::sun::star::uno::makeAny(sal_Int32(2)) );
+                                     uno::makeAny(sal_Int32(2)) );
         xCell->setFormula(::rtl::OUString::number(nIterator++));
 
-        xCell.set (xSheet->getCellByPosition(nCol++, nRow), ::com::sun::star::uno::UNO_QUERY);
-        xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
+        xCell.set (xSheet->getCellByPosition(nCol++, nRow), uno::UNO_QUERY);
+        xCellProp.set (xCell, uno::UNO_QUERY);
         xCell->setFormula(xRow->getString(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("NOMBRE")))));
 
         sheetNotasEstudiante(xConnection, xSheet, nGestion, strAsignatura, nPeriodo, 
@@ -1329,8 +1159,8 @@ EnsecProtocolHandler::sheetNotasRow( const Reference< ::com::sun::star::sdbc::XC
 
 
 sal_Int32
-EnsecProtocolHandler::sheetNotasHeader ( const Reference< ::com::sun::star::sdbc::XConnection>& xConnection, 
-                                         const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet,
+EnsecProtocolHandler::sheetNotasHeader ( const Reference<sdbc::XConnection>& xConnection, 
+                                         const Reference<sheet::XSpreadsheet>& xSheet,
                                          sal_Int32 nGestion,                                         
                                          const ::rtl::OUString& strAsignatura,                                         
                                          sal_Int32 nPeriodo,
@@ -1343,9 +1173,9 @@ EnsecProtocolHandler::sheetNotasHeader ( const Reference< ::com::sun::star::sdbc
 
     sal_Int32 nRow = 0;
     sal_Int32 nCol = 0;
-    ::com::sun::star::util::Color clrBlackColor = 0x00000000;
-    ::com::sun::star::table::BorderLine aBorderLine;
-    ::com::sun::star::table::TableBorder aTableBorder;
+    util::Color clrBlackColor = 0x00000000;
+    table::BorderLine aBorderLine;
+    table::TableBorder aTableBorder;
 
     aBorderLine.Color = clrBlackColor;
     aBorderLine.OuterLineWidth = 1;
@@ -1356,87 +1186,78 @@ EnsecProtocolHandler::sheetNotasHeader ( const Reference< ::com::sun::star::sdbc
     aTableBorder.TopLine = aTableBorder.BottomLine = aTableBorder.LeftLine = aTableBorder.RightLine = aBorderLine;
     aTableBorder.Distance = 0;
 
-
-    /*::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT EVALUACION.CATEGORIA, EVALUACION.TITULO, EVALUACION.ASIGNATURA FROM EVALUACION INNER JOIN GESTION ON EVALUACION.GESTION=GESTION.CODIGO INNER JOIN ASIGNATURA ON EVALUACION.ASIGNATURA=ASIGNATURA.CODIGO INNER JOIN PERIODO ON EVALUACION.PERIODO=PERIODO.PERIODO_ID WHERE EVALUACION.GESTION = ? AND EVALUACION.ASIGNATURA = ? AND EVALUACION.PERIODO = ? "));*/
     ::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT * FROM COLUMNA WHERE PLANTILLA ='")) + strPlantilla + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("' ORDER BY CODIGO"));
 
-    Reference< ::com::sun::star::sdbc::XPreparedStatement > xPreparedStatement ( xConnection->prepareStatement(strSQL), ::com::sun::star::uno::UNO_QUERY );
-    Reference< ::com::sun::star::sdbc::XParameters > xParameters ( xPreparedStatement, ::com::sun::star::uno::UNO_QUERY );
+    Reference<sdbc::XPreparedStatement> xPreparedStatement ( xConnection->prepareStatement(strSQL), uno::UNO_QUERY );
+    Reference<sdbc::XParameters> xParameters ( xPreparedStatement, uno::UNO_QUERY );
 
     //xParameters->setInt(1, nGestion);
     //xParameters->setString(2, strAsignatura);
     //xParameters->setInt(3, nPeriodo);
 
-    Reference< ::com::sun::star::sdbc::XResultSet > xResult = xPreparedStatement->executeQuery();
-    Reference< ::com::sun::star::sdbc::XRow > xRow ( xResult, ::com::sun::star::uno::UNO_QUERY );  
-    Reference< ::com::sun::star::sdbc::XColumnLocate > xColumn ( xResult, ::com::sun::star::uno::UNO_QUERY );
+    Reference<sdbc::XResultSet> xResult = xPreparedStatement->executeQuery();
+    Reference<sdbc::XRow> xRow ( xResult, uno::UNO_QUERY );  
+    Reference<sdbc::XColumnLocate> xColumn ( xResult, uno::UNO_QUERY );
+    Reference<table::XColumnRowRange> xColsRows( xSheet, uno::UNO_QUERY );
+    Reference<table::XTableColumns> xTableColumns ( xColsRows->getColumns(), uno::UNO_QUERY );    
+    Reference<table::XTableRows> xTableRows ( xColsRows->getRows(), uno::UNO_QUERY );    
+    Reference<beans::XPropertySet> xColumnProp;
+    Reference<beans::XPropertySet> xRowProp; 
 
-    Reference< ::com::sun::star::table::XColumnRowRange > xColsRows( xSheet, ::com::sun::star::uno::UNO_QUERY );
-    Reference< ::com::sun::star::table::XTableColumns > xTableColumns ( xColsRows->getColumns(), ::com::sun::star::uno::UNO_QUERY );    
-    Reference< ::com::sun::star::table::XTableRows > xTableRows ( xColsRows->getRows(), ::com::sun::star::uno::UNO_QUERY );    
-    Reference< ::com::sun::star::beans::XPropertySet > xColumnProp;
-    Reference< ::com::sun::star::beans::XPropertySet > xRowProp; 
+    Reference<table::XCell> xCell;
+    Reference<beans::XPropertySet> xCellProp; 
+    Reference<container::XNameContainer> xAttributes;
+    //xml::AttributeData rAttribute;
 
-
-
-    Reference< ::com::sun::star::table::XCell > xCell;
-    Reference< ::com::sun::star::beans::XPropertySet > xCellProp; 
-    Reference< ::com::sun::star::container::XNameContainer > xAttributes;
-    //::com::sun::star::xml::AttributeData rAttribute;
-
-
-    xRowProp.set (xTableRows->getByIndex(nRow), ::com::sun::star::uno::UNO_QUERY );
-    xRowProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny( sal_Int32(5000)));
-
+    xRowProp.set (xTableRows->getByIndex(nRow), uno::UNO_QUERY );
+    xRowProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny( sal_Int32(5000)));
 
     while (xResult->next()) {
-        ::com::sun::star::xml::AttributeData rAttribute;
-        xColumnProp.set (xTableColumns->getByIndex(nCol), ::com::sun::star::uno::UNO_QUERY );
+        xml::AttributeData rAttribute;
+        xColumnProp.set (xTableColumns->getByIndex(nCol), uno::UNO_QUERY );
         xColumnProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), 
-                                      ::com::sun::star::uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("WIDTH"))))) );
+                                      uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("WIDTH"))))) );
 
-        xCell.set (xSheet->getCellByPosition(nCol, nRow), ::com::sun::star::uno::UNO_QUERY );
-        xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
+        xCell.set (xSheet->getCellByPosition(nCol, nRow), uno::UNO_QUERY );
+        xCellProp.set (xCell, uno::UNO_QUERY);
         xCellProp->getPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("UserDefinedAttributes"))) >>= xAttributes;
         rAttribute.Type = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CDATA"));
         rAttribute.Value = xRow->getString(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TIPO"))));
-        xAttributes->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), ::com::sun::star::uno::makeAny(rAttribute));
-        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("UserDefinedAttributes")), ::com::sun::star::uno::makeAny(xAttributes) );
+        xAttributes->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), uno::makeAny(rAttribute));
+        xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("UserDefinedAttributes")), uno::makeAny(xAttributes) );
         xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("RotateAngle")), 
-                                    ::com::sun::star::uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ANGULO"))))) );
+                                    uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ANGULO"))))) );
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("IsTextWrapped")), 
-                                     ::com::sun::star::uno::makeAny( sal_True ) );
+                                     uno::makeAny( sal_True ) );
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                     ::com::sun::star::uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HORIZONTAL"))))) );
+                                     uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HORIZONTAL"))))) );
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                     ::com::sun::star::uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VERTICAL"))))) );
+                                     uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VERTICAL"))))) );
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TableBorder")), 
-                                     ::com::sun::star::uno::makeAny(aTableBorder) );
+                                     uno::makeAny(aTableBorder) );
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ParaTopMargin")), 
-                                     ::com::sun::star::uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("MARGEN_TOP"))))));
+                                     uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("MARGEN_TOP"))))));
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ParaBottomMargin")), 
-                                     ::com::sun::star::uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("MARGEN_BOTTOM"))))));
+                                     uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("MARGEN_BOTTOM"))))));
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharHeight")), 
-                                     ::com::sun::star::uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("FONT_HEIGHT"))))));
+                                     uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("FONT_HEIGHT"))))));
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                     ::com::sun::star::uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("FONT_WEIGHT"))))));
-
-
+                                     uno::makeAny(xRow->getInt(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("FONT_WEIGHT"))))));
 
         xCell->setFormula(xRow->getString(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TITULO")))));
 
-        xCell.set (xSheet->getCellByPosition(nCol, nRow + 1), ::com::sun::star::uno::UNO_QUERY );
-        xCellProp.set (xCell, ::com::sun::star::uno::UNO_QUERY);
+        xCell.set (xSheet->getCellByPosition(nCol, nRow + 1), uno::UNO_QUERY );
+        xCellProp.set (xCell, uno::UNO_QUERY);
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                     ::com::sun::star::uno::makeAny(sal_Int32(2)) );
+                                     uno::makeAny(sal_Int32(2)) );
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                     ::com::sun::star::uno::makeAny(sal_Int32(2)) );
+                                     uno::makeAny(sal_Int32(2)) );
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TableBorder")), 
-                                     ::com::sun::star::uno::makeAny(aTableBorder) );
+                                     uno::makeAny(aTableBorder) );
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharHeight")), 
-                                     ::com::sun::star::uno::makeAny(sal_Int32(8)));
+                                     uno::makeAny(sal_Int32(8)));
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                     ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD));
+                                     uno::makeAny(awt::FontWeight::BOLD));
 
         xCell->setFormula(xRow->getString(xColumn->findColumn(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SUBTITULO")))));
 
@@ -1447,12 +1268,11 @@ EnsecProtocolHandler::sheetNotasHeader ( const Reference< ::com::sun::star::sdbc
 }
 
 
-
 void 
 EnsecProtocolHandler::reporteNotas()
 {
     // get Data Source ensec
-    Reference< ::com::sun::star::sdbc::XDataSource > xDataSource = getDataSource();
+    Reference<sdbc::XDataSource> xDataSource = getDataSource();
 
     if (!xDataSource.is()) {
         showMessageBox (mxToolkit, mxFrame, 
@@ -1461,7 +1281,7 @@ EnsecProtocolHandler::reporteNotas()
         return;
     }
 
-    Reference< ::com::sun::star::sdb::XOfficeDatabaseDocument > xOfficeDbD  = getDatabaseDocument();
+    Reference<sdb::XOfficeDatabaseDocument> xOfficeDbD  = getDatabaseDocument();
 
     if (!xOfficeDbD.is()) {
         showMessageBox (mxToolkit, mxFrame, 
@@ -1470,8 +1290,7 @@ EnsecProtocolHandler::reporteNotas()
         return;
     }
 
-    Reference< ::com::sun::star::sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), ::com::sun::star::uno::UNO_QUERY_THROW );
-
+    Reference<sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), uno::UNO_QUERY_THROW );
 
     // connect database
     if (!xConnection.is()) {
@@ -1508,8 +1327,8 @@ EnsecProtocolHandler::reporteNotas()
         return;
     }
 
-    Reference < ::com::sun::star::sdb::XQueryDefinitionsSupplier > xQueryDS ( xDataSource, ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::beans::XPropertySet > xPropQueryDefinition ( xQueryDS->getQueryDefinitions()->getByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CALCULO_NOTA"))), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <sdb::XQueryDefinitionsSupplier> xQueryDS ( xDataSource, uno::UNO_QUERY_THROW);
+    Reference<beans::XPropertySet> xPropQueryDefinition ( xQueryDS->getQueryDefinitions()->getByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CALCULO_NOTA"))), uno::UNO_QUERY_THROW );
         
     
     ::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT ESTUDIANTE.NOMBRE, CALC.NOTA FROM ( SELECT NOTA.GESTION, NOTA.ASIGNATURA, NOTA.PERIODO, NOTA.ESTUDIANTE, SUM( NOTA.NOTA * ( EVALUACION.PONDERACION / EVALUACION.NOTA ) ) AS NOTA FROM NOTA INNER JOIN EVALUACION ON NOTA.EVALUACION = EVALUACION.ID AND NOTA.GESTION = ")) +
@@ -1520,18 +1339,18 @@ EnsecProtocolHandler::reporteNotas()
           ::rtl::OUString::number(nPeriodo) +
           ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("GROUP BY NOTA.GESTION, NOTA.ASIGNATURA, NOTA.PERIODO, NOTA.ESTUDIANTE ) CALC INNER JOIN ESTUDIANTE ON CALC.ESTUDIANTE = ESTUDIANTE.ESTUDIANTE_ID ORDER BY CALC.NOTA DESC"));
 
-    xPropQueryDefinition->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Command")), ::com::sun::star::uno::makeAny( strSQL ) );
+    xPropQueryDefinition->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Command")), uno::makeAny( strSQL ) );
 
-    Reference< ::com::sun::star::sdb::XReportDocumentsSupplier > xReportDS ( xOfficeDbD, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::container::XNameAccess > xContainer ( xReportDS->getReportDocuments(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::frame::XComponentLoader > xLoader ( xReportDS->getReportDocuments(), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference<sdb::XReportDocumentsSupplier> xReportDS ( xOfficeDbD, uno::UNO_QUERY_THROW );
+    Reference<container::XNameAccess> xContainer ( xReportDS->getReportDocuments(), uno::UNO_QUERY_THROW );
+    Reference<frame::XComponentLoader> xLoader ( xReportDS->getReportDocuments(), uno::UNO_QUERY_THROW );
     
     if ( xContainer->hasElements() && xContainer->hasByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CALCULO_NOTA"))) ) {
-      Sequence < ::com::sun::star::beans::PropertyValue > aArgs(1);      
+      Sequence <beans::PropertyValue> aArgs(1);      
       aArgs[0].Name = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ActiveConnection"));
       aArgs[0].Value <<= xConnection;
       /*aArgs[1].Name = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CommandType"));
-      aArgs[1].Value <<= ::com::sun::star::uno::makeAny(2);
+      aArgs[1].Value <<= uno::makeAny(2);
       aArgs[2].Name = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Command"));
       aArgs[2].Value <<= strSQL;*/
 
@@ -1547,7 +1366,7 @@ void
 EnsecProtocolHandler::reporteAnualNotas()
 {
     // get Data Source ensec
-    Reference< ::com::sun::star::sdbc::XDataSource > xDataSource = getDataSource();
+    Reference<sdbc::XDataSource> xDataSource = getDataSource();
 
     if (!xDataSource.is()) {
         showMessageBox (mxToolkit, mxFrame, 
@@ -1556,7 +1375,7 @@ EnsecProtocolHandler::reporteAnualNotas()
         return;
     }
 
-    Reference< ::com::sun::star::sdb::XOfficeDatabaseDocument > xOfficeDbD  = getDatabaseDocument();
+    Reference<sdb::XOfficeDatabaseDocument> xOfficeDbD  = getDatabaseDocument();
 
     if (!xOfficeDbD.is()) {
         showMessageBox (mxToolkit, mxFrame, 
@@ -1565,7 +1384,7 @@ EnsecProtocolHandler::reporteAnualNotas()
         return;
     }
 
-    Reference< ::com::sun::star::sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference<sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), uno::UNO_QUERY_THROW );
 
 
     // connect database
@@ -1594,8 +1413,8 @@ EnsecProtocolHandler::reporteAnualNotas()
         return;
     }
 
-    Reference < ::com::sun::star::sdb::XQueryDefinitionsSupplier > xQueryDS ( xDataSource, ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::beans::XPropertySet > xPropQueryDefinition ( xQueryDS->getQueryDefinitions()->getByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CALCULO_NOTA_FINAL"))), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <sdb::XQueryDefinitionsSupplier> xQueryDS ( xDataSource, uno::UNO_QUERY_THROW);
+    Reference<beans::XPropertySet> xPropQueryDefinition ( xQueryDS->getQueryDefinitions()->getByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CALCULO_NOTA_FINAL"))), uno::UNO_QUERY_THROW );
         
     ::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT ESTUDIANTE.NOMBRE, COALESCE ( PRIMERO.NOTA, 0 ) PRIMERO, COALESCE ( SEGUNDO.NOTA, 0 ) SEGUNDO, COALESCE ( TERCERO.NOTA, 0 ) TERCERO, ( ( COALESCE ( PRIMERO.NOTA, 0 ) + COALESCE ( SEGUNDO.NOTA, 0 ) + COALESCE ( TERCERO.NOTA, 0 ) ) / 3 ) \"NOTA FINAL\" FROM ESTUDIANTE LEFT OUTER JOIN ( SELECT NOTA.GESTION, NOTA.ASIGNATURA, NOTA.PERIODO, NOTA.ESTUDIANTE, SUM( NOTA.NOTA * ( EVALUACION.PONDERACION / EVALUACION.NOTA ) ) NOTA FROM NOTA INNER JOIN EVALUACION ON NOTA.EVALUACION = EVALUACION.ID AND NOTA.GESTION = ")) +
           ::rtl::OUString::number(nGestion) + 
@@ -1613,18 +1432,18 @@ EnsecProtocolHandler::reporteAnualNotas()
           ::rtl::OUString::number(nGestion);
 
 
-    xPropQueryDefinition->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Command")), ::com::sun::star::uno::makeAny( strSQL ) );
+    xPropQueryDefinition->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Command")), uno::makeAny( strSQL ) );
 
-    Reference< ::com::sun::star::sdb::XReportDocumentsSupplier > xReportDS ( xOfficeDbD, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::container::XNameAccess > xContainer ( xReportDS->getReportDocuments(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::frame::XComponentLoader > xLoader ( xReportDS->getReportDocuments(), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference<sdb::XReportDocumentsSupplier> xReportDS ( xOfficeDbD, uno::UNO_QUERY_THROW );
+    Reference<container::XNameAccess> xContainer ( xReportDS->getReportDocuments(), uno::UNO_QUERY_THROW );
+    Reference<frame::XComponentLoader> xLoader ( xReportDS->getReportDocuments(), uno::UNO_QUERY_THROW );
     
     if ( xContainer->hasElements() && xContainer->hasByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CALCULO_NOTA"))) ) {
-      Sequence < ::com::sun::star::beans::PropertyValue > aArgs(1);      
+      Sequence <beans::PropertyValue> aArgs(1);      
       aArgs[0].Name = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ActiveConnection"));
       aArgs[0].Value <<= xConnection;
       /*aArgs[1].Name = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CommandType"));
-      aArgs[1].Value <<= ::com::sun::star::uno::makeAny(2);
+      aArgs[1].Value <<= uno::makeAny(2);
       aArgs[2].Name = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Command"));
       aArgs[2].Value <<= strSQL;*/
 
@@ -1642,7 +1461,7 @@ void
 EnsecProtocolHandler::ingresarNotas()
 {
     // get Data Source ensec
-    Reference< ::com::sun::star::sdbc::XDataSource > xDataSource = getDataSource();
+    Reference<sdbc::XDataSource> xDataSource = getDataSource();
 
     if (!xDataSource.is()) {
         showMessageBox (mxToolkit, mxFrame, 
@@ -1651,7 +1470,7 @@ EnsecProtocolHandler::ingresarNotas()
         return;
     }
 
-    Reference< ::com::sun::star::sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference<sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), uno::UNO_QUERY_THROW );
 
 
     // connect database
@@ -1699,7 +1518,7 @@ void
 EnsecProtocolHandler::generarCronogramaTrabajo()
 {
     // get Data Source ensec
-    Reference< ::com::sun::star::sdbc::XDataSource > xDataSource = getDataSource();
+    Reference<sdbc::XDataSource> xDataSource = getDataSource();
 
     if (!xDataSource.is()) {
         showMessageBox (mxToolkit, mxFrame, 
@@ -1708,7 +1527,7 @@ EnsecProtocolHandler::generarCronogramaTrabajo()
         return;
     }
 
-    Reference< ::com::sun::star::sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference<sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), uno::UNO_QUERY_THROW );
 
 
     // connect database
@@ -1721,7 +1540,7 @@ EnsecProtocolHandler::generarCronogramaTrabajo()
 
 
     // get Document Sheet 
-    Reference< ::com::sun::star::sheet::XSpreadsheetDocument > xDocSheet = getDocumentSheet();
+    Reference<sheet::XSpreadsheetDocument> xDocSheet = getDocumentSheet();
     if (!xDocSheet.is()) {
         showMessageBox (mxToolkit, mxFrame, 
                         ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
@@ -1730,7 +1549,7 @@ EnsecProtocolHandler::generarCronogramaTrabajo()
     }
 
     // get Current Sheet 
-    Reference< ::com::sun::star::sheet::XSpreadsheet > xSheet = getCurrentSheet();
+    Reference<sheet::XSpreadsheet> xSheet = getCurrentSheet();
 
     if (!xSheet.is()) {
         showMessageBox (mxToolkit, mxFrame, 
@@ -1760,9 +1579,9 @@ EnsecProtocolHandler::generarCronogramaTrabajo()
 
 
 void
-EnsecProtocolHandler::generarCalendario( const Reference< ::com::sun::star::sdbc::XDataSource >& xDataSource,
-                                         const Reference< ::com::sun::star::sheet::XSpreadsheetDocument >& xDocSheet,
-                                         const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet,
+EnsecProtocolHandler::generarCalendario( const Reference<sdbc::XDataSource>& xDataSource,
+                                         const Reference<sheet::XSpreadsheetDocument>& xDocSheet,
+                                         const Reference<sheet::XSpreadsheet>& xSheet,
                                          const ::rtl::OUString & strAsignatura,
                                          sal_Int32 nCalendarRow ) 
 {
@@ -1773,9 +1592,9 @@ EnsecProtocolHandler::generarCalendario( const Reference< ::com::sun::star::sdbc
 }
 
 sal_Int32 
-EnsecProtocolHandler::generarMes( const Reference< ::com::sun::star::sdbc::XDataSource >& xDataSource,
-                                  const Reference< ::com::sun::star::sheet::XSpreadsheetDocument >& xDocSheet,                                  
-                                  const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet,
+EnsecProtocolHandler::generarMes( const Reference<sdbc::XDataSource>& xDataSource,
+                                  const Reference<sheet::XSpreadsheetDocument>& xDocSheet,                                  
+                                  const Reference<sheet::XSpreadsheet>& xSheet,
                                   const ::rtl::OUString & strAsignatura,
                                   sal_Int32 nCalendarRow,
                                   sal_Int32 nMonth )
@@ -1784,12 +1603,12 @@ EnsecProtocolHandler::generarMes( const Reference< ::com::sun::star::sdbc::XData
     ::rtl::OString strParam = ::rtl::OUStringToOString(strAsignatura, RTL_TEXTENCODING_UTF8);
     sprintf(strBuffer, "SELECT STARTDATE, DESCRIPTION, CATEGORY FROM CALENDARIO WHERE MONTH(STARTDATE)=%d UNION SELECT STARTDATE, DESCRIPTION, CATEGORY FROM CRONOGRAMA WHERE MONTH(STARTDATE)=%d AND ASIGNATURA='%s'  ORDER BY STARTDATE, DESCRIPTION", nMonth, nMonth, strParam.getStr());
 
-    Reference< ::com::sun::star::sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference<sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), uno::UNO_QUERY_THROW );
     //::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT * FROM CALENDARIO"));
-    Reference< ::com::sun::star::sdbc::XStatement > xStatement ( xConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XResultSet > xResultSet ( xStatement->executeQuery(::rtl::OUString::createFromAscii(strBuffer)), 
-                                                                 ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XRow > xRow ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference<sdbc::XStatement> xStatement ( xConnection->createStatement(), uno::UNO_QUERY_THROW );
+    Reference<sdbc::XResultSet> xResultSet ( xStatement->executeQuery(::rtl::OUString::createFromAscii(strBuffer)), 
+                                                                 uno::UNO_QUERY_THROW );
+    Reference<sdbc::XRow> xRow ( xResultSet, uno::UNO_QUERY_THROW );  
 
     sal_Int32 nStartRow = -1;
     sal_Int32 nEndRow = -1;
@@ -1811,17 +1630,17 @@ EnsecProtocolHandler::generarMes( const Reference< ::com::sun::star::sdbc::XData
 }
 
 void 
-EnsecProtocolHandler::mergeMonth( const Reference< ::com::sun::star::sheet::XSpreadsheetDocument >& xDocSheet, 
-                                  const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet, 
+EnsecProtocolHandler::mergeMonth( const Reference<sheet::XSpreadsheetDocument>& xDocSheet, 
+                                  const Reference<sheet::XSpreadsheet>& xSheet, 
                                   sal_Int32 nMonth,
                                   sal_Int32 nStartRow,
                                   sal_Int32 nEndRow
                                   )
 {
     xDocSheet.is();
-    ::com::sun::star::util::Color clrBlackColor = 0x00000000;
-    ::com::sun::star::table::BorderLine aBorderLine;
-    ::com::sun::star::table::TableBorder aTableBorder;
+    util::Color clrBlackColor = 0x00000000;
+    table::BorderLine aBorderLine;
+    table::TableBorder aTableBorder;
 
     aBorderLine.Color = clrBlackColor;
     aBorderLine.OuterLineWidth = 1;
@@ -1835,10 +1654,10 @@ EnsecProtocolHandler::mergeMonth( const Reference< ::com::sun::star::sheet::XSpr
     if ( nStartRow == -1 || nEndRow == -1 )
         return;
 
-    Reference < ::com::sun::star::table::XCellRange > xRange ( xSheet->getCellRangeByPosition( 0, nStartRow, 0, nEndRow ), ::com::sun::star::uno::UNO_QUERY);
-    Reference < ::com::sun::star::util::XMergeable > xMerge ( xRange, ::com::sun::star::uno::UNO_QUERY);
-    Reference< ::com::sun::star::table::XCell > xCell (xRange->getCellByPosition(0,0), ::com::sun::star::uno::UNO_QUERY );
-    Reference< ::com::sun::star::beans::XPropertySet > xCellProp ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    Reference <table::XCellRange> xRange ( xSheet->getCellRangeByPosition( 0, nStartRow, 0, nEndRow ), uno::UNO_QUERY);
+    Reference <util::XMergeable> xMerge ( xRange, uno::UNO_QUERY);
+    Reference<table::XCell> xCell (xRange->getCellByPosition(0,0), uno::UNO_QUERY );
+    Reference<beans::XPropertySet> xCellProp ( xCell, uno::UNO_QUERY );
 
     ::rtl::OUString strMes;
 
@@ -1883,15 +1702,15 @@ EnsecProtocolHandler::mergeMonth( const Reference< ::com::sun::star::sheet::XSpr
 
     xCell->setFormula( strMes );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD) );
+                                 uno::makeAny(awt::FontWeight::BOLD) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::table::CellHoriJustify_CENTER) );
+                                 uno::makeAny(table::CellHoriJustify_CENTER) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                 ::com::sun::star::uno::makeAny(sal_Int16(2)) );
+                                 uno::makeAny(sal_Int16(2)) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TableBorder")), 
-                                 ::com::sun::star::uno::makeAny(aTableBorder) );
+                                 uno::makeAny(aTableBorder) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("RotateAngle")), 
-                                 ::com::sun::star::uno::makeAny(sal_Int16(9000)) );
+                                 uno::makeAny(sal_Int16(9000)) );
 
     xMerge->merge( sal_True );
 
@@ -1900,13 +1719,13 @@ EnsecProtocolHandler::mergeMonth( const Reference< ::com::sun::star::sheet::XSpr
 
 
 void
-EnsecProtocolHandler::generarHeaderRow ( const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet,
+EnsecProtocolHandler::generarHeaderRow ( const Reference<sheet::XSpreadsheet>& xSheet,
                                          sal_Int32 nRow )
 {
-    ::com::sun::star::util::Color clrLightGreyColor = 0x00C0C0C0;
-    ::com::sun::star::util::Color clrBlackColor = 0x00000000;
-    ::com::sun::star::table::BorderLine aBorderLine;
-    ::com::sun::star::table::TableBorder aTableBorder;
+    util::Color clrLightGreyColor = 0x00C0C0C0;
+    util::Color clrBlackColor = 0x00000000;
+    table::BorderLine aBorderLine;
+    table::TableBorder aTableBorder;
 
     aBorderLine.Color = clrBlackColor;
     aBorderLine.OuterLineWidth = 1;
@@ -1917,53 +1736,53 @@ EnsecProtocolHandler::generarHeaderRow ( const Reference< ::com::sun::star::shee
     aTableBorder.TopLine = aTableBorder.BottomLine = aTableBorder.LeftLine = aTableBorder.RightLine = aBorderLine;
     aTableBorder.Distance = 0;
     
-    Reference< ::com::sun::star::table::XCell > xCell (xSheet->getCellByPosition(0, nRow), ::com::sun::star::uno::UNO_QUERY );
-    Reference< ::com::sun::star::beans::XPropertySet > xCellProp ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    Reference<table::XCell> xCell (xSheet->getCellByPosition(0, nRow), uno::UNO_QUERY );
+    Reference<beans::XPropertySet> xCellProp ( xCell, uno::UNO_QUERY );
 
     xCell->setFormula( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("MES")) );
-    xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::table::CellHoriJustify_CENTER) );
+    xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
+                                 uno::makeAny(table::CellHoriJustify_CENTER) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CellBackColor")), 
-                                 ::com::sun::star::uno::makeAny(clrLightGreyColor) );
+                                 uno::makeAny(clrLightGreyColor) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TableBorder")), 
-                                 ::com::sun::star::uno::makeAny(aTableBorder) );
+                                 uno::makeAny(aTableBorder) );
 
-    xCell.set (xSheet->getCellByPosition(1, nRow), ::com::sun::star::uno::UNO_QUERY );
-    xCellProp.set ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    xCell.set (xSheet->getCellByPosition(1, nRow), uno::UNO_QUERY );
+    xCellProp.set ( xCell, uno::UNO_QUERY );
 
     xCell->setFormula( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("FECHA")) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::table::CellHoriJustify_CENTER) );
+                                 uno::makeAny(table::CellHoriJustify_CENTER) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CellBackColor")), 
-                                 ::com::sun::star::uno::makeAny(clrLightGreyColor) );
+                                 uno::makeAny(clrLightGreyColor) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TableBorder")), 
-                                 ::com::sun::star::uno::makeAny(aTableBorder) );
+                                 uno::makeAny(aTableBorder) );
 
 
-    xCell.set (xSheet->getCellByPosition(2, nRow), ::com::sun::star::uno::UNO_QUERY );
-    xCellProp.set ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    xCell.set (xSheet->getCellByPosition(2, nRow), uno::UNO_QUERY );
+    xCellProp.set ( xCell, uno::UNO_QUERY );
 
     xCell->setFormula( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ACTIVIDAD")) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::table::CellHoriJustify_CENTER) );
+                                 uno::makeAny(table::CellHoriJustify_CENTER) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CellBackColor")), 
-                                 ::com::sun::star::uno::makeAny(clrLightGreyColor) );
+                                 uno::makeAny(clrLightGreyColor) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TableBorder")), 
-                                 ::com::sun::star::uno::makeAny(aTableBorder) );
+                                 uno::makeAny(aTableBorder) );
 }
 
 void
-EnsecProtocolHandler::generarRow( const Reference< ::com::sun::star::sheet::XSpreadsheetDocument >& xDocSheet, 
-                                  const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet, 
-                                  const Reference< ::com::sun::star::sdbc::XRow >& xRow,
+EnsecProtocolHandler::generarRow( const Reference<sheet::XSpreadsheetDocument>& xDocSheet, 
+                                  const Reference<sheet::XSpreadsheet>& xSheet, 
+                                  const Reference<sdbc::XRow>& xRow,
                                   sal_Int32 nRow )
 {
-    ::com::sun::star::util::Color clrBlackColor = 0x00000000;
-    ::com::sun::star::table::BorderLine aBorderLine;
-    ::com::sun::star::table::TableBorder aTableBorder;
-    ::com::sun::star::table::TableBorderDistances aTableBorderDistances;
-    ::com::sun::star::util::Date aDate;
-    ::com::sun::star::lang::Locale olocale;
+    util::Color clrBlackColor = 0x00000000;
+    table::BorderLine aBorderLine;
+    table::TableBorder aTableBorder;
+    table::TableBorderDistances aTableBorderDistances;
+    util::Date aDate;
+    lang::Locale olocale;
     sal_Int32 nNewIndex = 0;
 
     aBorderLine.Color = clrBlackColor;
@@ -1980,16 +1799,16 @@ EnsecProtocolHandler::generarRow( const Reference< ::com::sun::star::sheet::XSpr
 
     ::rtl::OUString strCategory = xRow->getString(3);
 
-    Reference < ::com::sun::star::util::XNumberFormatsSupplier > xFormatsSupplier ( xDocSheet, ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference < ::com::sun::star::util::XNumberFormats > xNumberFormats ( xFormatsSupplier->getNumberFormats(), ::com::sun::star::uno::UNO_QUERY_THROW); 
-    //Reference < ::com::sun::star::util::XNumberFormatTypes > xFormatTypes ( xFormatsSupplier->getNumberFormats(), ::com::sun::star::uno::UNO_QUERY_THROW); 
+    Reference <util::XNumberFormatsSupplier> xFormatsSupplier ( xDocSheet, uno::UNO_QUERY_THROW);
+    Reference <util::XNumberFormats> xNumberFormats ( xFormatsSupplier->getNumberFormats(), uno::UNO_QUERY_THROW); 
+    //Reference < util::XNumberFormatTypes > xFormatTypes ( xFormatsSupplier->getNumberFormats(), uno::UNO_QUERY_THROW); 
 
-    Reference< ::com::sun::star::table::XCell > xCell (xSheet->getCellByPosition(1, nRow), ::com::sun::star::uno::UNO_QUERY );
-    Reference< ::com::sun::star::beans::XPropertySet > xCellProp ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    Reference<table::XCell> xCell (xSheet->getCellByPosition(1, nRow), uno::UNO_QUERY );
+    Reference<beans::XPropertySet> xCellProp ( xCell, uno::UNO_QUERY );
 
-    //int nKeyFormat = xFormatTypes->getStandardFormat(::com::sun::star::util::NumberFormat::DATE, olocale);
+    //int nKeyFormat = xFormatTypes->getStandardFormat(util::NumberFormat::DATE, olocale);
     
-    //Reference< ::com::sun::star::beans::XPropertySet > xFormatProp =  xNumberFormats->getByKey( nKeyFormat );
+    //Reference< beans::XPropertySet > xFormatProp =  xNumberFormats->getByKey( nKeyFormat );
     //xFormatProp->getPropertyValue( ::rtl::OUString( RTL_CONSTASCII_USTRINGPARAM( "Locale" ) ) ) >>= olocale;
 
     nNewIndex = xNumberFormats->queryKey( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("NN D")), olocale, false );
@@ -2004,234 +1823,231 @@ EnsecProtocolHandler::generarRow( const Reference< ::com::sun::star::sheet::XSpr
     xCell->setFormula( ::rtl::OUString::createFromAscii(strBuffer) );
     if ( strCategory.getLength() != 0 && strCategory.compareToAscii("Normal") != 0 ) 
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                     ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD) );
+                                     uno::makeAny(awt::FontWeight::BOLD) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                 ::com::sun::star::uno::makeAny(sal_Int16(2)) );
+                                 uno::makeAny(sal_Int16(2)) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::table::CellHoriJustify_LEFT) );
+                                 uno::makeAny(table::CellHoriJustify_LEFT) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ParaIndent")), 
-                                 ::com::sun::star::uno::makeAny(sal_Int16(400)) );
-    xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("NumberFormat")), ::com::sun::star::uno::makeAny(nNewIndex));
+                                 uno::makeAny(sal_Int16(400)) );
+    xCellProp->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("NumberFormat")), uno::makeAny(nNewIndex));
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TableBorder")), 
-                                 ::com::sun::star::uno::makeAny(aTableBorder) );
+                                 uno::makeAny(aTableBorder) );
     /*xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TableBorderDistances")), 
-      ::com::sun::star::uno::makeAny(aTableBorderDistances) );*/
+      uno::makeAny(aTableBorderDistances) );*/
 
 
-    xCell.set (xSheet->getCellByPosition(2, nRow), ::com::sun::star::uno::UNO_QUERY );
-    xCellProp.set ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    xCell.set (xSheet->getCellByPosition(2, nRow), uno::UNO_QUERY );
+    xCellProp.set ( xCell, uno::UNO_QUERY );
 
     xCell->setFormula( xRow->getString(2) );
     if ( strCategory.getLength() != 0 && strCategory.compareToAscii("Normal") != 0 ) 
         xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                     ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD) );
+                                     uno::makeAny(awt::FontWeight::BOLD) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("IsTextWrapped")), 
-                                 ::com::sun::star::uno::makeAny( sal_True ) );
+                                 uno::makeAny( sal_True ) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::table::CellHoriJustify_LEFT) );
+                                 uno::makeAny(table::CellHoriJustify_LEFT) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ParaIndent")), 
-                                 ::com::sun::star::uno::makeAny(sal_Int16(300)) );
+                                 uno::makeAny(sal_Int16(300)) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("VertJustify")), 
-                                 ::com::sun::star::uno::makeAny(sal_Int16(2)) );
+                                 uno::makeAny(sal_Int16(2)) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TableBorder")), 
-                                 ::com::sun::star::uno::makeAny(aTableBorder) );
+                                 uno::makeAny(aTableBorder) );
 
 
 }
 
 
 sal_Int32
-EnsecProtocolHandler::generarEncabezado( const Reference< ::com::sun::star::sdbc::XDataSource >& xDataSource, 
-                                         const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet, 
+EnsecProtocolHandler::generarEncabezado( const Reference<sdbc::XDataSource>& xDataSource, 
+                                         const Reference<sheet::XSpreadsheet>& xSheet, 
                                          ::rtl::OUString& strAsignatura )
 {
 
-    Reference< ::com::sun::star::sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XStatement > xStatement ( xConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference<sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), uno::UNO_QUERY_THROW );
+    Reference<sdbc::XStatement> xStatement ( xConnection->createStatement(), uno::UNO_QUERY_THROW );
     ::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT ASIGNATURA.CODIGO, CARRERA.CARRERA, ASIGNATURA.NOMBRE, DOCENTE.NOMBRE, ASIGNATURA.CURSO, ASIGNATURA.GESTION  FROM ASIGNATURA INNER JOIN CARRERA ON ASIGNATURA.NOMBRE='")) + 
         strAsignatura + 
         ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("' AND ASIGNATURA.GESTION=2014 AND CARRERA.CODIGO = ASIGNATURA.CARRERA INNER JOIN DOCENTE ON ASIGNATURA.DOCENTE = DOCENTE.CODIGO"));
 
     ::rtl::OString strDebug = ::rtl::OUStringToOString(strSQL, RTL_TEXTENCODING_UTF8);
-    Reference< ::com::sun::star::sdbc::XResultSet > xResultSet ( xStatement->executeQuery(strSQL), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XRow > xAsignatura ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference<sdbc::XResultSet> xResultSet ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
+    Reference<sdbc::XRow> xAsignatura ( xResultSet, uno::UNO_QUERY_THROW );  
 
     if ( !xResultSet->next() )
         return 8;
 
     strAsignatura = xAsignatura->getString(1);
 
-    Reference< ::com::sun::star::table::XColumnRowRange > xColsRows( xSheet, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::table::XTableColumns > xTableColumns ( xColsRows->getColumns(), ::com::sun::star::uno::UNO_QUERY_THROW );    
-    Reference< ::com::sun::star::beans::XPropertySet > xColumnProp (xTableColumns->getByIndex( 0 ), ::com::sun::star::uno::UNO_QUERY_THROW );
-	xColumnProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(2470)) );
+    Reference<table::XColumnRowRange> xColsRows( xSheet, uno::UNO_QUERY_THROW );
+    Reference<table::XTableColumns> xTableColumns ( xColsRows->getColumns(), uno::UNO_QUERY_THROW );    
+    Reference<beans::XPropertySet> xColumnProp (xTableColumns->getByIndex( 0 ), uno::UNO_QUERY_THROW );
+	xColumnProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(2470)) );
 
-    xColumnProp.set (xTableColumns->getByIndex( 1 ), ::com::sun::star::uno::UNO_QUERY_THROW );
-	xColumnProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(2470)) );
+    xColumnProp.set (xTableColumns->getByIndex( 1 ), uno::UNO_QUERY_THROW );
+	xColumnProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(2470)) );
     
-    xColumnProp.set (xTableColumns->getByIndex( 2 ), ::com::sun::star::uno::UNO_QUERY_THROW );
-	xColumnProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(13840)) );
+    xColumnProp.set (xTableColumns->getByIndex( 2 ), uno::UNO_QUERY_THROW );
+	xColumnProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(13840)) );
 
-    Reference < ::com::sun::star::table::XCellRange > xHeader ( xSheet->getCellRangeByPosition( 0, 0, 2, 0 ), ::com::sun::star::uno::UNO_QUERY);
-    Reference < ::com::sun::star::util::XMergeable > xMerge ( xHeader, ::com::sun::star::uno::UNO_QUERY);
-    Reference< ::com::sun::star::table::XCell > xCell (xHeader->getCellByPosition(0,0), ::com::sun::star::uno::UNO_QUERY );
-    Reference< ::com::sun::star::beans::XPropertySet > xCellProp ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    Reference <table::XCellRange> xHeader ( xSheet->getCellRangeByPosition( 0, 0, 2, 0 ), uno::UNO_QUERY);
+    Reference <util::XMergeable> xMerge ( xHeader, uno::UNO_QUERY);
+    Reference<table::XCell> xCell (xHeader->getCellByPosition(0,0), uno::UNO_QUERY );
+    Reference<beans::XPropertySet> xCellProp ( xCell, uno::UNO_QUERY );
 
     xCell->setFormula( xAsignatura->getString(3) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD) );
+                                 uno::makeAny(awt::FontWeight::BOLD) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::table::CellHoriJustify_CENTER) );
+                                 uno::makeAny(table::CellHoriJustify_CENTER) );
     xMerge->merge( sal_True );
 
-    xHeader.set ( xSheet->getCellRangeByPosition( 0, 1, 2, 1 ), ::com::sun::star::uno::UNO_QUERY );
-    xMerge.set ( xHeader, ::com::sun::star::uno::UNO_QUERY );
-    xCell.set ( xHeader->getCellByPosition(0,0), ::com::sun::star::uno::UNO_QUERY );
-    xCellProp.set ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    xHeader.set ( xSheet->getCellRangeByPosition( 0, 1, 2, 1 ), uno::UNO_QUERY );
+    xMerge.set ( xHeader, uno::UNO_QUERY );
+    xCell.set ( xHeader->getCellByPosition(0,0), uno::UNO_QUERY );
+    xCellProp.set ( xCell, uno::UNO_QUERY );
 
     xCell->setFormula( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CRONOGRAMA DE TRABAJO")) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD) );
+                                 uno::makeAny(awt::FontWeight::BOLD) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::table::CellHoriJustify_CENTER) );
+                                 uno::makeAny(table::CellHoriJustify_CENTER) );
     xMerge->merge( sal_True );
 
-
-    xHeader.set ( xSheet->getCellRangeByPosition( 0, 2, 2, 2 ), ::com::sun::star::uno::UNO_QUERY );
-    xMerge.set ( xHeader, ::com::sun::star::uno::UNO_QUERY );
-    xCell.set ( xHeader->getCellByPosition(0,0), ::com::sun::star::uno::UNO_QUERY );
-    xCellProp.set ( xCell, ::com::sun::star::uno::UNO_QUERY );
-
+    xHeader.set ( xSheet->getCellRangeByPosition( 0, 2, 2, 2 ), uno::UNO_QUERY );
+    xMerge.set ( xHeader, uno::UNO_QUERY );
+    xCell.set ( xHeader->getCellByPosition(0,0), uno::UNO_QUERY );
+    xCellProp.set ( xCell, uno::UNO_QUERY );
     xCell->setFormula( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("GESTION ")) + xAsignatura->getString(6) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD) );
+                                 uno::makeAny(awt::FontWeight::BOLD) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::table::CellHoriJustify_CENTER) );
+                                 uno::makeAny(table::CellHoriJustify_CENTER) );
     xMerge->merge( sal_True );
 
-
-    xCell.set ( xSheet->getCellByPosition( 0, 4 ), ::com::sun::star::uno::UNO_QUERY );
-    xCellProp.set ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    xCell.set ( xSheet->getCellByPosition( 0, 4 ), uno::UNO_QUERY );
+    xCellProp.set ( xCell, uno::UNO_QUERY );
 
     xCell->setFormula( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CARRERA :")) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD) );
+                                 uno::makeAny(awt::FontWeight::BOLD) );
 
 
-    xCell.set ( xSheet->getCellByPosition( 1, 4 ), ::com::sun::star::uno::UNO_QUERY );
-    xCellProp.set ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    xCell.set ( xSheet->getCellByPosition( 1, 4 ), uno::UNO_QUERY );
+    xCellProp.set ( xCell, uno::UNO_QUERY );
 
     xCell->setFormula( xAsignatura->getString(2) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD) );
+                                 uno::makeAny(awt::FontWeight::BOLD) );
 
 
-    xCell.set ( xSheet->getCellByPosition( 0, 5 ), ::com::sun::star::uno::UNO_QUERY );
-    xCellProp.set ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    xCell.set ( xSheet->getCellByPosition( 0, 5 ), uno::UNO_QUERY );
+    xCellProp.set ( xCell, uno::UNO_QUERY );
 
     xCell->setFormula( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("DOCENTE :")) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD) );
+                                 uno::makeAny(awt::FontWeight::BOLD) );
 
-    xCell.set ( xSheet->getCellByPosition( 1, 5 ), ::com::sun::star::uno::UNO_QUERY );
-    xCellProp.set ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    xCell.set ( xSheet->getCellByPosition( 1, 5 ), uno::UNO_QUERY );
+    xCellProp.set ( xCell, uno::UNO_QUERY );
 
     xCell->setFormula( xAsignatura->getString(4) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD) );
+                                 uno::makeAny(awt::FontWeight::BOLD) );
 
 
-    xCell.set ( xSheet->getCellByPosition( 0, 6 ), ::com::sun::star::uno::UNO_QUERY );
-    xCellProp.set ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    xCell.set ( xSheet->getCellByPosition( 0, 6 ), uno::UNO_QUERY );
+    xCellProp.set ( xCell, uno::UNO_QUERY );
 
     xCell->setFormula( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CURSO :")) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD) );
+                                 uno::makeAny(awt::FontWeight::BOLD) );
 
-    xCell.set ( xSheet->getCellByPosition( 1, 6 ), ::com::sun::star::uno::UNO_QUERY );
-    xCellProp.set ( xCell, ::com::sun::star::uno::UNO_QUERY );
+    xCell.set ( xSheet->getCellByPosition( 1, 6 ), uno::UNO_QUERY );
+    xCellProp.set ( xCell, uno::UNO_QUERY );
 
     xCell->setFormula( xAsignatura->getString(5) );
     xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-                                 ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD) );
+                                 uno::makeAny(awt::FontWeight::BOLD) );
 
     return 8;
 }
 
 void 
-EnsecProtocolHandler::formularioNotas(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection, 
+EnsecProtocolHandler::formularioNotas(const Reference<sdbc::XConnection>& xConnection, 
                                       sal_Int32 nGestion,
                                       sal_Int32 nPeriodo,
                                       ::rtl::OUString&  strAsignatura)
 {
     ::rtl::OUString strTitle;
-    Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager ( mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::uno::XInterface > xDialogModel (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialogModel")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::beans::XPropertySet > xPropDlg ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::container::XNameContainer > xNameContainer ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference<lang::XMultiComponentFactory> xServiceManager ( mxContext->getServiceManager(), uno::UNO_QUERY_THROW );
+    Reference <uno::XInterface> xDialogModel (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialogModel")), mxContext), uno::UNO_QUERY_THROW );
+    Reference <beans::XPropertySet> xPropDlg ( xDialogModel, uno::UNO_QUERY_THROW );
+    Reference <container::XNameContainer> xNameContainer ( xDialogModel, uno::UNO_QUERY_THROW );
 
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(250)) );
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(250)) );
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Title")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Formulario Notas"))) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(250)) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(250)) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Title")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Formulario Notas"))) );
 
-    Reference< ::com::sun::star::lang::XMultiServiceFactory > xSMDialog ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW);
+    Reference<lang::XMultiServiceFactory> xSMDialog ( xDialogModel, uno::UNO_QUERY_THROW);
 
     // Label 
-    Reference< ::com::sun::star::uno::XInterface > xTextModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference < ::com::sun::star::beans::XPropertySet > xPropTextModel ( xTextModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference<uno::XInterface> xTextModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropTextModel ( xTextModel , uno::UNO_QUERY_THROW );  
 
     strTitle = ::rtl::OUString::number(nGestion) + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(" ")) +
         strAsignatura + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(" ")) +
         ::rtl::OUString::number(nPeriodo);
 
-    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(35)) );
-    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(10)) );
-    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(70)) );
-    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(strTitle) );
-    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("txtAsignatura"))) );
+    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(10)) );
+    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(70)) );
+    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(strTitle) );
+    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("txtAsignatura"))) );
 
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("txtAsignatura")), ::com::sun::star::uno::makeAny(xTextModel));
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("txtAsignatura")), uno::makeAny(xTextModel));
 
     // Edit Ok
-    Reference< ::com::sun::star::uno::XInterface > xEditModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlEditModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference < ::com::sun::star::beans::XPropertySet > xPropEditModel ( xEditModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference<uno::XInterface> xEditModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlEditModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropEditModel ( xEditModel , uno::UNO_QUERY_THROW );  
 
-    xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(35)) );
-    xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(25)) );
-    xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(70)) );
-    xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-    xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("editEstudiante"))) );
+    xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(25)) );
+    xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(70)) );
+    xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("editEstudiante"))) );
 
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("editEstudiante")), ::com::sun::star::uno::makeAny(xEditModel));
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("editEstudiante")), uno::makeAny(xEditModel));
 
     // Label 
-    xTextModel.set (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    xPropTextModel.set ( xTextModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    xTextModel.set (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), uno::UNO_QUERY_THROW);
+    xPropTextModel.set ( xTextModel , uno::UNO_QUERY_THROW );  
 
-    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(35)) );
-    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(45)) );
-    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(150)) );
-    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(strAsignatura) );
-    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante"))) );
+    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(45)) );
+    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(150)) );
+    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(strAsignatura) );
+    xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante"))) );
 
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante")), ::com::sun::star::uno::makeAny(xTextModel));
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante")), uno::makeAny(xTextModel));
 
 
     // GroupBox OK
-    Reference< ::com::sun::star::uno::XInterface > xGroupBoxModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlGroupBoxModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference < ::com::sun::star::beans::XPropertySet > xPropGroupBoxModel (xGroupBoxModel, ::com::sun::star::uno::UNO_QUERY_THROW);  
+    Reference<uno::XInterface> xGroupBoxModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlGroupBoxModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropGroupBoxModel (xGroupBoxModel, uno::UNO_QUERY_THROW);  
 								     
-    xPropGroupBoxModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(35)) );
-    xPropGroupBoxModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(55)) );
-    xPropGroupBoxModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(200)) );
-    xPropGroupBoxModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(100)) );
+    xPropGroupBoxModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropGroupBoxModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(55)) );
+    xPropGroupBoxModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(200)) );
+    xPropGroupBoxModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(100)) );
     xPropGroupBoxModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), 
-                                           ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("containerNotas"))) );
-    xPropGroupBoxModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Notas")))  );
+                                           uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("containerNotas"))) );
+    xPropGroupBoxModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Notas")))  );
 
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("grpNotas")), ::com::sun::star::uno::makeAny(xGroupBoxModel));
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("grpNotas")), uno::makeAny(xGroupBoxModel));
 
 
     ::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT * FROM EVALUACION WHERE GESTION=")) + 
@@ -2242,9 +2058,9 @@ EnsecProtocolHandler::formularioNotas(const Reference< ::com::sun::star::sdbc::X
           strAsignatura +
           ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("'"));
     
-    Reference< ::com::sun::star::sdbc::XStatement > xStatement ( xConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XResultSet > xResultSet ( xStatement->executeQuery(strSQL), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XRow > xRow ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference<sdbc::XStatement> xStatement ( xConnection->createStatement(), uno::UNO_QUERY_THROW );
+    Reference<sdbc::XResultSet> xResultSet ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
+    Reference<sdbc::XRow> xRow ( xResultSet, uno::UNO_QUERY_THROW );  
 
     sal_Int32 nYStart = 65;
     sal_Int32 nYPos = nYStart;
@@ -2259,238 +2075,236 @@ EnsecProtocolHandler::formularioNotas(const Reference< ::com::sun::star::sdbc::X
     ::rtl::OUString strLabel;
     
     while ( xResultSet->next() ) {
-        xTextModel.set (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-        xPropTextModel.set (xTextModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+        xTextModel.set (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), uno::UNO_QUERY_THROW);
+        xPropTextModel.set (xTextModel , uno::UNO_QUERY_THROW );  
 
-        xEditModel.set (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlEditModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-        xPropEditModel.set ( xEditModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+        xEditModel.set (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlEditModel"))), uno::UNO_QUERY_THROW);
+        xPropEditModel.set ( xEditModel , uno::UNO_QUERY_THROW );  
 
         strLabel = xRow->getString(4) + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(" ")) + ::rtl::OUString::number(xRow->getFloat(6)) + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("-")) + ::rtl::OUString::number(xRow->getFloat(7));            
 
-        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(nXPos)));
-        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(nYPos)));
-        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(nWidth)));
-        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(nHeight)));
-        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(strLabel));
-        xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), ::com::sun::star::uno::makeAny(::rtl::OUString::number(xRow->getInt(1))));
+        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(nXPos)));
+        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(nYPos)));
+        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(nWidth)));
+        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(nHeight)));
+        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(strLabel));
+        xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), uno::makeAny(::rtl::OUString::number(xRow->getInt(1))));
 
-        xNameContainer->insertByName(xRow->getString(4) + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("_label")), ::com::sun::star::uno::makeAny(xTextModel));
+        xNameContainer->insertByName(xRow->getString(4) + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("_label")), uno::makeAny(xTextModel));
 
-        xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny( nXPos + nWidth + nXOffset ) );
-        xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny( nYPos ) );
-        xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny( nEditWidth ) );
-        xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny( nHeight ) );
-        xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), ::com::sun::star::uno::makeAny( sal_False ) );
-        xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), ::com::sun::star::uno::makeAny(xRow->getString(4) + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("_nota")) ));
+        xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny( nXPos + nWidth + nXOffset ) );
+        xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny( nYPos ) );
+        xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny( nEditWidth ) );
+        xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny( nHeight ) );
+        xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), uno::makeAny( sal_False ) );
+        xPropEditModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), uno::makeAny(xRow->getString(4) + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("_nota")) ));
 
-        xNameContainer->insertByName(xRow->getString(4), ::com::sun::star::uno::makeAny(xEditModel));
+        xNameContainer->insertByName(xRow->getString(4), uno::makeAny(xEditModel));
 
-        xTextModel.set (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-        xPropTextModel.set (xTextModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+        xTextModel.set (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), uno::UNO_QUERY_THROW);
+        xPropTextModel.set (xTextModel , uno::UNO_QUERY_THROW );  
 
-        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16( nXPos + nWidth + nEditWidth + nXOffset)));
-        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(nYPos)));
-        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(nCalcWidth)));
-        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(nHeight)));
-        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(" = "))));
-        xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), ::com::sun::star::uno::makeAny(::rtl::OUString::number( xRow->getFloat(7) / xRow->getFloat(6) )));
+        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16( nXPos + nWidth + nEditWidth + nXOffset)));
+        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(nYPos)));
+        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(nCalcWidth)));
+        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(nHeight)));
+        xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(" = "))));
+        xPropTextModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), uno::makeAny(::rtl::OUString::number( xRow->getFloat(7) / xRow->getFloat(6) )));
 
 
-        xNameContainer->insertByName(xRow->getString(4) + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("_nota")) , ::com::sun::star::uno::makeAny(xTextModel));
+        xNameContainer->insertByName(xRow->getString(4) + ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("_nota")) , uno::makeAny(xTextModel));
 
         nYPos += nYOffset;
 
 	}
 
     xTextModel.set (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), 
-                    ::com::sun::star::uno::UNO_QUERY_THROW);
-    xPropTextModel.set (xTextModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+                    uno::UNO_QUERY_THROW);
+    xPropTextModel.set (xTextModel , uno::UNO_QUERY_THROW );  
 
-    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(nXPos)));
-    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(nYPos)));
-    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(nWidth)));
-    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(nHeight)));
+    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(nXPos)));
+    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(nYPos)));
+    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(nWidth)));
+    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(nHeight)));
     xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), 
-                                     ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Nota Final"))));
+                                     uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Nota Final"))));
 
     xNameContainer->insertByName( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("nota_final_texto")),
-                                  ::com::sun::star::uno::makeAny(xTextModel));
+                                  uno::makeAny(xTextModel));
 
     xTextModel.set (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), 
-                    ::com::sun::star::uno::UNO_QUERY_THROW);
-    xPropTextModel.set (xTextModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+                    uno::UNO_QUERY_THROW);
+    xPropTextModel.set (xTextModel , uno::UNO_QUERY_THROW );  
 
-    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(nXPos + nWidth + nXOffset)));
-    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(nYPos)));
-    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(nEditWidth)));
-    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(nHeight)));
+    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(nXPos + nWidth + nXOffset)));
+    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(nYPos)));
+    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(nEditWidth)));
+    xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(nHeight)));
     xPropTextModel->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), 
-                                     ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("0"))));
+                                     uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("0"))));
 
     xNameContainer->insertByName( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("nota_final")),
-                                  ::com::sun::star::uno::makeAny(xTextModel));
+                                  uno::makeAny(xTextModel));
 
     nYPos += nYOffset;
 
-    xPropGroupBoxModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(nYPos + nHeight - nYStart) );    
+    xPropGroupBoxModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(nYPos + nHeight - nYStart) );    
     
     nYPos += nYOffset;
 
     // Button Update OK
-    Reference< ::com::sun::star::uno::XInterface > xButtonModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference < ::com::sun::star::beans::XPropertySet > xPropButtonModel ( xButtonModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference<uno::XInterface> xButtonModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropButtonModel ( xButtonModel , uno::UNO_QUERY_THROW );  
 								     
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(35)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(nYPos)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(50)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnUpdate"))) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), ::com::sun::star::uno::makeAny(sal_Int8(0)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("None"))) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Update"))));
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), ::com::sun::star::uno::makeAny( sal_False ) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(nYPos)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(50)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnUpdate"))) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), uno::makeAny(sal_Int8(0)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("None"))) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Update"))));
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), uno::makeAny( sal_False ) );
 
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnUpdate")), ::com::sun::star::uno::makeAny(xButtonModel));
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnUpdate")), uno::makeAny(xButtonModel));
 
 
     // Button OK
-    xButtonModel.set (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    xPropButtonModel.set ( xButtonModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    xButtonModel.set (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), uno::UNO_QUERY_THROW);
+    xPropButtonModel.set ( xButtonModel , uno::UNO_QUERY_THROW );  
 								     
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(35 + 50 + 5)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(nYPos)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(50)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), ::com::sun::star::uno::makeAny(sal_Int8(0)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK"))) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35 + 50 + 5)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(nYPos)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(50)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), uno::makeAny(sal_Int8(0)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK"))) );
 
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK")), ::com::sun::star::uno::makeAny(xButtonModel));
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK")), uno::makeAny(xButtonModel));
 
 
-    Reference < ::com::sun::star::uno::XInterface > xDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialog")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <uno::XInterface> xDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialog")), mxContext), uno::UNO_QUERY_THROW );
 
-    Reference < ::com::sun::star::awt::XControl > xControl ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XControlModel > xControlModel ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XControl> xControl ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XControlModel> xControlModel ( xDialogModel, uno::UNO_QUERY_THROW );
     xControl->setModel(xControlModel);
 
-    Reference < ::com::sun::star::awt::XToolkit > xToolkit (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XToolkit> xToolkit (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), uno::UNO_QUERY_THROW );
 
-    Reference < ::com::sun::star::awt::XWindow > xWindow ( xControl, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XWindow> xWindow ( xControl, uno::UNO_QUERY_THROW );
     xWindow->setVisible( sal_True );
     xControl->createPeer( xToolkit, 0 );
 
-    Reference < ::com::sun::star::awt::XControlContainer > xControlContainer ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XButton > xButton ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XButton > xUpdate ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnUpdate"))), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XTextComponent > xText ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("editEstudiante"))), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XTextComponent > xTextNota;
+    Reference <awt::XControlContainer> xControlContainer ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XButton> xButton ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))), uno::UNO_QUERY_THROW );
+    Reference <awt::XButton> xUpdate ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnUpdate"))), uno::UNO_QUERY_THROW );
+    Reference <awt::XTextComponent> xText ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("editEstudiante"))), uno::UNO_QUERY_THROW );
+    Reference <awt::XTextComponent> xTextNota;
 
-    Reference < ::com::sun::star::awt::XDialog > xDlg ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::awt::XActionListener > xEnsureDelete( new ClickHandler( xDlg ) );
-    Reference< ::com::sun::star::awt::XTextListener > xNotaHandler( new NotaHandler( xDlg ) );
-    Reference< ::com::sun::star::awt::XTextListener > xTextHandler( new EditHandler( xConnection, xDlg, nGestion, nPeriodo, strAsignatura ) );
-    Reference< ::com::sun::star::awt::XActionListener > xUpdateHandler( new UpdateHandler( xConnection, xDlg, nGestion, nPeriodo, strAsignatura ) );
+    Reference <awt::XDialog> xDlg ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XActionListener> xEnsureDelete( new ClickHandler( xDlg ) );
+    Reference <awt::XTextListener> xNotaHandler( new NotaHandler( xDlg ) );
+    Reference <awt::XTextListener> xTextHandler( new EditHandler( xConnection, xDlg, nGestion, nPeriodo, strAsignatura ) );
+    Reference <awt::XActionListener> xUpdateHandler( new UpdateHandler( xConnection, xDlg, nGestion, nPeriodo, strAsignatura ) );
 
     xButton->addActionListener( xEnsureDelete );
     xUpdate->addActionListener( xUpdateHandler );
     xText->addTextListener( xTextHandler );
 
-    xResultSet.set ( xStatement->executeQuery(strSQL), ::com::sun::star::uno::UNO_QUERY_THROW );
-    xRow.set ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
+    xResultSet.set ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
+    xRow.set ( xResultSet, uno::UNO_QUERY_THROW );  
 
     while ( xResultSet->next() ) {
-        xTextNota.set ( xControlContainer->getControl(xRow->getString(4)), ::com::sun::star::uno::UNO_QUERY );        
+        xTextNota.set ( xControlContainer->getControl(xRow->getString(4)), uno::UNO_QUERY );        
         if ( xTextNota.is() )
             xTextNota->addTextListener( xNotaHandler );
     }
 
     xDlg->execute();
 
-    Reference < ::com::sun::star::lang::XComponent > xDispose ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <lang::XComponent> xDispose ( xDialog, uno::UNO_QUERY_THROW );
     xDispose->dispose();
-
-
 }
 
 
 
 sal_Int32  
-EnsecProtocolHandler::getGestion(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection)
+EnsecProtocolHandler::getGestion(const Reference<sdbc::XConnection>& xConnection)
 {
     sal_Int32 nResult = 0;
-    Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager ( mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::uno::XInterface > xDialogModel (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialogModel")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::beans::XPropertySet > xPropDlg ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <lang::XMultiComponentFactory> xServiceManager ( mxContext->getServiceManager(), uno::UNO_QUERY_THROW );
+    Reference <uno::XInterface> xDialogModel (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialogModel")), mxContext), uno::UNO_QUERY_THROW );
+    Reference <beans::XPropertySet> xPropDlg ( xDialogModel, uno::UNO_QUERY_THROW );
 
-    //xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(100)) );
-    //xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(100)) );
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(150)) );
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(60)) );
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Title")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Gestion"))) );
+    //xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(100)) );
+    //xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(100)) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(150)) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(60)) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Title")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Gestion"))) );
 
-    Reference< ::com::sun::star::lang::XMultiServiceFactory > xSMDialog ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::uno::XInterface > xComboModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlListBoxModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference < ::com::sun::star::beans::XPropertySet > xPropComboModel ( xComboModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
-    Reference < ::com::sun::star::awt::XItemList > xItemList ( xComboModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <lang::XMultiServiceFactory> xSMDialog ( xDialogModel, uno::UNO_QUERY_THROW);
+    Reference <uno::XInterface> xComboModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlListBoxModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropComboModel ( xComboModel , uno::UNO_QUERY_THROW );  
+    Reference <awt::XItemList> xItemList ( xComboModel , uno::UNO_QUERY_THROW );  
     
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(35)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(10)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(80)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Dropdown")), ::com::sun::star::uno::makeAny(sal_True) );
-    //xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ReadOnly")), ::com::sun::star::uno::makeAny(sal_True) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("LineCount")), ::com::sun::star::uno::makeAny(sal_Int8(10)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(10)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(80)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Dropdown")), uno::makeAny(sal_True) );
+    //xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ReadOnly")), uno::makeAny(sal_True) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("LineCount")), uno::makeAny(sal_Int8(10)) );
 
 
     ::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT * FROM GESTION"));
-    Reference< ::com::sun::star::sdbc::XStatement > xStatement ( xConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XResultSet > xResultSet ( xStatement->executeQuery(strSQL), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XRow > xRow ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <sdbc::XStatement> xStatement ( xConnection->createStatement(), uno::UNO_QUERY_THROW );
+    Reference <sdbc::XResultSet> xResultSet ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
+    Reference <sdbc::XRow> xRow ( xResultSet, uno::UNO_QUERY_THROW );  
 
     sal_Int32 nIndex = xItemList->getItemCount();
     while ( xResultSet->next() ) {
         xItemList->insertItemText( nIndex, xRow->getString(2));			
-        xItemList->setItemData( nIndex, ::com::sun::star::uno::makeAny(xRow->getInt(1)));
+        xItemList->setItemData( nIndex, uno::makeAny(xRow->getInt(1)));
         nIndex = xItemList->getItemCount();
 	}
 
-    Reference< ::com::sun::star::uno::XInterface > xButtonModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference < ::com::sun::star::beans::XPropertySet > xPropButtonModel ( xButtonModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <uno::XInterface> xButtonModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropButtonModel ( xButtonModel , uno::UNO_QUERY_THROW );  
 								     
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(50)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(30)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(50)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), ::com::sun::star::uno::makeAny(sal_Int8(0)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK"))) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(50)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(30)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(50)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), uno::makeAny(sal_Int8(0)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK"))) );
 
-    Reference < ::com::sun::star::container::XNameContainer > xNameContainer ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura")), ::com::sun::star::uno::makeAny(xComboModel));
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK")), ::com::sun::star::uno::makeAny(xButtonModel));
+    Reference <container::XNameContainer> xNameContainer ( xDialogModel, uno::UNO_QUERY_THROW );
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura")), uno::makeAny(xComboModel));
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK")), uno::makeAny(xButtonModel));
 
-    Reference < ::com::sun::star::uno::XInterface > xDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialog")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <uno::XInterface> xDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialog")), mxContext), uno::UNO_QUERY_THROW );
 
-    Reference < ::com::sun::star::awt::XControl > xControl ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XControlModel > xControlModel ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XControl> xControl ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XControlModel> xControlModel ( xDialogModel, uno::UNO_QUERY_THROW );
     xControl->setModel(xControlModel);
 
-    Reference < ::com::sun::star::awt::XToolkit > xToolkit (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XToolkit> xToolkit (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), uno::UNO_QUERY_THROW );
 
-    Reference < ::com::sun::star::awt::XWindow > xWindow ( xControl, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XWindow> xWindow ( xControl, uno::UNO_QUERY_THROW );
     xWindow->setVisible( sal_True );
     xControl->createPeer( xToolkit, 0 );
 
-    Reference < ::com::sun::star::awt::XControlContainer > xControlContainer ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XButton > xButton ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XListBox > xListBox ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XControlContainer> xControlContainer ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XButton> xButton ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))), uno::UNO_QUERY_THROW );
+    Reference <awt::XListBox> xListBox ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))), uno::UNO_QUERY_THROW );
 
     //xButton->setActionCommand(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK")))
 
-    Reference < ::com::sun::star::awt::XDialog > xDlg ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::awt::XActionListener > xEnsureDelete( new ClickHandler( xDlg ) );
+    Reference <awt::XDialog> xDlg ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XActionListener> xEnsureDelete( new ClickHandler( xDlg ) );
     xButton->addActionListener( xEnsureDelete );
 
     xDlg->execute();
@@ -2500,7 +2314,7 @@ EnsecProtocolHandler::getGestion(const Reference< ::com::sun::star::sdbc::XConne
  
     xItemList->getItemData(xListBox->getSelectedItemPos()) >>= nResult;
 
-    Reference < ::com::sun::star::lang::XComponent > xDispose ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <lang::XComponent> xDispose ( xDialog, uno::UNO_QUERY_THROW );
     xDispose->dispose();
 
     return nResult;
@@ -2509,78 +2323,78 @@ EnsecProtocolHandler::getGestion(const Reference< ::com::sun::star::sdbc::XConne
 
 
 sal_Int32  
-EnsecProtocolHandler::getPeriodo(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection)
+EnsecProtocolHandler::getPeriodo(const Reference<sdbc::XConnection>& xConnection)
 {
     sal_Int32 nResult = 0;
-    Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager ( mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::uno::XInterface > xDialogModel (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialogModel")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::beans::XPropertySet > xPropDlg ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <lang::XMultiComponentFactory> xServiceManager ( mxContext->getServiceManager(), uno::UNO_QUERY_THROW );
+    Reference <uno::XInterface> xDialogModel (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialogModel")), mxContext), uno::UNO_QUERY_THROW );
+    Reference <beans::XPropertySet> xPropDlg ( xDialogModel, uno::UNO_QUERY_THROW );
 
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(150)) );
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(60)) );
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Title")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Periodo"))) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(150)) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(60)) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Title")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Periodo"))) );
 
-    Reference< ::com::sun::star::lang::XMultiServiceFactory > xSMDialog ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::uno::XInterface > xComboModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlListBoxModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference < ::com::sun::star::beans::XPropertySet > xPropComboModel ( xComboModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
-    Reference < ::com::sun::star::awt::XItemList > xItemList ( xComboModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <lang::XMultiServiceFactory> xSMDialog ( xDialogModel, uno::UNO_QUERY_THROW);
+    Reference <uno::XInterface> xComboModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlListBoxModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropComboModel ( xComboModel , uno::UNO_QUERY_THROW );  
+    Reference <awt::XItemList> xItemList ( xComboModel , uno::UNO_QUERY_THROW );  
     
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(35)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(10)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(80)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Dropdown")), ::com::sun::star::uno::makeAny(sal_True) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("LineCount")), ::com::sun::star::uno::makeAny(sal_Int8(10)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(10)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(80)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Dropdown")), uno::makeAny(sal_True) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("LineCount")), uno::makeAny(sal_Int8(10)) );
 
 
     ::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT * FROM PERIODO"));
-    Reference< ::com::sun::star::sdbc::XStatement > xStatement ( xConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XResultSet > xResultSet ( xStatement->executeQuery(strSQL), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XRow > xRow ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <sdbc::XStatement> xStatement ( xConnection->createStatement(), uno::UNO_QUERY_THROW );
+    Reference <sdbc::XResultSet> xResultSet ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
+    Reference <sdbc::XRow> xRow ( xResultSet, uno::UNO_QUERY_THROW );  
 
     sal_Int32 nIndex = xItemList->getItemCount();
     while ( xResultSet->next() ) {
         xItemList->insertItemText( nIndex, xRow->getString(2));			
-        xItemList->setItemData( nIndex, ::com::sun::star::uno::makeAny(xRow->getInt(1)));
+        xItemList->setItemData( nIndex, uno::makeAny(xRow->getInt(1)));
         nIndex = xItemList->getItemCount();
 	}
 
-    Reference< ::com::sun::star::uno::XInterface > xButtonModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference < ::com::sun::star::beans::XPropertySet > xPropButtonModel ( xButtonModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <uno::XInterface> xButtonModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropButtonModel ( xButtonModel , uno::UNO_QUERY_THROW );  
 								     
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(50)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(30)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(50)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), ::com::sun::star::uno::makeAny(sal_Int8(0)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK"))) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(50)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(30)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(50)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), uno::makeAny(sal_Int8(0)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK"))) );
 
-    Reference < ::com::sun::star::container::XNameContainer > xNameContainer ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura")), ::com::sun::star::uno::makeAny(xComboModel));
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK")), ::com::sun::star::uno::makeAny(xButtonModel));
+    Reference <container::XNameContainer> xNameContainer ( xDialogModel, uno::UNO_QUERY_THROW );
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura")), uno::makeAny(xComboModel));
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK")), uno::makeAny(xButtonModel));
 
-    Reference < ::com::sun::star::uno::XInterface > xDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialog")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <uno::XInterface> xDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialog")), mxContext), uno::UNO_QUERY_THROW );
 
-    Reference < ::com::sun::star::awt::XControl > xControl ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XControlModel > xControlModel ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XControl> xControl ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XControlModel> xControlModel ( xDialogModel, uno::UNO_QUERY_THROW );
     xControl->setModel(xControlModel);
 
-    Reference < ::com::sun::star::awt::XToolkit > xToolkit (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XToolkit> xToolkit (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), uno::UNO_QUERY_THROW );
 
-    Reference < ::com::sun::star::awt::XWindow > xWindow ( xControl, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XWindow> xWindow ( xControl, uno::UNO_QUERY_THROW );
     xWindow->setVisible( sal_True );
     xControl->createPeer( xToolkit, 0 );
 
-    Reference < ::com::sun::star::awt::XControlContainer > xControlContainer ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XButton > xButton ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XListBox > xListBox ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XControlContainer> xControlContainer ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XButton> xButton ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))), uno::UNO_QUERY_THROW );
+    Reference <awt::XListBox> xListBox ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))), uno::UNO_QUERY_THROW );
 
     //xButton->setActionCommand(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK")))
 
-    Reference < ::com::sun::star::awt::XDialog > xDlg ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::awt::XActionListener > xEnsureDelete( new ClickHandler( xDlg ) );
+    Reference <awt::XDialog> xDlg ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XActionListener> xEnsureDelete( new ClickHandler( xDlg ) );
     xButton->addActionListener( xEnsureDelete );
 
     xDlg->execute();
@@ -2590,89 +2404,88 @@ EnsecProtocolHandler::getPeriodo(const Reference< ::com::sun::star::sdbc::XConne
  
     xItemList->getItemData(xListBox->getSelectedItemPos()) >>= nResult;
 
-    Reference < ::com::sun::star::lang::XComponent > xDispose ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <lang::XComponent> xDispose ( xDialog, uno::UNO_QUERY_THROW );
     xDispose->dispose();
 
     return nResult;
-
 }
 
 
 ::rtl::OUString 
-EnsecProtocolHandler::getAsignatura(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection, sal_Int32 nGestion)
+EnsecProtocolHandler::getAsignatura(const Reference<sdbc::XConnection>& xConnection, sal_Int32 nGestion)
 {
     ::rtl::OUString strResult;
-    Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager ( mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::uno::XInterface > xDialogModel (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialogModel")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::beans::XPropertySet > xPropDlg ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference<lang::XMultiComponentFactory> xServiceManager ( mxContext->getServiceManager(), uno::UNO_QUERY_THROW );
+    Reference <uno::XInterface> xDialogModel (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialogModel")), mxContext), uno::UNO_QUERY_THROW );
+    Reference <beans::XPropertySet> xPropDlg ( xDialogModel, uno::UNO_QUERY_THROW );
 
-    //xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(100)) );
-    //xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(100)) );
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(150)) );
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(60)) );
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Title")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Asignatura"))) );
+    //xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(100)) );
+    //xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(100)) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(150)) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(60)) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Title")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Asignatura"))) );
 
-    Reference< ::com::sun::star::lang::XMultiServiceFactory > xSMDialog ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::uno::XInterface > xComboModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlListBoxModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference < ::com::sun::star::beans::XPropertySet > xPropComboModel ( xComboModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
-    Reference < ::com::sun::star::awt::XItemList > xItemList ( xComboModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <lang::XMultiServiceFactory> xSMDialog ( xDialogModel, uno::UNO_QUERY_THROW);
+    Reference <uno::XInterface> xComboModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlListBoxModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropComboModel ( xComboModel , uno::UNO_QUERY_THROW );  
+    Reference <awt::XItemList> xItemList ( xComboModel , uno::UNO_QUERY_THROW );  
     
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(35)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(10)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(80)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Dropdown")), ::com::sun::star::uno::makeAny(sal_True) );
-    //xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ReadOnly")), ::com::sun::star::uno::makeAny(sal_True) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("LineCount")), ::com::sun::star::uno::makeAny(sal_Int8(10)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(10)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(80)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Dropdown")), uno::makeAny(sal_True) );
+    //xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ReadOnly")), uno::makeAny(sal_True) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("LineCount")), uno::makeAny(sal_Int8(10)) );
 
     ::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT * FROM ASIGNATURA WHERE GESTION=")) + ::rtl::OUString::number((sal_Int32) nGestion);
-    Reference< ::com::sun::star::sdbc::XStatement > xStatement ( xConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XResultSet > xResultSet ( xStatement->executeQuery(strSQL), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XRow > xRow ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <sdbc::XStatement> xStatement ( xConnection->createStatement(), uno::UNO_QUERY_THROW );
+    Reference <sdbc::XResultSet> xResultSet ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
+    Reference <sdbc::XRow> xRow ( xResultSet, uno::UNO_QUERY_THROW );  
 
     sal_Int32 nIndex = xItemList->getItemCount();
     while ( xResultSet->next() ) {
         xItemList->insertItemText( nIndex, xRow->getString(2));
-        xItemList->setItemData( nIndex, ::com::sun::star::uno::makeAny(xRow->getString(1)));			
+        xItemList->setItemData( nIndex, uno::makeAny(xRow->getString(1)));			
         nIndex = xItemList->getItemCount();
 	}
 
-    Reference< ::com::sun::star::uno::XInterface > xButtonModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference < ::com::sun::star::beans::XPropertySet > xPropButtonModel ( xButtonModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <uno::XInterface> xButtonModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropButtonModel ( xButtonModel , uno::UNO_QUERY_THROW );  
 								     
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(50)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(30)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(50)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), ::com::sun::star::uno::makeAny(sal_Int8(0)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK"))) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(50)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(30)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(50)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), uno::makeAny(sal_Int8(0)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK"))) );
 
-    Reference < ::com::sun::star::container::XNameContainer > xNameContainer ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura")), ::com::sun::star::uno::makeAny(xComboModel));
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK")), ::com::sun::star::uno::makeAny(xButtonModel));
+    Reference <container::XNameContainer> xNameContainer ( xDialogModel, uno::UNO_QUERY_THROW );
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura")), uno::makeAny(xComboModel));
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK")), uno::makeAny(xButtonModel));
 
-    Reference < ::com::sun::star::uno::XInterface > xDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialog")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <uno::XInterface> xDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialog")), mxContext), uno::UNO_QUERY_THROW );
 
-    Reference < ::com::sun::star::awt::XControl > xControl ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XControlModel > xControlModel ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XControl> xControl ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XControlModel> xControlModel ( xDialogModel, uno::UNO_QUERY_THROW );
     xControl->setModel(xControlModel);
 
-    Reference < ::com::sun::star::awt::XToolkit > xToolkit (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XToolkit> xToolkit (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), uno::UNO_QUERY_THROW );
 
-    Reference < ::com::sun::star::awt::XWindow > xWindow ( xControl, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XWindow> xWindow ( xControl, uno::UNO_QUERY_THROW );
     xWindow->setVisible( sal_True );
     xControl->createPeer( xToolkit, 0 );
 
-    Reference < ::com::sun::star::awt::XControlContainer > xControlContainer ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XButton > xButton ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XListBox > xListBox ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XControlContainer> xControlContainer ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XButton> xButton ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))), uno::UNO_QUERY_THROW );
+    Reference <awt::XListBox> xListBox ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))), uno::UNO_QUERY_THROW );
 
     //xButton->setActionCommand(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK")))
 
-    Reference < ::com::sun::star::awt::XDialog > xDlg ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::awt::XActionListener > xEnsureDelete( new ClickHandler( xDlg ) );
+    Reference <awt::XDialog> xDlg ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XActionListener> xEnsureDelete( new ClickHandler( xDlg ) );
     xButton->addActionListener( xEnsureDelete );
 
     xDlg->execute();
@@ -2680,88 +2493,87 @@ EnsecProtocolHandler::getAsignatura(const Reference< ::com::sun::star::sdbc::XCo
     //strResult = xListBox->getSelectedItem();
     xItemList->getItemData(xListBox->getSelectedItemPos()) >>= strResult;
 
-    Reference < ::com::sun::star::lang::XComponent > xDispose ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <lang::XComponent> xDispose ( xDialog, uno::UNO_QUERY_THROW );
     xDispose->dispose();
 
     return strResult;
-
 }
 
 ::rtl::OUString 
-EnsecProtocolHandler::getPlantilla(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection)
+EnsecProtocolHandler::getPlantilla(const Reference <sdbc::XConnection>& xConnection)
 {
     ::rtl::OUString strResult;
-    Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager ( mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::uno::XInterface > xDialogModel (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialogModel")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::beans::XPropertySet > xPropDlg ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <lang::XMultiComponentFactory> xServiceManager ( mxContext->getServiceManager(), uno::UNO_QUERY_THROW );
+    Reference <uno::XInterface> xDialogModel (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialogModel")), mxContext), uno::UNO_QUERY_THROW );
+    Reference <beans::XPropertySet> xPropDlg ( xDialogModel, uno::UNO_QUERY_THROW );
 
-    //xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(100)) );
-    //xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(100)) );
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(150)) );
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(60)) );
-    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Title")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Plantilla"))) );
+    //xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(100)) );
+    //xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(100)) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(150)) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(60)) );
+    xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Title")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Plantilla"))) );
 
-    Reference< ::com::sun::star::lang::XMultiServiceFactory > xSMDialog ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::uno::XInterface > xComboModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlListBoxModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference < ::com::sun::star::beans::XPropertySet > xPropComboModel ( xComboModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
-    Reference < ::com::sun::star::awt::XItemList > xItemList ( xComboModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <lang::XMultiServiceFactory> xSMDialog ( xDialogModel, uno::UNO_QUERY_THROW);
+    Reference <uno::XInterface> xComboModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlListBoxModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropComboModel ( xComboModel , uno::UNO_QUERY_THROW );  
+    Reference <awt::XItemList> xItemList ( xComboModel , uno::UNO_QUERY_THROW );  
     
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(35)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(10)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(80)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Dropdown")), ::com::sun::star::uno::makeAny(sal_True) );
-    //xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ReadOnly")), ::com::sun::star::uno::makeAny(sal_True) );
-    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("LineCount")), ::com::sun::star::uno::makeAny(sal_Int8(10)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(10)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(80)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Dropdown")), uno::makeAny(sal_True) );
+    //xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ReadOnly")), uno::makeAny(sal_True) );
+    xPropComboModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("LineCount")), uno::makeAny(sal_Int8(10)) );
 
     ::rtl::OUString strSQL = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT PLANTILLA FROM COLUMNA GROUP BY PLANTILLA"));
-    Reference< ::com::sun::star::sdbc::XStatement > xStatement ( xConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XResultSet > xResultSet ( xStatement->executeQuery(strSQL), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XRow > xRow ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <sdbc::XStatement> xStatement ( xConnection->createStatement(), uno::UNO_QUERY_THROW );
+    Reference <sdbc::XResultSet> xResultSet ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
+    Reference<sdbc::XRow> xRow ( xResultSet, uno::UNO_QUERY_THROW );  
 
     sal_Int32 nIndex = xItemList->getItemCount();
     while ( xResultSet->next() ) {
         xItemList->insertItemText( nIndex, xRow->getString(2));
-        xItemList->setItemData( nIndex, ::com::sun::star::uno::makeAny(xRow->getString(1)));			
+        xItemList->setItemData( nIndex, uno::makeAny(xRow->getString(1)));			
         nIndex = xItemList->getItemCount();
 	}
 
-    Reference< ::com::sun::star::uno::XInterface > xButtonModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference < ::com::sun::star::beans::XPropertySet > xPropButtonModel ( xButtonModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <uno::XInterface> xButtonModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropButtonModel ( xButtonModel , uno::UNO_QUERY_THROW );  
 								     
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(50)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(30)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(50)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), ::com::sun::star::uno::makeAny(sal_Int8(0)) );
-    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK"))) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(50)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(30)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(50)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), uno::makeAny(sal_Int8(0)) );
+    xPropButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK"))) );
 
-    Reference < ::com::sun::star::container::XNameContainer > xNameContainer ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura")), ::com::sun::star::uno::makeAny(xComboModel));
-    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK")), ::com::sun::star::uno::makeAny(xButtonModel));
+    Reference <container::XNameContainer> xNameContainer ( xDialogModel, uno::UNO_QUERY_THROW );
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura")), uno::makeAny(xComboModel));
+    xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK")), uno::makeAny(xButtonModel));
 
-    Reference < ::com::sun::star::uno::XInterface > xDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialog")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <uno::XInterface> xDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialog")), mxContext), uno::UNO_QUERY_THROW );
 
-    Reference < ::com::sun::star::awt::XControl > xControl ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XControlModel > xControlModel ( xDialogModel, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XControl> xControl ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XControlModel> xControlModel ( xDialogModel, uno::UNO_QUERY_THROW );
     xControl->setModel(xControlModel);
 
-    Reference < ::com::sun::star::awt::XToolkit > xToolkit (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XToolkit> xToolkit (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), uno::UNO_QUERY_THROW );
 
-    Reference < ::com::sun::star::awt::XWindow > xWindow ( xControl, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XWindow> xWindow ( xControl, uno::UNO_QUERY_THROW );
     xWindow->setVisible( sal_True );
     xControl->createPeer( xToolkit, 0 );
 
-    Reference < ::com::sun::star::awt::XControlContainer > xControlContainer ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XButton > xButton ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference < ::com::sun::star::awt::XListBox > xListBox ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <awt::XControlContainer> xControlContainer ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XButton> xButton ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))), uno::UNO_QUERY_THROW );
+    Reference <awt::XListBox> xListBox ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("cmbAsignatura"))), uno::UNO_QUERY_THROW );
 
     //xButton->setActionCommand(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK")))
 
-    Reference < ::com::sun::star::awt::XDialog > xDlg ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::awt::XActionListener > xEnsureDelete( new ClickHandler( xDlg ) );
+    Reference <awt::XDialog> xDlg ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XActionListener> xEnsureDelete( new ClickHandler( xDlg ) );
     xButton->addActionListener( xEnsureDelete );
 
     xDlg->execute();
@@ -2769,25 +2581,24 @@ EnsecProtocolHandler::getPlantilla(const Reference< ::com::sun::star::sdbc::XCon
     //strResult = xListBox->getSelectedItem();
     xItemList->getItemData(xListBox->getSelectedItemPos()) >>= strResult;
 
-    Reference < ::com::sun::star::lang::XComponent > xDispose ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <lang::XComponent> xDispose ( xDialog, uno::UNO_QUERY_THROW );
     xDispose->dispose();
 
     return strResult;
-
 }
 
 
-Reference< ::com::sun::star::sheet::XSpreadsheetDocument >
+Reference <sheet::XSpreadsheetDocument>
 EnsecProtocolHandler::getDocumentSheet()
 {
-    Reference< ::com::sun::star::sheet::XSpreadsheetDocument > xDocSheet;
-    Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager ( mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::frame::XDesktop > xDesktop ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.frame.Desktop")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW);    
-    Reference< ::com::sun::star::frame::XFrame > xFrame ( xDesktop->getCurrentFrame(), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::frame::XController > xController ( xFrame->getController(), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::frame::XModel > xModel ( xController->getModel(), ::com::sun::star::uno::UNO_QUERY_THROW);
+    Reference <sheet::XSpreadsheetDocument> xDocSheet;
+    Reference <lang::XMultiComponentFactory> xServiceManager ( mxContext->getServiceManager(), uno::UNO_QUERY_THROW );
+    Reference <frame::XDesktop> xDesktop ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.frame.Desktop")), mxContext), uno::UNO_QUERY_THROW);    
+    Reference <frame::XFrame> xFrame ( xDesktop->getCurrentFrame(), uno::UNO_QUERY_THROW);
+    Reference <frame::XController> xController ( xFrame->getController(), uno::UNO_QUERY_THROW);
+    Reference <frame::XModel> xModel ( xController->getModel(), uno::UNO_QUERY_THROW);
 
-    xDocSheet.set ( xModel, ::com::sun::star::uno::UNO_QUERY_THROW );
+    xDocSheet.set ( xModel, uno::UNO_QUERY_THROW );
 
     return xDocSheet;
 }
@@ -2795,20 +2606,20 @@ EnsecProtocolHandler::getDocumentSheet()
 
 
 
-Reference< ::com::sun::star::sheet::XSpreadsheet >
+Reference <sheet::XSpreadsheet>
 EnsecProtocolHandler::getCurrentSheet()
 {
-    Reference< ::com::sun::star::sheet::XSpreadsheet > xSheet;
-    Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager ( mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::frame::XDesktop > xDesktop ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.frame.Desktop")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW);    
-    Reference< ::com::sun::star::frame::XFrame > xFrame ( xDesktop->getCurrentFrame(), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::sheet::XSpreadsheetView > xSheetView ( xFrame->getController(), ::com::sun::star::uno::UNO_QUERY);    
+    Reference <sheet::XSpreadsheet> xSheet;
+    Reference <lang::XMultiComponentFactory> xServiceManager ( mxContext->getServiceManager(), uno::UNO_QUERY_THROW );
+    Reference <frame::XDesktop> xDesktop ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.frame.Desktop")), mxContext), uno::UNO_QUERY_THROW);    
+    Reference <frame::XFrame> xFrame ( xDesktop->getCurrentFrame(), uno::UNO_QUERY_THROW);
+    Reference <sheet::XSpreadsheetView > xSheetView ( xFrame->getController(), uno::UNO_QUERY);    
 
 
     if ( !xSheetView.is() )
         return xSheet;
 
-    xSheet.set( xSheetView->getActiveSheet(), ::com::sun::star::uno::UNO_QUERY );
+    xSheet.set( xSheetView->getActiveSheet(), uno::UNO_QUERY );
 
     return xSheet;
 }
@@ -2816,19 +2627,19 @@ EnsecProtocolHandler::getCurrentSheet()
 void
 EnsecProtocolHandler::createForm()
 {
-  Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager (mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference< ::com::sun::star::frame::XDesktop > xDesktop ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.frame.Desktop")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference< ::com::sun::star::frame::XFrame > xFrame ( xDesktop->getCurrentFrame(), ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference< ::com::sun::star::frame::XController > xController ( xFrame->getController(), ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference< ::com::sun::star::frame::XModel > xModel ( xController->getModel(), ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference< ::com::sun::star::sheet::XSpreadsheetDocument > xSpreadsheetDocument ( xModel, ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference< ::com::sun::star::sheet::XSpreadsheets > xSpreadsheets ( xSpreadsheetDocument->getSheets(), ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference< ::com::sun::star::container::XIndexAccess > xIndexAccess ( xSpreadsheets, ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference< ::com::sun::star::sheet::XSpreadsheet > xSheet ( xIndexAccess->getByIndex(0), ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference< ::com::sun::star::container::XNamed > xNamed ( xSheet, ::com::sun::star::uno::UNO_QUERY_THROW);
+  Reference <lang::XMultiComponentFactory> xServiceManager (mxContext->getServiceManager(), uno::UNO_QUERY_THROW);
+  Reference <frame::XDesktop> xDesktop ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.frame.Desktop")), mxContext), uno::UNO_QUERY_THROW);
+  Reference <frame::XFrame> xFrame ( xDesktop->getCurrentFrame(), uno::UNO_QUERY_THROW);
+  Reference <frame::XController> xController ( xFrame->getController(), uno::UNO_QUERY_THROW);
+  Reference <frame::XModel> xModel ( xController->getModel(), uno::UNO_QUERY_THROW);
+  Reference <sheet::XSpreadsheetDocument> xSpreadsheetDocument ( xModel, uno::UNO_QUERY_THROW);
+  Reference <sheet::XSpreadsheets> xSpreadsheets ( xSpreadsheetDocument->getSheets(), uno::UNO_QUERY_THROW);
+  Reference <container::XIndexAccess> xIndexAccess ( xSpreadsheets, uno::UNO_QUERY_THROW);
+  Reference <sheet::XSpreadsheet> xSheet ( xIndexAccess->getByIndex(0), uno::UNO_QUERY_THROW);
+  Reference <container::XNamed> xNamed ( xSheet, uno::UNO_QUERY_THROW);
   //::rtl::OUString strName = xNamed->getName();
-  //Reference< ::com::sun::star::table::XCell > xSheetCell (xSheet->getCellByPosition(0,0), ::com::sun::star::uno::UNO_QUERY_THROW );
-  //::com::sun::star::util::DateTime oDate, oDate0;
+  //Reference< table::XCell > xSheetCell (xSheet->getCellByPosition(0,0), uno::UNO_QUERY_THROW );
+  //util::DateTime oDate, oDate0;
 
   //oDate.Year=2013;
   //oDate.Month=2;
@@ -2837,127 +2648,111 @@ EnsecProtocolHandler::createForm()
   //xSheetCell->setValue( 0.0 );
   //xSheetCell->setFormula(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("2014/05/16")));
 
-  //::com::sun::star::lang::Locale olocale;
+  //lang::Locale olocale;
 
-  //Reference < ::com::sun::star::util::XNumberFormatsSupplier > xFormatsSupplier ( xSpreadsheetDocument, ::com::sun::star::uno::UNO_QUERY_THROW);
-  //Reference < ::com::sun::star::util::XNumberFormatTypes > xFormatTypes ( xFormatsSupplier->getNumberFormats(), ::com::sun::star::uno::UNO_QUERY_THROW);
-  //int nFormat = xFormatTypes->getStandardFormat(::com::sun::star::util::NumberFormat::DATE, olocale);
-  //Reference < ::com::sun::star::beans::XPropertySet > xPropSet ( xSheetCell, ::com::sun::star::uno::UNO_QUERY_THROW);
-  //xPropSet->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("NumberFormat")), ::com::sun::star::uno::makeAny(nFormat) );
+  //Reference < util::XNumberFormatsSupplier > xFormatsSupplier ( xSpreadsheetDocument, uno::UNO_QUERY_THROW);
+  //Reference < util::XNumberFormatTypes > xFormatTypes ( xFormatsSupplier->getNumberFormats(), uno::UNO_QUERY_THROW);
+  //int nFormat = xFormatTypes->getStandardFormat(util::NumberFormat::DATE, olocale);
+  //Reference < beans::XPropertySet > xPropSet ( xSheetCell, uno::UNO_QUERY_THROW);
+  //xPropSet->setPropertyValue(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("NumberFormat")), uno::makeAny(nFormat) );
 
 
-  Reference < ::com::sun::star::uno::XInterface > xIDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialogModel")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference < ::com::sun::star::beans::XPropertySet > xPropDlg ( xIDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
+  Reference <uno::XInterface> xIDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialogModel")), mxContext), uno::UNO_QUERY_THROW );
+  Reference <beans::XPropertySet> xPropDlg ( xIDialog, uno::UNO_QUERY_THROW );
 
-  xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(100)) );
-  xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(100)) );
-  xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(150)) );
-  xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(100)) );
-  xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Title")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Dialogo"))) );
+  xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(100)) );
+  xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(100)) );
+  xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(150)) );
+  xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(100)) );
+  xPropDlg->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Title")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Dialogo"))) );
 
-  Reference< ::com::sun::star::lang::XMultiServiceFactory > xSMDialog ( xIDialog, ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference< ::com::sun::star::uno::XInterface > objButtonModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference < ::com::sun::star::beans::XPropertySet > xButtonModel ( objButtonModel , ::com::sun::star::uno::UNO_QUERY_THROW );  
+  Reference <lang::XMultiServiceFactory> xSMDialog ( xIDialog, uno::UNO_QUERY_THROW);
+  Reference <uno::XInterface> objButtonModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), uno::UNO_QUERY_THROW);
+  Reference <beans::XPropertySet> xButtonModel ( objButtonModel , uno::UNO_QUERY_THROW );  
 								     
-  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(20)) );
-  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(70)) );
-  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(50)) );
-  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Button1"))) );
-  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), ::com::sun::star::uno::makeAny(sal_Int8(0)) );
-  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Click Me"))) );
+  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(20)) );
+  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(70)) );
+  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(50)) );
+  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Button1"))) );
+  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), uno::makeAny(sal_Int8(0)) );
+  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Click Me"))) );
 
-  Reference< ::com::sun::star::uno::XInterface > objLabelModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference < ::com::sun::star::beans::XPropertySet > xLabelModel ( objLabelModel, ::com::sun::star::uno::UNO_QUERY_THROW );  
+  Reference <uno::XInterface> objLabelModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), uno::UNO_QUERY_THROW);
+  Reference <beans::XPropertySet> xLabelModel ( objLabelModel, uno::UNO_QUERY_THROW );  
 
-  xLabelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(40)) );
-  xLabelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(30)) );
-  xLabelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(100)) );
-  xLabelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-  xLabelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label1"))) );
-  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), ::com::sun::star::uno::makeAny(sal_Int8(1)) );
-  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Snake"))) );
+  xLabelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(40)) );
+  xLabelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(30)) );
+  xLabelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(100)) );
+  xLabelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+  xLabelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label1"))) );
+  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), uno::makeAny(sal_Int8(1)) );
+  xButtonModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Snake"))) );
 
-  Reference< ::com::sun::star::uno::XInterface > objCancelModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference < ::com::sun::star::beans::XPropertySet > xCancelModel ( objCancelModel, ::com::sun::star::uno::UNO_QUERY_THROW );  
+  Reference <uno::XInterface> objCancelModel (xSMDialog->createInstance(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), uno::UNO_QUERY_THROW);
+  Reference <beans::XPropertySet> xCancelModel ( objCancelModel, uno::UNO_QUERY_THROW );  
 								     
-  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), ::com::sun::star::uno::makeAny(sal_Int16(80)) );
-  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), ::com::sun::star::uno::makeAny(sal_Int16(70)) );
-  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(50)) );
-  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), ::com::sun::star::uno::makeAny(sal_Int16(14)) );
-  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Cancel"))) );
-  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), ::com::sun::star::uno::makeAny(sal_Int8(0)) );
-  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), ::com::sun::star::uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Cancel"))) );
+  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(80)) );
+  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(70)) );
+  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(50)) );
+  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Cancel"))) );
+  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), uno::makeAny(sal_Int8(0)) );
+  xCancelModel->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Cancel"))) );
 
-  Reference < ::com::sun::star::container::XNameContainer > xNameContainer ( xIDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-  xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Button1")), ::com::sun::star::uno::makeAny(objButtonModel));
-  xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label1")), ::com::sun::star::uno::makeAny(objLabelModel));
-  xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Cancel")), ::com::sun::star::uno::makeAny(objCancelModel));
+  Reference <container::XNameContainer> xNameContainer ( xIDialog, uno::UNO_QUERY_THROW );
+  xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Button1")), uno::makeAny(objButtonModel));
+  xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Label1")), uno::makeAny(objLabelModel));
+  xNameContainer->insertByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Cancel")), uno::makeAny(objCancelModel));
 
-  Reference < ::com::sun::star::uno::XInterface > xDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialog")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
+  Reference <uno::XInterface> xDialog (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialog")), mxContext), uno::UNO_QUERY_THROW );
   
-  Reference < ::com::sun::star::awt::XControl > xControl ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference < ::com::sun::star::awt::XControlModel > xControlModel ( xIDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
+  Reference <awt::XControl> xControl ( xDialog, uno::UNO_QUERY_THROW );
+  Reference <awt::XControlModel> xControlModel ( xIDialog, uno::UNO_QUERY_THROW );
   xControl->setModel(xControlModel);
 
-  Reference < ::com::sun::star::awt::XToolkit > xToolkit (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
+  Reference <awt::XToolkit> xToolkit (xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), uno::UNO_QUERY_THROW );
 
-  Reference < ::com::sun::star::awt::XWindow > xWindow ( xControl, ::com::sun::star::uno::UNO_QUERY_THROW );
+  Reference <awt::XWindow> xWindow ( xControl, uno::UNO_QUERY_THROW );
   xWindow->setVisible( sal_True );
   xControl->createPeer( xToolkit, 0 );
 
-  Reference < ::com::sun::star::awt::XControlContainer > xControlContainer ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
+  Reference <awt::XControlContainer> xControlContainer ( xDialog, uno::UNO_QUERY_THROW );
 
-  Reference < ::com::sun::star::awt::XButton > xButton ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Cancel"))), ::com::sun::star::uno::UNO_QUERY_THROW );
+  Reference <awt::XButton> xButton ( xControlContainer->getControl(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Cancel"))), uno::UNO_QUERY_THROW );
   xButton->setActionCommand(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OK")));
 
-  Reference < ::com::sun::star::awt::XDialog > xDlg ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference< ::com::sun::star::awt::XActionListener > xEnsureDelete( new ClickHandler( xDlg ) );
+  Reference <awt::XDialog> xDlg ( xDialog, uno::UNO_QUERY_THROW );
+  Reference<awt::XActionListener> xEnsureDelete( new ClickHandler( xDlg ) );
   xButton->addActionListener( xEnsureDelete );
 
   xDlg->execute();
 
-  Reference < ::com::sun::star::lang::XComponent > xDispose ( xDialog, ::com::sun::star::uno::UNO_QUERY_THROW );
+  Reference <lang::XComponent > xDispose ( xDialog, uno::UNO_QUERY_THROW );
   xDispose->dispose();
 }
 
-/*void 
-EnsecProtocolHandler::showMessageBox(const ::rtl::OUString& strMessage)
-{
- ::rtl::OUString strName = rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Informacion"));
-    ::com::sun::star::uno::Reference< ::com::sun::star::lang::XMultiComponentFactory > smgr(mxContext->getServiceManager(), ::com::sun::star::uno::UNO_SET_THROW);
-    ::com::sun::star::uno::Reference< ::com::sun::star::awt::XMessageBox > box( 
-    ::com::sun::star::uno::Reference< ::com::sun::star::awt::XMessageBoxFactory >( smgr->createInstanceWithContext( rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW)->createMessageBox(
-	::com::sun::star::uno::Reference< ::com::sun::star::awt::XWindowPeer >(::com::sun::star::uno::Reference< ::com::sun::star::frame::XFrame >(::com::sun::star::uno::Reference< ::com::sun::star::frame::XDesktop >(smgr->createInstanceWithContext(rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.frame.Desktop")), mxContext),  ::com::sun::star::uno::UNO_QUERY_THROW)->getCurrentFrame(), ::com::sun::star::uno::UNO_SET_THROW)->getComponentWindow(), ::com::sun::star::uno::UNO_QUERY_THROW),
-	::com::sun::star::awt::Rectangle(), rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("infobox")), 
-    ::com::sun::star::awt::MessageBoxButtons::BUTTONS_OK, strName, strMessage), ::com::sun::star::uno::UNO_SET_THROW);
-
-    box->execute();
-
-    ::com::sun::star::uno::Reference< ::com::sun::star::lang::XComponent >(box, ::com::sun::star::uno::UNO_QUERY_THROW)->dispose();
-
-    }*/
 
 void
-EnsecProtocolHandler::showMessageBox( const Reference< ::com::sun::star::awt::XToolkit >& rToolkit, const Reference< ::com::sun::star::frame::XFrame >& rFrame, const ::rtl::OUString& aTitle, const ::rtl::OUString& aMsgText )
+EnsecProtocolHandler::showMessageBox( const Reference <awt::XToolkit>& rToolkit, const Reference <frame::XFrame>& rFrame, const ::rtl::OUString& aTitle, const ::rtl::OUString& aMsgText )
 {
     if ( rFrame.is() && rToolkit.is() )
     {
         // describe window properties.
-        ::com::sun::star::awt::WindowDescriptor                aDescriptor;
-        aDescriptor.Type              = ::com::sun::star::awt::WindowClass_MODALTOP;
+        awt::WindowDescriptor                aDescriptor;
+        aDescriptor.Type              = awt::WindowClass_MODALTOP;
         aDescriptor.WindowServiceName = "infobox";
         aDescriptor.ParentIndex       = -1;
-        aDescriptor.Parent            = Reference< ::com::sun::star::awt::XWindowPeer >( rFrame->getContainerWindow(), UNO_QUERY );
-        aDescriptor.Bounds            = ::com::sun::star::awt::Rectangle(0,0,300,200);
-        aDescriptor.WindowAttributes  = ::com::sun::star::awt::WindowAttribute::BORDER |
-            ::com::sun::star::awt::WindowAttribute::MOVEABLE |
-            ::com::sun::star::awt::WindowAttribute::CLOSEABLE;
+        aDescriptor.Parent            = Reference <awt::XWindowPeer>( rFrame->getContainerWindow(), UNO_QUERY );
+        aDescriptor.Bounds            = awt::Rectangle(0,0,300,200);
+        aDescriptor.WindowAttributes  = awt::WindowAttribute::BORDER |
+            awt::WindowAttribute::MOVEABLE |
+            awt::WindowAttribute::CLOSEABLE;
 
-        Reference< ::com::sun::star::awt::XWindowPeer > xPeer = rToolkit->createWindow( aDescriptor );
+        Reference <awt::XWindowPeer> xPeer = rToolkit->createWindow( aDescriptor );
         if ( xPeer.is() )
         {
-            Reference< ::com::sun::star::awt::XMessageBox > xMsgBox( xPeer, UNO_QUERY );
+            Reference <awt::XMessageBox> xMsgBox( xPeer, UNO_QUERY );
             if ( xMsgBox.is() )
             {
                 xMsgBox->setCaptionText( aTitle );
@@ -2972,33 +2767,33 @@ EnsecProtocolHandler::showMessageBox( const Reference< ::com::sun::star::awt::XT
 // -------------------------------------------------------------------------------------------------
 // helper to get flisol database
 //
-Reference< ::com::sun::star::sdbc::XDataSource >
-EnsecProtocolHandler::getDataSource( ) throw ( ::com::sun::star::uno::RuntimeException )
+Reference <sdbc::XDataSource>
+EnsecProtocolHandler::getDataSource( ) throw ( uno::RuntimeException )
 {
-  Reference< ::com::sun::star::sdbc::XDataSource > xDataSource;
-  Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager ( mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference< ::com::sun::star::container::XNameAccess > xNameAccess ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.sdb.DatabaseContext")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
+  Reference <sdbc::XDataSource> xDataSource;
+  Reference <lang::XMultiComponentFactory> xServiceManager ( mxContext->getServiceManager(), uno::UNO_QUERY_THROW );
+  Reference <container::XNameAccess> xNameAccess ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.sdb.DatabaseContext")), mxContext), uno::UNO_QUERY_THROW );
 
   if ( xNameAccess->hasElements() && 
        xNameAccess->hasByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ensec")))) 
-      xDataSource.set ( xNameAccess->getByName( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ensec"))), ::com::sun::star::uno::UNO_QUERY_THROW );
+      xDataSource.set ( xNameAccess->getByName( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ensec"))), uno::UNO_QUERY_THROW );
 
   return xDataSource;
 }
 
-Reference< ::com::sun::star::sdb::XOfficeDatabaseDocument >
-EnsecProtocolHandler::getDatabaseDocument( ) throw ( ::com::sun::star::uno::RuntimeException )
+Reference <sdb::XOfficeDatabaseDocument>
+EnsecProtocolHandler::getDatabaseDocument( ) throw ( uno::RuntimeException )
 {
-  Reference< ::com::sun::star::sdb::XOfficeDatabaseDocument > xDatabaseDocument;
-  Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager ( mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference< ::com::sun::star::container::XNameAccess > xNameAccess ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.sdb.DatabaseContext")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference< ::com::sun::star::sdb::XDocumentDataSource > xDocumentDataSource;
+  Reference <sdb::XOfficeDatabaseDocument> xDatabaseDocument;
+  Reference <lang::XMultiComponentFactory> xServiceManager ( mxContext->getServiceManager(), uno::UNO_QUERY_THROW );
+  Reference <container::XNameAccess > xNameAccess ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.sdb.DatabaseContext")), mxContext), uno::UNO_QUERY_THROW );
+  Reference <sdb::XDocumentDataSource> xDocumentDataSource;
 
   if ( xNameAccess->hasElements() && 
        xNameAccess->hasByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ensec"))))  {
 
-      xDocumentDataSource.set ( xNameAccess->getByName( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ensec"))), ::com::sun::star::uno::UNO_QUERY_THROW );
-      xDatabaseDocument.set ( xDocumentDataSource->getDatabaseDocument(), ::com::sun::star::uno::UNO_QUERY_THROW );
+      xDocumentDataSource.set ( xNameAccess->getByName( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ensec"))), uno::UNO_QUERY_THROW );
+      xDatabaseDocument.set ( xDocumentDataSource->getDatabaseDocument(), uno::UNO_QUERY_THROW );
   }
   
   return xDatabaseDocument;
@@ -3010,19 +2805,19 @@ EnsecProtocolHandler::getDatabaseDocument( ) throw ( ::com::sun::star::uno::Runt
 // helper to check flisol table definition
 //
 void
-EnsecProtocolHandler::checkTable( Reference< ::com::sun::star::sdbc::XDataSource > &aDataSource)
+EnsecProtocolHandler::checkTable( Reference <sdbc::XDataSource> &aDataSource)
 {
     aDataSource.is();
   bool bTableName = false;
-  Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager ( mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference< ::com::sun::star::container::XNameAccess > xDatabaseContext ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.sdb.DatabaseContext")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference< ::com::sun::star::sdbc::XDataSource > xDataSource ( xDatabaseContext->getByName( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Bibliography"))), ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference< ::com::sun::star::sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), ::com::sun::star::uno::UNO_QUERY_THROW );
+  Reference <lang::XMultiComponentFactory> xServiceManager ( mxContext->getServiceManager(), uno::UNO_QUERY_THROW );
+  Reference <container::XNameAccess> xDatabaseContext ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.sdb.DatabaseContext")), mxContext), uno::UNO_QUERY_THROW );
+  Reference <sdbc::XDataSource> xDataSource ( xDatabaseContext->getByName( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Bibliography"))), uno::UNO_QUERY_THROW );
+  Reference <sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), uno::UNO_QUERY_THROW );
 
-  Reference< ::com::sun::star::sdbcx::XTablesSupplier> xTSupplier( xConnection, UNO_QUERY);
+  Reference <sdbcx::XTablesSupplier> xTSupplier( xConnection, UNO_QUERY);
 
   if ( xTSupplier.is() ){
-    Reference< ::com::sun::star::container::XNameAccess > xNameAccess ( xTSupplier->getTables(), ::com::sun::star::uno::UNO_QUERY_THROW );    
+    Reference <container::XNameAccess> xNameAccess ( xTSupplier->getTables(), uno::UNO_QUERY_THROW );    
     if (xNameAccess->hasElements() &&  xNameAccess->hasByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("registro"))) ) {
       bTableName = true;
     }
@@ -3030,7 +2825,7 @@ EnsecProtocolHandler::checkTable( Reference< ::com::sun::star::sdbc::XDataSource
 
   if ( !bTableName ) {
     ::rtl::OUString sTable = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CREATE TABLE registro ( ID INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY, NOMBRE VARCHAR, APELLIDO VARCHAR, PROFESION VARCHAR, UNIVERSIDAD VARCHAR, PUBLICIDAD VARCHAR )"));
-    Reference< ::com::sun::star::sdbc::XStatement > xStatement ( xConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <sdbc::XStatement> xStatement ( xConnection->createStatement(), uno::UNO_QUERY_THROW );
     xStatement->executeQuery( sTable );
   }
 }
@@ -3039,24 +2834,24 @@ EnsecProtocolHandler::checkTable( Reference< ::com::sun::star::sdbc::XDataSource
 // helper to check flisol column definitions
 //
 void 
-EnsecProtocolHandler::checkColumnHeader( Reference < ::com::sun::star::sheet::XSpreadsheetDocument > & xDocument )
+EnsecProtocolHandler::checkColumnHeader( Reference <sheet::XSpreadsheetDocument> & xDocument )
 {
-  Reference< ::com::sun::star::sheet::XSpreadsheets > xSheets ( xDocument->getSheets(), ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference< ::com::sun::star::container::XIndexAccess > xIndex ( xSheets, ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference< ::com::sun::star::sheet::XSpreadsheet > xSheet ( xIndex->getByIndex(0), ::com::sun::star::uno::UNO_QUERY_THROW );
+  Reference <sheet::XSpreadsheets> xSheets ( xDocument->getSheets(), uno::UNO_QUERY_THROW );
+  Reference <container::XIndexAccess> xIndex ( xSheets, uno::UNO_QUERY_THROW );
+  Reference <sheet::XSpreadsheet> xSheet ( xIndex->getByIndex(0), uno::UNO_QUERY_THROW );
 
   if ( xSheet.is() ) {
-    Reference< ::com::sun::star::sheet::XCellRangesQuery > xQuery ( xSheet, ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <sheet::XCellRangesQuery> xQuery ( xSheet, uno::UNO_QUERY_THROW );
 
-    const sal_Int16 nContentFlags = ::com::sun::star::sheet::CellFlags::STRING | 
-      ::com::sun::star::sheet::CellFlags::VALUE | 
-      ::com::sun::star::sheet::CellFlags::DATETIME | 
-      ::com::sun::star::sheet::CellFlags::FORMULA | 
-      ::com::sun::star::sheet::CellFlags::ANNOTATION;
+    const sal_Int16 nContentFlags = sheet::CellFlags::STRING | 
+      sheet::CellFlags::VALUE | 
+      sheet::CellFlags::DATETIME | 
+      sheet::CellFlags::FORMULA | 
+      sheet::CellFlags::ANNOTATION;
 
-    Reference< ::com::sun::star::sheet::XSheetCellRanges > xSheetCellRanges ( xQuery->queryContentCells( nContentFlags ), ::com::sun::star::uno::UNO_QUERY_THROW );    
+    Reference <sheet::XSheetCellRanges> xSheetCellRanges ( xQuery->queryContentCells( nContentFlags ), uno::UNO_QUERY_THROW );    
     if ( xSheetCellRanges->getCount() > 0 ) {
-      //Reference< ::com::sun::star::sheet::XCellRange > xCellRange ( xSheetCellRanges->getByIndex(0), ::com::sun::star::uno::UNO_QUERY_THROW );
+      //Reference< sheet::XCellRange > xCellRange ( xSheetCellRanges->getByIndex(0), uno::UNO_QUERY_THROW );
       
 
     }
@@ -3064,7 +2859,6 @@ EnsecProtocolHandler::checkColumnHeader( Reference < ::com::sun::star::sheet::XS
 
 
     }
-
 
   }
 }
@@ -3075,38 +2869,38 @@ EnsecProtocolHandler::checkColumnHeader( Reference < ::com::sun::star::sheet::XS
 void 
 EnsecProtocolHandler::openForm( )
 {
-  Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager ( mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference< ::com::sun::star::uno::XInterface > xIDatabaseContext ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.sdb.DatabaseContext")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference< ::com::sun::star::container::XNameAccess > xNameAccess ( xIDatabaseContext, ::com::sun::star::uno::UNO_QUERY_THROW );
+  Reference <lang::XMultiComponentFactory> xServiceManager ( mxContext->getServiceManager(), uno::UNO_QUERY_THROW );
+  Reference <uno::XInterface> xIDatabaseContext ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.sdb.DatabaseContext")), mxContext), uno::UNO_QUERY_THROW );
+  Reference <container::XNameAccess> xNameAccess ( xIDatabaseContext, uno::UNO_QUERY_THROW );
 
   if (xNameAccess->hasElements() && xNameAccess->hasByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("flisol2014"))) ) {
-    Reference< ::com::sun::star::sdb::XDocumentDataSource > xDocumentDataSource (xNameAccess->getByName( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("flisol2014")) ), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::sdb::XOfficeDatabaseDocument > xOfficeDbD ( xDocumentDataSource->getDatabaseDocument(), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::sdb::XFormDocumentsSupplier > xFormDS ( xOfficeDbD, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::container::XNameAccess > xContainer ( xFormDS->getFormDocuments(), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::frame::XComponentLoader > xLoader ( xFormDS->getFormDocuments(), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <sdb::XDocumentDataSource> xDocumentDataSource (xNameAccess->getByName( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("flisol2014")) ), uno::UNO_QUERY_THROW);
+    Reference <sdb::XOfficeDatabaseDocument> xOfficeDbD ( xDocumentDataSource->getDatabaseDocument(), uno::UNO_QUERY_THROW);
+    Reference <sdb::XFormDocumentsSupplier> xFormDS ( xOfficeDbD, uno::UNO_QUERY_THROW );
+    Reference <container::XNameAccess> xContainer ( xFormDS->getFormDocuments(), uno::UNO_QUERY_THROW );
+    Reference <frame::XComponentLoader> xLoader ( xFormDS->getFormDocuments(), uno::UNO_QUERY_THROW );
     
     if ( xContainer->hasElements() && xContainer->hasByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("REGISTRO"))) ) {
-      //Reference< ::com::sun::star::beans::XFastPropertySet > xFastProperty ( xContainer->getByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("REGISTRO"))), ::com::sun::star::uno::UNO_QUERY_THROW );
-      //Reference< ::com::sun::star::lang::XTypeProvider > xTypeProvider ( xContainer->getByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("REGISTRO"))), ::com::sun::star::uno::UNO_QUERY_THROW );      
-      Reference< ::com::sun::star::sdbc::XDataSource > xDataSource ( xOfficeDbD->getDataSource(), ::com::sun::star::uno::UNO_QUERY_THROW );
-      Reference< ::com::sun::star::sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), ::com::sun::star::uno::UNO_QUERY_THROW );
+      //Reference< beans::XFastPropertySet > xFastProperty ( xContainer->getByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("REGISTRO"))), uno::UNO_QUERY_THROW );
+      //Reference< lang::XTypeProvider > xTypeProvider ( xContainer->getByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("REGISTRO"))), uno::UNO_QUERY_THROW );      
+      Reference <sdbc::XDataSource> xDataSource ( xOfficeDbD->getDataSource(), uno::UNO_QUERY_THROW );
+      Reference <sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), uno::UNO_QUERY_THROW );
 
-      Sequence < ::com::sun::star::beans::PropertyValue > aArgs(2);      
+      Sequence <beans::PropertyValue> aArgs(2);      
       aArgs[0].Name = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("ActiveConnection"));
       aArgs[0].Value <<= xConnection;
       aArgs[1].Name = ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("OpenMode"));
       aArgs[1].Value <<= ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("open"));;
 
-      //::com::sun::star::form::NavigationBarMode mode = ::com::sun::star::form::NavigationBarMode_CURRENT;
+      //form::NavigationBarMode mode = form::NavigationBarMode_CURRENT;
 
-      //xFastProperty->setFastPropertyValue( 13, ::com::sun::star::uno::makeAny( ::com::sun::star::form::NavigationBarMode_CURRENT ) );
-      //xFastProperty->setFastPropertyValue( 15, ::com::sun::star::uno::makeAny( sal_True ) );
-      //xFastProperty->setFastPropertyValue( 16, ::com::sun::star::uno::makeAny( sal_True ) );
-      //xFastProperty->setFastPropertyValue( 17, ::com::sun::star::uno::makeAny( sal_True ) );
+      //xFastProperty->setFastPropertyValue( 13, uno::makeAny( form::NavigationBarMode_CURRENT ) );
+      //xFastProperty->setFastPropertyValue( 15, uno::makeAny( sal_True ) );
+      //xFastProperty->setFastPropertyValue( 16, uno::makeAny( sal_True ) );
+      //xFastProperty->setFastPropertyValue( 17, uno::makeAny( sal_True ) );
       
       
-      /*::com::sun::star::uno::Sequence < ::com::sun::star::uno::Type > seqTypes = xTypeProvider->getTypes();
+      /*uno::Sequence < uno::Type > seqTypes = xTypeProvider->getTypes();
       
             ::rtl::OString ouTypeName;
       for ( int nIterator = 0; nIterator < seqTypes.getLength(); nIterator++ ) {
@@ -3134,22 +2928,22 @@ EnsecProtocolHandler::openForm( )
 void 
 EnsecProtocolHandler::openSheet()
 {
-  Reference< ::com::sun::star::lang::XMultiComponentFactory > xServiceManager (mxContext->getServiceManager(), ::com::sun::star::uno::UNO_QUERY_THROW);
-  Reference< ::com::sun::star::uno::XInterface > iDatabaseContext ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.sdb.DatabaseContext")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW );
-  Reference< ::com::sun::star::container::XNameAccess > xNameAccess ( iDatabaseContext, ::com::sun::star::uno::UNO_QUERY_THROW );
+  Reference <lang::XMultiComponentFactory> xServiceManager (mxContext->getServiceManager(), uno::UNO_QUERY_THROW);
+  Reference <uno::XInterface> iDatabaseContext ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.sdb.DatabaseContext")), mxContext), uno::UNO_QUERY_THROW );
+  Reference <container::XNameAccess> xNameAccess ( iDatabaseContext, uno::UNO_QUERY_THROW );
 
   if (xNameAccess->hasElements() && xNameAccess->hasByName(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("flisol2014"))) ) {
 
-    Reference< ::com::sun::star::sdbc::XDataSource >  xDataSource ( xNameAccess->getByName( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("flisol2014")) ), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::sdbc::XConnection > xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::sdbc::XStatement > xStatement ( xConnection->createStatement(), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::sdbc::XResultSet > xResultSet ( xStatement->executeQuery( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT * FROM REGISTRO"))), ::com::sun::star::uno::UNO_QUERY_THROW );
+    Reference <sdbc::XDataSource>  xDataSource ( xNameAccess->getByName( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("flisol2014")) ), uno::UNO_QUERY_THROW);
+    Reference <sdbc::XConnection> xConnection ( xDataSource->getConnection( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("")), ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM(""))), uno::UNO_QUERY_THROW );
+    Reference <sdbc::XStatement> xStatement ( xConnection->createStatement(), uno::UNO_QUERY_THROW);
+    Reference <sdbc::XResultSet> xResultSet ( xStatement->executeQuery( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT * FROM REGISTRO"))), uno::UNO_QUERY_THROW );
 
-    Reference< ::com::sun::star::frame::XDesktop > xDesktop ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.frame.Desktop")), mxContext), ::com::sun::star::uno::UNO_QUERY_THROW);    
-    Reference< ::com::sun::star::frame::XFrame > xFrame ( xDesktop->getCurrentFrame(), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::frame::XController > xController ( xFrame->getController(), ::com::sun::star::uno::UNO_QUERY_THROW);    
-    Reference< ::com::sun::star::frame::XModel > xModel ( xController->getModel(), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::sheet::XSpreadsheetDocument > xSpreadsheetDocument ( xModel, ::com::sun::star::uno::UNO_QUERY );
+    Reference <frame::XDesktop> xDesktop ( xServiceManager->createInstanceWithContext(::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.frame.Desktop")), mxContext), uno::UNO_QUERY_THROW);    
+    Reference <frame::XFrame> xFrame ( xDesktop->getCurrentFrame(), uno::UNO_QUERY_THROW);
+    Reference <frame::XController> xController ( xFrame->getController(), uno::UNO_QUERY_THROW);    
+    Reference <frame::XModel> xModel ( xController->getModel(), uno::UNO_QUERY_THROW);
+    Reference <sheet::XSpreadsheetDocument> xSpreadsheetDocument ( xModel, uno::UNO_QUERY );
 
     if ( !xSpreadsheetDocument.is() ) {
         showMessageBox (mxToolkit, mxFrame, 
@@ -3158,45 +2952,44 @@ EnsecProtocolHandler::openSheet()
         return;
     }
 
-    Reference< ::com::sun::star::sheet::XSpreadsheets > xSpreadsheets ( xSpreadsheetDocument->getSheets(), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::container::XIndexAccess > xIndexAccess ( xSpreadsheets, ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::sheet::XSpreadsheet > xSheet ( xIndexAccess->getByIndex(0), ::com::sun::star::uno::UNO_QUERY_THROW);
-    Reference< ::com::sun::star::table::XColumnRowRange > xColsRows( xSheet, ::com::sun::star::uno::UNO_QUERY_THROW );
-
-    Reference< ::com::sun::star::sdbcx::XColumnsSupplier > xColumns ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );
-    Reference< ::com::sun::star::container::XNameAccess > xColumnNames ( xColumns->getColumns(), ::com::sun::star::uno::UNO_QUERY_THROW );    
-    Reference< ::com::sun::star::table::XTableColumns > xTableColumns ( xColsRows->getColumns(), ::com::sun::star::uno::UNO_QUERY_THROW );    
-    Sequence < ::rtl::OUString > arrayNames = xColumnNames->getElementNames();
+    Reference <sheet::XSpreadsheets> xSpreadsheets ( xSpreadsheetDocument->getSheets(), uno::UNO_QUERY_THROW);
+    Reference <container::XIndexAccess> xIndexAccess ( xSpreadsheets, uno::UNO_QUERY_THROW);
+    Reference <sheet::XSpreadsheet> xSheet ( xIndexAccess->getByIndex(0), uno::UNO_QUERY_THROW);
+    Reference <table::XColumnRowRange> xColsRows( xSheet, uno::UNO_QUERY_THROW );
+    Reference <sdbcx::XColumnsSupplier> xColumns ( xResultSet, uno::UNO_QUERY_THROW );
+    Reference <container::XNameAccess> xColumnNames ( xColumns->getColumns(), uno::UNO_QUERY_THROW );    
+    Reference <table::XTableColumns> xTableColumns ( xColsRows->getColumns(), uno::UNO_QUERY_THROW );    
+    Sequence <rtl::OUString> arrayNames = xColumnNames->getElementNames();
 
     sal_Int32 nRowColumn = 0;
     sal_Int32 nRow = 1;
 
     for ( sal_Int32 nIterator = 0; nIterator < arrayNames.getLength(); nIterator++ ) {
-	//Reference< ::com::sun::star::sdb::XColumn > xColumn ( xColumnIndex->getByIndex( nIterator ), ::com::sun::star::uno::UNO_QUERY_THROW );
-      Reference< ::com::sun::star::table::XCell > xCell ( xSheet->getCellByPosition( nIterator, nRowColumn ), ::com::sun::star::uno::UNO_QUERY_THROW );
-      //Reference< ::com::sun::star::table::XTableColumn > xTableColumn ( xTableColumns->getByIndex( nIterator ), ::com::sun::star::uno::UNO_QUERY_THROW );
-      Reference< ::com::sun::star::beans::XPropertySet > xColumnProp ( xTableColumns->getByIndex( nIterator ), ::com::sun::star::uno::UNO_QUERY_THROW );
-      Reference< ::com::sun::star::beans::XPropertySet > xCellProp ( xCell, ::com::sun::star::uno::UNO_QUERY_THROW );
+	//Reference< sdb::XColumn > xColumn ( xColumnIndex->getByIndex( nIterator ), uno::UNO_QUERY_THROW );
+      Reference <table::XCell> xCell ( xSheet->getCellByPosition( nIterator, nRowColumn ), uno::UNO_QUERY_THROW );
+      //Reference< table::XTableColumn > xTableColumn ( xTableColumns->getByIndex( nIterator ), uno::UNO_QUERY_THROW );
+      Reference <beans::XPropertySet> xColumnProp ( xTableColumns->getByIndex( nIterator ), uno::UNO_QUERY_THROW );
+      Reference <beans::XPropertySet> xCellProp ( xCell, uno::UNO_QUERY_THROW );
       if ( arrayNames[nIterator].compareToAscii("ID") == 0) {
 	xCell->setFormula( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("No.")) );
-	xColumnProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(2000)) );
+	xColumnProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(2000)) );
       }
       else {
 	xCell->setFormula( arrayNames[nIterator] );	
-	xColumnProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), ::com::sun::star::uno::makeAny(sal_Int16(6000)) );
+	xColumnProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(6000)) );
       }
       xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
-				   ::com::sun::star::uno::makeAny(::com::sun::star::awt::FontWeight::BOLD) );
+				   uno::makeAny(awt::FontWeight::BOLD) );
       xCellProp->setPropertyValue( ::rtl::OUString(RTL_CONSTASCII_USTRINGPARAM("HoriJustify")), 
-				   ::com::sun::star::uno::makeAny(::com::sun::star::table::CellHoriJustify_CENTER) );
+				   uno::makeAny(table::CellHoriJustify_CENTER) );
     }
 
-    Reference< ::com::sun::star::sdbc::XRow > xRow ( xResultSet, ::com::sun::star::uno::UNO_QUERY_THROW );  
+    Reference <sdbc::XRow> xRow ( xResultSet, uno::UNO_QUERY_THROW );  
 
     while ( xResultSet->next() ) {
       for ( sal_Int32 nIterator = 1; nIterator <= arrayNames.getLength(); nIterator++) {
-	Reference< ::com::sun::star::table::XCell > xCell ( xSheet->getCellByPosition( nIterator - 1, nRow ), ::com::sun::star::uno::UNO_QUERY_THROW );	      
-	Reference< ::com::sun::star::beans::XPropertySet > xCellProp ( xCell, ::com::sun::star::uno::UNO_QUERY_THROW );	      
+	Reference <table::XCell> xCell ( xSheet->getCellByPosition( nIterator - 1, nRow ), uno::UNO_QUERY_THROW );	      
+	Reference <beans::XPropertySet> xCellProp ( xCell, uno::UNO_QUERY_THROW );	      
 	if ( arrayNames[nIterator - 1].compareToAscii("ID") == 0) {
 	  xCell->setValue( nRow );
 	}
@@ -3216,8 +3009,8 @@ EnsecProtocolHandler::openSheet()
 //
 //
 void SAL_CALL 
-EnsecProtocolHandler::addStatusListener( const Reference< XStatusListener >& xControl, 
-					  const URL& aURL )
+EnsecProtocolHandler::addStatusListener( const Reference< frame::XStatusListener >& xControl, 
+                                         const util::URL& aURL )
   throw (RuntimeException)
 {
     xControl.is();
@@ -3228,8 +3021,8 @@ EnsecProtocolHandler::addStatusListener( const Reference< XStatusListener >& xCo
 //
 //
 void SAL_CALL 
-EnsecProtocolHandler::removeStatusListener( const Reference< XStatusListener >& xControl, 
-					     const URL& aURL ) 
+EnsecProtocolHandler::removeStatusListener( const Reference< frame::XStatusListener >& xControl, 
+                                            const util::URL& aURL ) 
   throw (RuntimeException)
 {
     xControl.is();
