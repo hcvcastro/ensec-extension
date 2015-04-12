@@ -24,7 +24,6 @@
 class SvStream;
 class ResId;
 
-#include <tools/solar.h>
 #include <basegfx/color/bcolor.hxx>
 
 // Color types
@@ -113,6 +112,11 @@ public:
                                 sal_uInt8((rBColor.getBlue() * 255.0) + 0.5));
                         }
 
+                        bool operator<(const Color& b) const
+                        {
+                            return mnColor < b.GetColor();
+                        }
+
     void                SetRed( sal_uInt8 nRed );
     sal_uInt8           GetRed() const { return COLORDATA_RED( mnColor ); }
     void                SetGreen( sal_uInt8 nGreen );
@@ -147,8 +151,8 @@ public:
     // color space conversion tools
     // the range for h/s/b is:
     // Hue: 0-360 degree
-    // Saturation: 0-100 %
-    // Brightness: 0-100 %
+    // Saturation: 0-100%
+    // Brightness: 0-100%
     static ColorData    HSBtoRGB( sal_uInt16 nHue, sal_uInt16 nSat, sal_uInt16 nBri );
     void                RGBtoHSB( sal_uInt16& nHue, sal_uInt16& nSat, sal_uInt16& nBri ) const;
 
@@ -160,8 +164,12 @@ public:
     SvStream&           Read( SvStream& rIStm, bool bNewFormat = true );
     SvStream&           Write( SvStream& rOStm, bool bNewFormat = true );
 
-    TOOLS_DLLPUBLIC friend SvStream&    operator>>( SvStream& rIStream, Color& rColor );
-    TOOLS_DLLPUBLIC friend SvStream&    operator<<( SvStream& rOStream, const Color& rColor );
+    TOOLS_DLLPUBLIC friend SvStream&    ReadColor( SvStream& rIStream, Color& rColor );
+    TOOLS_DLLPUBLIC friend SvStream&    WriteColor( SvStream& rOStream, const Color& rColor );
+
+    // Return color as RGB hex string
+    // for example "00ff00" for green color
+    OUString AsRGBHexString() const;
 
     // get ::basegfx::BColor from this color
     ::basegfx::BColor getBColor() const { return ::basegfx::BColor(GetRed() / 255.0, GetGreen() / 255.0, GetBlue() / 255.0); }

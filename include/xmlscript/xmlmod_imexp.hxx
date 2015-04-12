@@ -27,7 +27,7 @@
 namespace xmlscript
 {
 
-//==============================================================================
+
 // Script module import/export
 // HACK C++ struct to transport info. Later the container
 // itself should do the export/import and use exportet XML
@@ -44,13 +44,11 @@ XMLSCRIPT_DLLPUBLIC void
 SAL_CALL exportScriptModule(
     ::com::sun::star::uno::Reference<
     ::com::sun::star::xml::sax::XWriter > const & xOut,
-    const ModuleDescriptor& rMod )
-        SAL_THROW_EXTERN_C();
+    const ModuleDescriptor& rMod );
 
 XMLSCRIPT_DLLPUBLIC ::com::sun::star::uno::Reference<
     ::com::sun::star::xml::sax::XDocumentHandler >
-SAL_CALL importScriptModule( ModuleDescriptor& rMod )
-    SAL_THROW_EXTERN_C();
+SAL_CALL importScriptModule( ModuleDescriptor& rMod );
 
 }
 

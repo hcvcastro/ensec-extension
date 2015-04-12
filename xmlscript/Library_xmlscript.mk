@@ -13,19 +13,6 @@ $(eval $(call gb_Library_use_external,xmlscript,boost_headers))
 
 $(eval $(call gb_Library_set_componentfile,xmlscript,xmlscript/util/xmlscript))
 
-#$(eval $(call gb_Library_use_sdk_api,xmlscript))
-
-$(eval $(call gb_Library_use_libraries,xmlscript,\
-	$(gb_UWINAPI) \
-))
-
-#    comphelper \
-#    cppu \
-#    cppuhelper \
-#   sal \
-#    tl \
-#	i18nlangtag \
-
 $(eval $(call gb_Library_set_include,xmlscript,\
     -I$(SRCDIR)/xmlscript/source/inc \
 	-I$(dir $(call gb_CustomTarget_get_target,sdkapi/sdkapi))   \
@@ -40,6 +27,8 @@ $(eval $(call gb_Library_add_defs,xmlscript,\
 $(eval $(call gb_Library_add_ldflags,xmlscript,\
     $(SNAKE_LIBS) \
 ))
+
+$(eval $(call gb_Library_set_precompiled_header,xmlscript,$(SRCDIR)/xmlscript/inc/pch/precompiled_xmlscript))
 
 $(eval $(call gb_Library_add_exception_objects,xmlscript,\
     xmlscript/source/misc/unoservices \

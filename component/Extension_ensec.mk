@@ -23,6 +23,10 @@ $(eval $(call gb_Extension_add_file,ensec-extension,ensec-component-addons.xcu,$
 
 $(eval $(call gb_Extension_add_file,ensec-extension,ensec-component-protocol-handler.xcu,$(call gb_XcuFile_for_extension,component/xcu/ensec-component-protocol-handler.xcu)))
 
+$(eval $(call gb_Extension_add_file,ensec-extension,inputstringdialog.ui,$(SRCDIR)/component/source/inputstringdialog.ui))
+
+$(eval $(call gb_Extension_add_file,ensec-extension,dlgFormat.xdl,$(SRCDIR)/component/source/dlgFormat.xdl))
+
 $(eval $(call gb_Extension_add_file,ensec-extension,bolivia.shell.png,$(SRCDIR)/component/img/bolivia.shell.png))
 
 # vim: set noet sw=4 ts=4:

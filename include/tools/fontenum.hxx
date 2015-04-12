@@ -20,7 +20,6 @@
 #define INCLUDED_TOOLS_FONTENUM_HXX
 
 #include <sal/types.h>
-#include <tools/solar.h>
 
 #ifndef ENUM_FONTFAMILY_DECLARED
 #define ENUM_FONTFAMILY_DECLARED
@@ -96,7 +95,7 @@ typedef sal_uInt16 FontEmphasisMark;
 #define EMPHASISMARK_POS_ABOVE      ((FontEmphasisMark)0x1000)
 #define EMPHASISMARK_POS_BELOW      ((FontEmphasisMark)0x2000)
 
-// Only for compability
+// Only for compatibility
 #define EMPHASISMARK_DOTS_ABOVE     (EMPHASISMARK_DOT | EMPHASISMARK_POS_ABOVE)
 #define EMPHASISMARK_DOTS_BELOW     (EMPHASISMARK_DOT | EMPHASISMARK_POS_BELOW)
 #define EMPHASISMARK_SIDE_DOTS      (EMPHASISMARK_ACCENT | EMPHASISMARK_POS_ABOVE)

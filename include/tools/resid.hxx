@@ -47,7 +47,7 @@ class ResId
     mutable sal_uInt32      m_nResId;      // Resource Identifier
     mutable RESOURCE_TYPE   m_nRT;         // type for loading (mutable to be set later)
     mutable ResMgr *        m_pResMgr;     // load from this ResMgr (mutable for setting on demand)
-    mutable RESOURCE_TYPE   m_nRT2;        // type for loading (supercedes m_nRT)
+    mutable RESOURCE_TYPE   m_nRT2;        // type for loading (supersedes m_nRT)
     mutable sal_uInt32      m_nWinBits;    // container for original style bits on a window in a resource
 
     void ImplInit( sal_uInt32 nId, ResMgr& rMgr, RSHEADER_TYPE* pRes )
@@ -65,26 +65,13 @@ public:
     {
         ImplInit( nId, rMgr, NULL );
     }
-    // backwards compatibility; avoid ambiguities
-    ResId( sal_uInt16 nId, ResMgr& rMgr )
-    {
-        ImplInit( sal_uInt32(nId), rMgr, NULL );
-    }
-    ResId( int nId, ResMgr& rMgr )
-    {
-        ImplInit( sal_uInt32(nId), rMgr, NULL );
-    }
-    ResId( long nId, ResMgr& rMgr )
-    {
-        ImplInit( sal_uInt32(nId), rMgr, NULL );
-    }
 
     sal_uInt32 GetWinBits() const { return m_nWinBits; }
     void SetWinBits( sal_uInt32 nBits ) const { m_nWinBits = nBits; }
 
-    RESOURCE_TYPE   GetRT() const { return( m_nRT ); }
+    RESOURCE_TYPE   GetRT() const { return m_nRT; }
 
-    /** Set the type if not already set. Ask for tye with GetRT()
+    /** Set the type if not already set. Ask for type with GetRT()
 
     [Example]
     ResId aId( 1000 );
@@ -104,7 +91,7 @@ public:
 
     /** Get the effective type (m_nRT2 or m_nRT1)
 
-    A second resource type is used to supercede settings
+    A second resource type is used to supersede settings
     of the base class ( e.g. Window )
     */
     RESOURCE_TYPE   GetRT2() const

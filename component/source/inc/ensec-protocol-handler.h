@@ -81,6 +81,20 @@
 #include <com/sun/star/uno/XComponentContext.hpp>
 #endif
 
+#ifndef _COM_SUN_STAR_AWT_XMESSAGEBOX_HPP_
+#include <com/sun/star/awt/XMessageBox.hpp>
+#endif
+
+#ifndef _COM_SUN_STAR_AWT_MESSAGEBOXBUTTONS_HPP_
+#include <com/sun/star/awt/MessageBoxButtons.hpp>
+#endif
+
+#define FILE_OPEN_SERVICE_NAME_OOO  OUString("com.sun.star.ui.dialogs.OfficeFilePicker")
+#define FILE_PICKER                 OUString("com.sun.star.ui.dialogs.FilePicker")
+
+
+using namespace ::com::sun::star::uno;
+
 class EnsecProtocolHandler : public cppu::WeakImplHelper4
 <
   com::sun::star::lang::XInitialization,
@@ -186,11 +200,30 @@ protected:
 
 
 
+    void UpdateCalendar();
+    OUString PickCSVFile();
 
+    Reference<com::sun::star::uno::XInterface> 
+    CreateInstance(const OUString& sService) 
+    { 
+        return mxContext->getServiceManager()->createInstanceWithContext(sService, mxContext);
+    }
 
-
-
-
+    short ShowMessageBox( ::com::sun::star::awt::MessageBoxType eType,
+                          long                                  nButtons,
+                          const OUString&                       sTitle,
+                          const OUString&                       sMessage )
+    {
+        Reference<com::sun::star::awt::XWindowPeer> xWindowPeer( mxFrame->getComponentWindow(), UNO_QUERY_THROW );
+        Reference<com::sun::star::awt::XToolkit2> xToolkit( mxToolkit, UNO_QUERY_THROW );
+        Reference<com::sun::star::awt::XMessageBox> xMsgBox ( 
+                xToolkit->createMessageBox(  xWindowPeer,
+                                             eType, 
+                                             nButtons,
+                                             sTitle,
+                                             sMessage), UNO_QUERY_THROW);
+        return xMsgBox->execute();
+    }
 
 public:
     EnsecProtocolHandler(const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XComponentContext > &rxContext) : 

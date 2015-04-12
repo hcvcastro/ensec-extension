@@ -32,12 +32,12 @@
 #include <com/sun/star/awt/FontWeight.hpp>
 #include <com/sun/star/awt/FontWidth.hpp>
 #include <com/sun/star/awt/ImagePosition.hpp>
+#include <com/sun/star/awt/ImageScaleMode.hpp>
 #include <com/sun/star/awt/LineEndFormat.hpp>
 #include <com/sun/star/awt/PushButtonType.hpp>
 #include <com/sun/star/awt/VisualEffect.hpp>
 #include <com/sun/star/util/Date.hpp>
 #include <com/sun/star/util/Time.hpp>
-#include <com/sun/star/lang/XMultiServiceFactory.hpp>
 #include <tools/date.hxx>
 #include <tools/time.hxx>
 
@@ -48,6 +48,7 @@
 
 #include <com/sun/star/style/VerticalAlignment.hpp>
 
+#include <com/sun/star/lang/XMultiServiceFactory.hpp>
 #include <com/sun/star/lang/XServiceInfo.hpp>
 #include <com/sun/star/lang/Locale.hpp>
 #include <com/sun/star/util/NumberFormat.hpp>
@@ -517,7 +518,7 @@ void ElementDescriptor::readHexLongAttr( OUString const & rPropName, OUString co
         Any a( _xProps->getPropertyValue( rPropName ) );
         if (a.getValueTypeClass() == TypeClass_LONG)
         {
-            addAttribute( rAttrName, "0x" + OUString::number((sal_Int64)(sal_uInt64)*(sal_uInt32 *)a.getValue(),16)  );
+            addAttribute( rAttrName, "0x" + OUString::number((sal_Int64)(sal_uInt64)*static_cast<sal_uInt32 const *>(a.getValue()),16)  );
         }
     }
 }
@@ -529,7 +530,7 @@ void ElementDescriptor::readDateFormatAttr( OUString const & rPropName, OUString
         Any a( _xProps->getPropertyValue( rPropName ) );
         if (a.getValueTypeClass() == TypeClass_SHORT)
         {
-            switch (*(sal_Int16 const *)a.getValue())
+            switch (*static_cast<sal_Int16 const *>(a.getValue()))
             {
             case 0:
                 addAttribute( rAttrName, "system_short" );
@@ -582,7 +583,7 @@ void ElementDescriptor::readDateAttr( OUString const & rPropName, OUString const
     if (beans::PropertyState_DEFAULT_VALUE != _xPropState->getPropertyState( rPropName ))
     {
         Any a( _xProps->getPropertyValue( rPropName ) );
-        if (a.getValueTypeClass() == TypeClass_STRUCT && a.getValueType() == ::getCppuType( (util::Date*)0 ))
+        if (a.getValueTypeClass() == TypeClass_STRUCT && a.getValueType() == cppu::UnoType<util::Date>::get())
         {
             util::Date aUDate;
             if (a >>= aUDate)
@@ -603,13 +604,13 @@ void ElementDescriptor::readTimeAttr( OUString const & rPropName, OUString const
     if (beans::PropertyState_DEFAULT_VALUE != _xPropState->getPropertyState( rPropName ))
     {
         Any a( _xProps->getPropertyValue( rPropName ) );
-        if (a.getValueTypeClass() == TypeClass_STRUCT && a.getValueType() == ::getCppuType( (util::Time*)0 ))
+        if (a.getValueTypeClass() == TypeClass_STRUCT && a.getValueType() == cppu::UnoType<util::Time>::get())
         {
             util::Time aUTime;
             if (a >>= aUTime)
             {
-                ::Time aTTime(aUTime);
-                addAttribute( rAttrName, OUString::number( aTTime.GetTime() / ::Time::nanoPerCenti ) );
+                ::tools::Time aTTime(aUTime);
+                addAttribute( rAttrName, OUString::number( aTTime.GetTime() / ::tools::Time::nanoPerCenti ) );
             }
             else
                 OSL_FAIL( "### internal error" );
@@ -626,7 +627,7 @@ void ElementDescriptor::readTimeFormatAttr( OUString const & rPropName, OUString
         Any a( _xProps->getPropertyValue( rPropName ) );
         if (a.getValueTypeClass() == TypeClass_SHORT)
         {
-            switch (*(sal_Int16 const *)a.getValue())
+            switch (*static_cast<sal_Int16 const *>(a.getValue()))
             {
             case 0:
                 addAttribute( rAttrName, "24h_short" );
@@ -663,7 +664,7 @@ void ElementDescriptor::readAlignAttr( OUString const & rPropName, OUString cons
         Any a( _xProps->getPropertyValue( rPropName ) );
         if (a.getValueTypeClass() == TypeClass_SHORT)
         {
-            switch (*(sal_Int16 const *)a.getValue())
+            switch (*static_cast<sal_Int16 const *>(a.getValue()))
             {
             case 0:
                 addAttribute( rAttrName, "left" );
@@ -689,7 +690,7 @@ void ElementDescriptor::readVerticalAlignAttr( OUString const & rPropName, OUStr
     if (beans::PropertyState_DEFAULT_VALUE != _xPropState->getPropertyState( rPropName ))
     {
         Any a( _xProps->getPropertyValue( rPropName ) );
-        if (a.getValueTypeClass() == TypeClass_ENUM && a.getValueType() == ::getCppuType( (style::VerticalAlignment*)0 ))
+        if (a.getValueTypeClass() == TypeClass_ENUM && a.getValueType() == cppu::UnoType<style::VerticalAlignment>::get())
         {
             style::VerticalAlignment eAlign;
             a >>= eAlign;
@@ -744,7 +745,7 @@ void ElementDescriptor::readImageAlignAttr( OUString const & rPropName, OUString
         Any a( _xProps->getPropertyValue( rPropName ) );
         if (a.getValueTypeClass() == TypeClass_SHORT)
         {
-            switch (*(sal_Int16 const *)a.getValue())
+            switch (*static_cast<sal_Int16 const *>(a.getValue()))
             {
             case 0:
                 addAttribute( rAttrName, "left" );
@@ -775,7 +776,7 @@ void ElementDescriptor::readImagePositionAttr( OUString const & rPropName, OUStr
         Any a( _xProps->getPropertyValue( rPropName ) );
         if (a.getValueTypeClass() == TypeClass_SHORT)
         {
-            switch (*(sal_Int16 const *)a.getValue())
+            switch (*static_cast<sal_Int16 const *>(a.getValue()))
             {
             case awt::ImagePosition::LeftTop:
                 addAttribute( rAttrName, "left-top" );
@@ -831,7 +832,7 @@ void ElementDescriptor::readButtonTypeAttr( OUString const & rPropName, OUString
         Any a( _xProps->getPropertyValue( rPropName ) );
         if (a.getValueTypeClass() == TypeClass_SHORT)
         {
-            switch (*(sal_Int16 const *)a.getValue())
+            switch (*static_cast<sal_Int16 const *>(a.getValue()))
             {
             case awt::PushButtonType_STANDARD:
                 addAttribute( rAttrName, "standard" );
@@ -860,7 +861,7 @@ void ElementDescriptor::readOrientationAttr( OUString const & rPropName, OUStrin
         Any a( _xProps->getPropertyValue( rPropName ) );
         if (a.getValueTypeClass() == TypeClass_LONG)
         {
-            switch (*(sal_Int32 const *)a.getValue())
+            switch (*static_cast<sal_Int32 const *>(a.getValue()))
             {
             case 0:
                 addAttribute( rAttrName, "horizontal" );
@@ -883,7 +884,7 @@ void ElementDescriptor::readLineEndFormatAttr( OUString const & rPropName, OUStr
         Any a( _xProps->getPropertyValue( rPropName ) );
         if (a.getValueTypeClass() == TypeClass_SHORT)
         {
-            switch (*(sal_Int16 const *)a.getValue())
+            switch (*static_cast<sal_Int16 const *>(a.getValue()))
             {
             case awt::LineEndFormat::CARRIAGE_RETURN:
                 addAttribute( rAttrName, "carriage-return" );
@@ -910,7 +911,7 @@ void ElementDescriptor::readDataAwareAttr( OUString const & rAttrName )
 
     Reference< form::binding::XBindableValue > xBinding( _xProps, UNO_QUERY );
 
-    if ( xFac.is() && xBinding.is() && rAttrName.equals( XMLNS_DIALOGS_PREFIX ":linked-cell" ) )
+    if ( xFac.is() && xBinding.is() && rAttrName == XMLNS_DIALOGS_PREFIX ":linked-cell" )
     {
         try
         {
@@ -935,7 +936,7 @@ void ElementDescriptor::readDataAwareAttr( OUString const & rAttrName )
         }
     }
     Reference< form::binding::XListEntrySink > xEntrySink( _xProps, UNO_QUERY );
-    if ( xEntrySink.is() && rAttrName.equals( XMLNS_DIALOGS_PREFIX ":source-cell-range" ) )
+    if ( xEntrySink.is() && rAttrName == XMLNS_DIALOGS_PREFIX ":source-cell-range" )
     {
         Reference< beans::XPropertySet > xListSource( xEntrySink->getListEntrySource(), UNO_QUERY );
         if ( xListSource.is() )
@@ -967,7 +968,7 @@ void ElementDescriptor::readSelectionTypeAttr( OUString const & rPropName, OUStr
     {
         Any aSelectionType ( _xProps->getPropertyValue( rPropName ) );
 
-        if (aSelectionType.getValueTypeClass() == TypeClass_ENUM && aSelectionType.getValueType() == ::getCppuType( (::view::SelectionType*)0 ))
+        if (aSelectionType.getValueTypeClass() == TypeClass_ENUM && aSelectionType.getValueType() == cppu::UnoType<view::SelectionType>::get())
         {
             ::view::SelectionType eSelectionType;
             aSelectionType >>= eSelectionType;
@@ -1010,6 +1011,36 @@ void ElementDescriptor::readScrollableSettings()
                   XMLNS_DIALOGS_PREFIX ":vscroll" );
 }
 
+void ElementDescriptor::readImageScaleModeAttr( OUString const & rPropName, OUString const & rAttrName )
+{
+    if (beans::PropertyState_DEFAULT_VALUE != _xPropState->getPropertyState( rPropName ))
+    {
+        Any aImageScaleMode( _xProps->getPropertyValue( rPropName ) );
+
+        if (aImageScaleMode.getValueTypeClass() == TypeClass_SHORT)
+        {
+            sal_Int16 nImageScaleMode;
+            aImageScaleMode >>= nImageScaleMode;
+
+            switch(nImageScaleMode)
+            {
+                case ::awt::ImageScaleMode::NONE:
+                    addAttribute( rAttrName, OUString( "none") );
+                    break;
+                case ::awt::ImageScaleMode::ISOTROPIC:
+                    addAttribute( rAttrName, OUString( "isotropic") );
+                    break;
+                case ::awt::ImageScaleMode::ANISOTROPIC:
+                    addAttribute( rAttrName, OUString( "anisotropic" ) );
+                    break;
+                default:
+                    OSL_ENSURE( false, "### illegal image scale mode value.");
+                    break;
+            }
+        }
+    }
+}
+
 void ElementDescriptor::readDefaults( bool supportPrintable, bool supportVisible )
 {
     Any a( _xProps->getPropertyValue( "Name" ) );
@@ -1020,7 +1051,7 @@ void ElementDescriptor::readDefaults( bool supportPrintable, bool supportVisible
     // In the future VBA support might require custom models ( and not the just the form
     // variant of a control that we currently use ) In this case the door is still open,
     // we just need to define a new way for the 'ServiceName' to be extracted from the
-    // incomming model. E.g. the use of supporting service
+    // incoming model. E.g. the use of supporting service
     // "com.sun.star.form.FormComponent", 'ServiceName' and XPersistObject
     // is only an implementation detail here, in the future some other
     // method ( perhaps a custom prop ) could be used instead.
@@ -1035,10 +1066,10 @@ void ElementDescriptor::readDefaults( bool supportPrintable, bool supportVisible
                     addAttribute( XMLNS_DIALOGS_PREFIX ":control-implementation", sCtrlName );
         }
     }
-    addAttribute( XMLNS_DIALOGS_PREFIX ":id", * reinterpret_cast< const OUString * >( a.getValue() ) );
+    addAttribute( XMLNS_DIALOGS_PREFIX ":id", * static_cast< const OUString * >( a.getValue() ) );
     readShortAttr( "TabIndex", XMLNS_DIALOGS_PREFIX ":tab-index" );
 
-    sal_Bool bEnabled = sal_False;
+    bool bEnabled = false;
     if (_xProps->getPropertyValue( "Enabled" ) >>= bEnabled)
     {
         if (! bEnabled)
@@ -1051,9 +1082,9 @@ void ElementDescriptor::readDefaults( bool supportPrintable, bool supportVisible
         SAL_WARN( "xmlscript.xmldlg", "unexpected property type for \"Enabled\": not bool!" );
     }
 
-    sal_Bool bVisible = sal_True;
     if (supportVisible) try
     {
+        bool bVisible = true;
         if (_xProps->getPropertyValue("EnableVisible" ) >>= bVisible)
         {
 
@@ -1072,22 +1103,22 @@ void ElementDescriptor::readDefaults( bool supportPrintable, bool supportVisible
     a = _xProps->getPropertyValue( "PositionX" );
     if (a.getValueTypeClass() == TypeClass_LONG)
     {
-        addAttribute( XMLNS_DIALOGS_PREFIX ":left", OUString::number( *(sal_Int32 const *)a.getValue() ) );
+        addAttribute( XMLNS_DIALOGS_PREFIX ":left", OUString::number( *static_cast<sal_Int32 const *>(a.getValue()) ) );
     }
     a = _xProps->getPropertyValue( "PositionY" );
     if (a.getValueTypeClass() == TypeClass_LONG)
     {
-        addAttribute( XMLNS_DIALOGS_PREFIX ":top", OUString::number( *(sal_Int32 const *)a.getValue() ) );
+        addAttribute( XMLNS_DIALOGS_PREFIX ":top", OUString::number( *static_cast<sal_Int32 const *>(a.getValue()) ) );
     }
     a = _xProps->getPropertyValue( "Width" );
     if (a.getValueTypeClass() == TypeClass_LONG)
     {
-        addAttribute( XMLNS_DIALOGS_PREFIX ":width", OUString::number( *(sal_Int32 const *)a.getValue() ) );
+        addAttribute( XMLNS_DIALOGS_PREFIX ":width", OUString::number( *static_cast<sal_Int32 const *>(a.getValue()) ) );
     }
     a = _xProps->getPropertyValue( "Height" );
     if (a.getValueTypeClass() == TypeClass_LONG)
     {
-        addAttribute( XMLNS_DIALOGS_PREFIX ":height", OUString::number( *(sal_Int32 const *)a.getValue() ) );
+        addAttribute( XMLNS_DIALOGS_PREFIX ":height", OUString::number( *static_cast<sal_Int32 const *>(a.getValue()) ) );
     }
 
     if (supportPrintable)
@@ -1109,7 +1140,6 @@ struct StringTriple
 extern StringTriple const * const g_pEventTranslations;
 
 void ElementDescriptor::readEvents()
-    SAL_THROW_EXTERN_C()
 {
     Reference< script::XScriptEventsSupplier > xSupplier( _xProps, UNO_QUERY );
     if (xSupplier.is())
@@ -1230,8 +1260,8 @@ inline bool equalFont( Style const & style1, Style const & style2 )
         style1._fontEmphasisMark == style2._fontEmphasisMark
         );
 }
+
 OUString StyleBag::getStyleId( Style const & rStyle )
-    SAL_THROW_EXTERN_C()
 {
     if (! rStyle._set) // nothin set
     {
@@ -1308,13 +1338,15 @@ OUString StyleBag::getStyleId( Style const & rStyle )
     _styles.push_back( pStyle );
     return pStyle->_id;
 }
-StyleBag::~StyleBag() SAL_THROW_EXTERN_C()
+
+StyleBag::~StyleBag()
 {
     for ( size_t nPos = 0; nPos < _styles.size(); ++nPos )
     {
         delete _styles[ nPos ];
     }
 }
+
 void StyleBag::dump( Reference< xml::sax::XExtendedDocumentHandler > const & xOut )
 {
     if (! _styles.empty())
@@ -1337,7 +1369,6 @@ void SAL_CALL exportDialogModel(
     Reference< xml::sax::XExtendedDocumentHandler > const & xOut,
     Reference< container::XNameContainer > const & xDialogModel,
     Reference< frame::XModel > const & xDocument )
-    SAL_THROW_EXTERN_C()
 {
     StyleBag all_styles;
     // window

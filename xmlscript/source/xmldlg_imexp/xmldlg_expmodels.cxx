@@ -60,7 +60,7 @@ static inline bool readFontProps( ElementDescriptor * element, Style & style )
     return ret;
 }
 
-void ElementDescriptor::readMultiPageModel( StyleBag * all_styles ) SAL_THROW_EXTERN_C()
+void ElementDescriptor::readMultiPageModel( StyleBag * all_styles )
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x8 | 0x20 );
@@ -81,7 +81,7 @@ void ElementDescriptor::readMultiPageModel( StyleBag * all_styles ) SAL_THROW_EX
     readDefaults();
     readLongAttr( "MultiPageValue", XMLNS_DIALOGS_PREFIX ":value" );
     Any aDecorationAny( _xProps->getPropertyValue( "Decoration" ) );
-    bool bDecoration = sal_True;
+    bool bDecoration = true;
     if ( (aDecorationAny >>= bDecoration) && !bDecoration )
         addAttribute( XMLNS_DIALOGS_PREFIX ":withtabs", "false" );
 
@@ -95,7 +95,7 @@ void ElementDescriptor::readMultiPageModel( StyleBag * all_styles ) SAL_THROW_EX
     }
 }
 
-void ElementDescriptor::readFrameModel( StyleBag * all_styles ) SAL_THROW_EXTERN_C()
+void ElementDescriptor::readFrameModel( StyleBag * all_styles )
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x8 | 0x20 );
@@ -121,9 +121,6 @@ void ElementDescriptor::readFrameModel( StyleBag * all_styles ) SAL_THROW_EXTERN
         title->addAttribute( XMLNS_DIALOGS_PREFIX ":value", aTitle );
         addSubElement( title );
     }
-#ifdef SCROLLABLEFRAME
-    readScrollableSettings();
-#endif
     uno::Reference< container::XNameContainer > xControlContainer( _xProps, uno::UNO_QUERY );
     if ( xControlContainer.is() && xControlContainer->getElementNames().getLength() )
     {
@@ -134,7 +131,7 @@ void ElementDescriptor::readFrameModel( StyleBag * all_styles ) SAL_THROW_EXTERN
     readEvents();
 }
 
-void ElementDescriptor::readPageModel( StyleBag * all_styles ) SAL_THROW_EXTERN_C()
+void ElementDescriptor::readPageModel( StyleBag * all_styles )
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x8 | 0x20 );
@@ -165,7 +162,6 @@ void ElementDescriptor::readPageModel( StyleBag * all_styles ) SAL_THROW_EXTERN_
 }
 
 void ElementDescriptor::readButtonModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x8 | 0x20 );
@@ -226,7 +222,6 @@ void ElementDescriptor::readButtonModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readCheckBoxModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x8 | 0x20 | 0x40 );
@@ -255,7 +250,7 @@ void ElementDescriptor::readCheckBoxModel( StyleBag * all_styles )
     readImagePositionAttr( "ImagePosition", XMLNS_DIALOGS_PREFIX ":image-position" );
     readBoolAttr( "MultiLine", XMLNS_DIALOGS_PREFIX ":multiline" );
 
-    sal_Bool bTriState = sal_False;
+    bool bTriState = false;
     if ((readProp( "TriState" ) >>= bTriState) && bTriState)
     {
         addAttribute( XMLNS_DIALOGS_PREFIX ":tristate", "true" );
@@ -283,7 +278,6 @@ void ElementDescriptor::readCheckBoxModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readComboBoxModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x4 | 0x8 | 0x20 );
@@ -337,7 +331,6 @@ void ElementDescriptor::readComboBoxModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readListBoxModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x4 | 0x8 | 0x20 );
@@ -399,7 +392,6 @@ void ElementDescriptor::readListBoxModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readRadioButtonModel( StyleBag * all_styles  )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x8 | 0x20 | 0x40 );
@@ -450,7 +442,6 @@ void ElementDescriptor::readRadioButtonModel( StyleBag * all_styles  )
 }
 
 void ElementDescriptor::readGroupBoxModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x2 | 0x8 | 0x20 );
@@ -480,7 +471,6 @@ void ElementDescriptor::readGroupBoxModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readFixedTextModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x4 | 0x8 | 0x20 );
@@ -511,7 +501,6 @@ void ElementDescriptor::readFixedTextModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readFixedHyperLinkModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x4 | 0x8 | 0x20 );
@@ -544,7 +533,6 @@ void ElementDescriptor::readFixedHyperLinkModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readEditModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x4 | 0x8 | 0x20 );
@@ -587,7 +575,6 @@ void ElementDescriptor::readEditModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readImageControlModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x4 );
@@ -603,13 +590,13 @@ void ElementDescriptor::readImageControlModel( StyleBag * all_styles )
     // collect elements
     readDefaults();
     readBoolAttr( "ScaleImage", XMLNS_DIALOGS_PREFIX ":scale-image" );
+    readImageScaleModeAttr( "ScaleMode", XMLNS_DIALOGS_PREFIX ":scale-mode" );
     readBoolAttr( "Tabstop", XMLNS_DIALOGS_PREFIX ":tabstop" );
     readImageURLAttr( "ImageURL", XMLNS_DIALOGS_PREFIX ":src" );
     readEvents();
 }
 
 void ElementDescriptor::readFileControlModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x4 | 0x8 | 0x20 );
@@ -638,7 +625,6 @@ void ElementDescriptor::readFileControlModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readTreeControlModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x4 | 0x8 | 0x20 );
@@ -666,7 +652,6 @@ void ElementDescriptor::readTreeControlModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readCurrencyFieldModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x4 | 0x8 | 0x20 );
@@ -707,7 +692,6 @@ void ElementDescriptor::readCurrencyFieldModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readDateFieldModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x4 | 0x8 | 0x20 );
@@ -747,7 +731,6 @@ void ElementDescriptor::readDateFieldModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readNumericFieldModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x4 | 0x8 | 0x20 );
@@ -786,7 +769,6 @@ void ElementDescriptor::readNumericFieldModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readTimeFieldModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x4 | 0x8 | 0x20 );
@@ -824,7 +806,6 @@ void ElementDescriptor::readTimeFieldModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readPatternFieldModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x4 | 0x8 | 0x20 );
@@ -857,7 +838,6 @@ void ElementDescriptor::readPatternFieldModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readFormattedFieldModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x2 | 0x4 | 0x8 | 0x20 );
@@ -893,10 +873,10 @@ void ElementDescriptor::readFormattedFieldModel( StyleBag * all_styles )
     switch (a.getValueTypeClass())
     {
     case TypeClass_DOUBLE:
-        addAttribute( XMLNS_DIALOGS_PREFIX ":value-default", OUString::number( *(double const *)a.getValue() ) );
+        addAttribute( XMLNS_DIALOGS_PREFIX ":value-default", OUString::number( *static_cast<double const *>(a.getValue()) ) );
         break;
     case TypeClass_STRING:
-        addAttribute( XMLNS_DIALOGS_PREFIX ":value-default", *(OUString const *)a.getValue() );
+        addAttribute( XMLNS_DIALOGS_PREFIX ":value-default", *static_cast<OUString const *>(a.getValue()) );
         break;
     default:
         break;
@@ -923,7 +903,6 @@ void ElementDescriptor::readFormattedFieldModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readSpinButtonModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x4 );
@@ -952,7 +931,6 @@ void ElementDescriptor::readSpinButtonModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readFixedLineModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x2 | 0x8 | 0x20 );
@@ -973,8 +951,8 @@ void ElementDescriptor::readFixedLineModel( StyleBag * all_styles )
     readOrientationAttr( "Orientation", XMLNS_DIALOGS_PREFIX ":align" );
     readEvents();
 }
+
 void ElementDescriptor::readProgressBarModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x4 | 0x10 );
@@ -996,8 +974,8 @@ void ElementDescriptor::readProgressBarModel( StyleBag * all_styles )
     readLongAttr( "ProgressValueMax", XMLNS_DIALOGS_PREFIX ":value-max" );
     readEvents();
 }
+
 void ElementDescriptor::readScrollBarModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect styles
     Style aStyle( 0x1 | 0x4 );
@@ -1026,8 +1004,8 @@ void ElementDescriptor::readScrollBarModel( StyleBag * all_styles )
     readDataAwareAttr( XMLNS_DIALOGS_PREFIX ":linked-cell" );
     readEvents();
 }
+
 void ElementDescriptor::readDialogModel( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect elements
     addAttribute( "xmlns:" XMLNS_DIALOGS_PREFIX, XMLNS_DIALOGS_URI );
@@ -1057,7 +1035,7 @@ void ElementDescriptor::readDialogModel( StyleBag * all_styles )
 
     readScrollableSettings();
     Any aDecorationAny( _xProps->getPropertyValue( "Decoration" ) );
-    bool bDecoration = sal_False;
+    bool bDecoration = false;
     if ( (aDecorationAny >>= bDecoration) && !bDecoration )
         addAttribute( XMLNS_DIALOGS_PREFIX ":withtitlebar", "false" );
     readImageURLAttr( "ImageURL", XMLNS_DIALOGS_PREFIX ":image-src" );
@@ -1065,7 +1043,6 @@ void ElementDescriptor::readDialogModel( StyleBag * all_styles )
 }
 
 void ElementDescriptor::readBullitinBoard( StyleBag * all_styles )
-    SAL_THROW_EXTERN_C()
 {
     // collect elements
     ::std::vector< ElementDescriptor* > all_elements;

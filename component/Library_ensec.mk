@@ -56,6 +56,7 @@ $(eval $(call gb_Library_set_include,ensec-component,\
 $(eval $(call gb_Library_add_exception_objects,ensec-component,\
     component/source/ensec-component-export \
     component/source/ensec-protocol-handler \
+	component/source/calendar \
 ))
 
 

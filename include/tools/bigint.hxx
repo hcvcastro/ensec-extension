@@ -26,11 +26,6 @@
 
 class SvStream;
 
-#ifdef _TLBIGINT_INT64
-struct SbxINT64;
-struct SbxUINT64;
-#endif
-
 #define MAX_DIGITS 8
 
 class Fraction;
@@ -41,7 +36,7 @@ private:
     long            nVal;
     unsigned short  nNum[MAX_DIGITS];
     sal_uInt8       nLen        : 5;    // current length
-    sal_Bool        bIsNeg      : 1,    // Is Sign negative?
+    bool        bIsNeg      : 1,    // Is Sign negative?
                     bIsBig      : 1,    // sal_True == BigInt
                     bIsSet      : 1;    // Not "Null" (not "not 0")
 
@@ -58,19 +53,59 @@ private:
     TOOLS_DLLPRIVATE bool ABS_IsLess(BigInt const &) const;
 
 public:
-                    BigInt();
-                    BigInt( short nVal );
-                    BigInt( long nVal );
-                    BigInt( int nVal );
-                    BigInt( double nVal );
-                    BigInt( sal_uInt16 nVal );
-                    BigInt( sal_uInt32 nVal );
-                    BigInt( const BigInt& rBigInt );
-                    BigInt( const OUString& rString );
-#ifdef _TLBIGINT_INT64
-                    BigInt( const SbxINT64  &r );
-                    BigInt( const SbxUINT64 &r );
+    BigInt()
+        : nVal(0)
+        , nLen(0)
+        , bIsNeg(false)
+        , bIsBig(false)
+        , bIsSet(false)
+    {
+    }
+
+    BigInt(short nValue)
+        : nVal(nValue)
+        , nLen(0)
+        , bIsNeg(false)
+        , bIsBig(false)
+        , bIsSet(true)
+    {
+    }
+
+    BigInt(long nValue)
+        : nVal(nValue)
+        , nLen(0)
+        , bIsNeg(false)
+        , bIsBig(false)
+        , bIsSet(true)
+    {
+    }
+
+    BigInt(int nValue)
+        : nVal(nValue)
+        , nLen(0)
+        , bIsNeg(false)
+        , bIsBig(false)
+        , bIsSet(true)
+    {
+    }
+
+    BigInt( double nVal );
+
+    BigInt(sal_uInt16 nValue)
+        : nVal(nValue)
+        , nLen(0)
+        , bIsNeg(false)
+        , bIsBig(false)
+        , bIsSet(true)
+    {
+    }
+
+    BigInt( sal_uInt32 nVal );
+#if SAL_TYPES_SIZEOFLONG < SAL_TYPES_SIZEOFLONGLONG
+    BigInt( long long nVal );
 #endif
+    BigInt( const BigInt& rBigInt );
+    BigInt( const OUString& rString );
 
     operator        short() const;
     operator        long()  const;
@@ -80,7 +115,6 @@ public:
     operator        sal_uIntPtr() const;
 
     void            Set( bool bSet ) { bIsSet = bSet ? sal_True : sal_False; }
-    OUString        GetString() const;
 
     bool        IsSet() const { return (bool)bIsSet; }
     bool        IsNeg() const;
@@ -88,10 +122,6 @@ public:
     bool        IsOne() const;
     bool        IsLong() const { return !((bool)bIsBig); }
     void            Abs();
-#ifdef _TLBIGINT_INT64
-    bool        INT64 ( SbxINT64  *p ) const;
-    bool        UINT64( SbxUINT64 *p ) const;
-#endif
 
     BigInt&         operator  =( const BigInt& rVal );
     BigInt&         operator +=( const BigInt& rVal );
@@ -120,41 +150,6 @@ public:
 
     friend class Fraction;
 };
-
-inline BigInt::BigInt()
-{
-    bIsSet = sal_False;
-    bIsBig = sal_False;
-    nVal   = 0;
-}
-
-inline BigInt::BigInt( short nValue )
-{
-    bIsSet = sal_True;
-    bIsBig = sal_False;
-    nVal   = nValue;
-}
-
-inline BigInt::BigInt( long nValue )
-{
-    bIsSet = sal_True;
-    bIsBig = sal_False;
-    nVal   = nValue;
-}
-
-inline BigInt::BigInt( int nValue )
-{
-    bIsSet = sal_True;
-    bIsBig = sal_False;
-    nVal   = nValue;
-}
-
-inline BigInt::BigInt( sal_uInt16 nValue )
-{
-    bIsSet = sal_True;
-    bIsBig = sal_False;
-    nVal   = nValue;
-}
 
 inline BigInt::operator short() const
 {
@@ -190,8 +185,8 @@ inline BigInt::operator sal_uInt16() const
 
 inline BigInt& BigInt::operator =( const short nValue )
 {
-    bIsSet = sal_True;
-    bIsBig = sal_False;
+    bIsSet = true;
+    bIsBig = false;
     nVal   = nValue;
 
     return *this;
@@ -199,8 +194,8 @@ inline BigInt& BigInt::operator =( const short nValue )
 
 inline BigInt& BigInt::operator =( const long nValue )
 {
-    bIsSet = sal_True;
-    bIsBig = sal_False;
+    bIsSet = true;
+    bIsBig = false;
     nVal   = nValue;
 
     return *this;
@@ -208,8 +203,8 @@ inline BigInt& BigInt::operator =( const long nValue )
 
 inline BigInt& BigInt::operator =( const int nValue )
 {
-    bIsSet = sal_True;
-    bIsBig = sal_False;
+    bIsSet = true;
+    bIsBig = false;
     nVal   = nValue;
 
     return *this;
@@ -217,8 +212,8 @@ inline BigInt& BigInt::operator =( const int nValue )
 
 inline BigInt& BigInt::operator =( const sal_uInt16 nValue )
 {
-    bIsSet = sal_True;
-    bIsBig = sal_False;
+    bIsSet = true;
+    bIsBig = false;
     nVal   = nValue;
 
     return *this;
@@ -235,7 +230,7 @@ inline bool BigInt::IsNeg() const
 inline bool BigInt::IsZero() const
 {
     if ( bIsBig )
-        return sal_False;
+        return false;
     else
         return (nVal == 0);
 }
@@ -243,7 +238,7 @@ inline bool BigInt::IsZero() const
 inline bool BigInt::IsOne() const
 {
     if ( bIsBig )
-        return sal_False;
+        return false;
     else
         return (nVal == 1);
 }
@@ -251,7 +246,7 @@ inline bool BigInt::IsOne() const
 inline void BigInt::Abs()
 {
     if ( bIsBig )
-        bIsNeg = sal_False;
+        bIsNeg = false;
     else if ( nVal < 0 )
         nVal = -nVal;
 }

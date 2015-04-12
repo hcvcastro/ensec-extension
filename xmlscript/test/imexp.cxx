@@ -18,7 +18,7 @@
  */
 
 #include <config_folders.h>
- 
+
 #include <stdio.h>
 #include <osl/file.h>
 
@@ -50,7 +50,6 @@
 #include <com/sun/star/registry/XImplementationRegistration.hpp>
 #include <com/sun/star/uno/XComponentContext.hpp>
 
-using namespace ::rtl;
 using namespace ::cppu;
 using namespace ::com::sun::star;
 using namespace ::com::sun::star::uno;
@@ -67,7 +66,7 @@ Reference< XComponentContext > createInitialComponentContext(
             inst_dir.pData, &file_url.pData );
         OSL_ASSERT( osl_File_E_None == rc );
 
-        OUString unorc = file_url + OUString("/" LIBO_ETC_FOLDER "/" SAL_CONFIGFILE("uno") );
+        OUString unorc = file_url + ("/" LIBO_ETC_FOLDER "/" SAL_CONFIGFILE("louno") );
 
         return defaultBootstrap_InitialComponentContext( unorc );
     }
@@ -105,7 +104,7 @@ Reference< container::XNameContainer > importFile(
     }
     else
     {
-        throw Exception( "### Cannot read file!", Reference< XInterface >() );
+        throw Exception( "### Cannot read file!" );
     }
 }
 

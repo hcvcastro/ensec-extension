@@ -26,14 +26,13 @@
 #include <rtl/textenc.h>
 #include <sal/types.h>
 
+#include <memory>
+
+class SvMemoryStream;
+
 namespace com { namespace sun { namespace star { namespace util {
     class XStringWidth;
 } } } }
-
-// Special tokens:
-#define INET_PATH_TOKEN '/'
-#define INET_MARK_TOKEN '#'
-#define INET_HEX_ESCAPE '%'
 
 // Common URL prefixes for various schemes:
 #define INET_FTP_SCHEME "ftp://"
@@ -41,7 +40,6 @@ namespace com { namespace sun { namespace star { namespace util {
 #define INET_HTTPS_SCHEME "https://"
 #define INET_FILE_SCHEME "file://"
 #define INET_MAILTO_SCHEME "mailto:"
-#define INET_NEWS_SCHEME "news:"
 #define INET_HID_SCHEME "hid:"
 
 #define URL_PREFIX_PRIV_SOFFICE "private:"
@@ -65,44 +63,38 @@ enum
 };
 
 // Schemes:
-enum INetProtocol
+enum class INetProtocol
 {
-    INET_PROT_NOT_VALID = 0,
-    INET_PROT_FTP = 1,
-    INET_PROT_HTTP = 2,
-    INET_PROT_FILE = 3,
-    INET_PROT_MAILTO = 4,
-    INET_PROT_VND_SUN_STAR_WEBDAV = 5,
-    INET_PROT_NEWS = 6,
-    INET_PROT_PRIV_SOFFICE = 7,
-    INET_PROT_PRIVATE = INET_PROT_PRIV_SOFFICE, // obsolete
-    INET_PROT_VND_SUN_STAR_HELP = 8,
-    INET_PROT_HTTPS = 9,
-    INET_PROT_SLOT = 10,
-    INET_PROT_MACRO = 11,
-    INET_PROT_JAVASCRIPT = 12,
-    INET_PROT_IMAP = 13,
-    INET_PROT_POP3 = 14,
-    INET_PROT_DATA = 15,
-    INET_PROT_CID = 16,
-    INET_PROT_OUT = 17,
-    INET_PROT_VND_SUN_STAR_HIER = 18,
-    INET_PROT_VIM = 19,
-    INET_PROT_UNO = 20,
-    INET_PROT_COMPONENT = 21,
-    INET_PROT_VND_SUN_STAR_PKG = 22,
-    INET_PROT_LDAP = 23,
-    INET_PROT_DB = 24,
-    INET_PROT_VND_SUN_STAR_CMD = 25,
-    INET_PROT_TELNET = 27,
-    INET_PROT_VND_SUN_STAR_EXPAND = 28,
-    INET_PROT_VND_SUN_STAR_TDOC = 29,
-    INET_PROT_GENERIC = 30,
-    INET_PROT_SMB = 31,
-    INET_PROT_HID = 32,
-    INET_PROT_SFTP = 33,
-    INET_PROT_CMIS = 34,
-    INET_PROT_END = 35
+    NotValid,
+    Ftp,
+    Http,
+    File,
+    Mailto,
+    VndSunStarWebdav,
+    PrivSoffice,
+    VndSunStarHelp,
+    Https,
+    Slot,
+    Macro,
+    Javascript,
+    Data,
+    Cid,
+    VndSunStarHier,
+    Uno,
+    Component,
+    VndSunStarPkg,
+    Ldap,
+    Db,
+    VndSunStarCmd,
+    Telnet,
+    VndSunStarExpand,
+    VndSunStarTdoc,
+    Generic,
+    Smb,
+    Hid,
+    Sftp,
+    Cmis,
+    LAST = Cmis
 };
 
 class TOOLS_DLLPUBLIC SAL_WARN_UNUSED INetURLObject
@@ -184,14 +176,14 @@ public:
     // General Structure:
 
     inline INetURLObject():
-        m_eScheme(INET_PROT_NOT_VALID), m_eSmartScheme(INET_PROT_HTTP) {}
+        m_eScheme(INetProtocol::NotValid), m_eSmartScheme(INetProtocol::Http) {}
 
-    inline bool HasError() const { return m_eScheme == INET_PROT_NOT_VALID; }
+    inline bool HasError() const { return m_eScheme == INetProtocol::NotValid; }
 
     inline OUString GetMainURL(DecodeMechanism eMechanism,
                                 rtl_TextEncoding eCharset
                                     = RTL_TEXTENCODING_UTF8) const
-    { return decode(m_aAbsURIRef, getEscapePrefix(), eMechanism, eCharset); }
+    { return decode(m_aAbsURIRef, eMechanism, eCharset); }
 
     OUString GetURLNoPass(DecodeMechanism eMechanism = DECODE_TO_IURI,
                            rtl_TextEncoding eCharset = RTL_TEXTENCODING_UTF8)
@@ -256,10 +248,6 @@ public:
          */
         FSYS_DOS = 0x4,
 
-        /** Mac notation (e.g., "dir:file").
-         */
-        FSYS_MAC = 0x8,
-
         /** Detect the used notation.
 
             @descr  For the following descriptions, please note that
@@ -305,11 +293,10 @@ public:
               becomes
                 "file:///" *UCS4
               replacing the delimiter by "/" within <*UCS4>.  The delimiter is
-              that character from the set { "/", "\", ":" } which appears most
+              that character from the set { "/", "\" } which appears most
               often in <*UCS4> (if FSYS_UNX is not among the style bits, "/"
               is removed from the set; if FSYS_DOS is not among the style
-              bits, "\" is removed from the set; if FSYS_MAC is not among the
-              style bits, ":" is removed from the set).  If two or more
+              bits, "\" is removed from the set).  If two or more
               characters appear the same number of times, the character
               mentioned first in that set is chosen.  If the first character
               of <*UCS4> is the delimiter, that character is not copied.
@@ -450,12 +437,12 @@ public:
     inline OUString GetUser(DecodeMechanism eMechanism = DECODE_TO_IURI,
                              rtl_TextEncoding eCharset
                                  = RTL_TEXTENCODING_UTF8) const
-    { return decode(m_aUser, getEscapePrefix(), eMechanism, eCharset); }
+    { return decode(m_aUser, eMechanism, eCharset); }
 
     inline OUString GetPass(DecodeMechanism eMechanism = DECODE_TO_IURI,
                              rtl_TextEncoding eCharset
                                  = RTL_TEXTENCODING_UTF8) const
-    { return decode(m_aAuth, getEscapePrefix(), eMechanism, eCharset); }
+    { return decode(m_aAuth, eMechanism, eCharset); }
 
     inline bool SetUser(OUString const & rTheUser,
                         EncodeMechanism eMechanism = WAS_ENCODED,
@@ -479,7 +466,7 @@ public:
     inline OUString GetHost(DecodeMechanism eMechanism = DECODE_TO_IURI,
                              rtl_TextEncoding eCharset
                                  = RTL_TEXTENCODING_UTF8) const
-    { return decode(m_aHost, getEscapePrefix(), eMechanism, eCharset); }
+    { return decode(m_aHost, eMechanism, eCharset); }
 
     OUString GetHostPort(DecodeMechanism eMechanism = DECODE_TO_IURI,
                           rtl_TextEncoding eCharset = RTL_TEXTENCODING_UTF8);
@@ -500,7 +487,7 @@ public:
     inline OUString GetURLPath(DecodeMechanism eMechanism = DECODE_TO_IURI,
                                 rtl_TextEncoding eCharset
                                     = RTL_TEXTENCODING_UTF8) const
-    { return decode(m_aPath, getEscapePrefix(), eMechanism, eCharset); }
+    { return decode(m_aPath, eMechanism, eCharset); }
 
     inline bool SetURLPath(OUString const & rThePath,
                            EncodeMechanism eMechanism = WAS_ENCODED,
@@ -800,7 +787,7 @@ public:
     inline OUString GetParam(DecodeMechanism eMechanism = DECODE_TO_IURI,
                               rtl_TextEncoding eCharset
                                   = RTL_TEXTENCODING_UTF8) const
-    { return decode(m_aQuery, getEscapePrefix(), eMechanism, eCharset); }
+    { return decode(m_aQuery, eMechanism, eCharset); }
 
     inline bool SetParam(OUString const & rTheQuery,
                          EncodeMechanism eMechanism = WAS_ENCODED,
@@ -813,7 +800,7 @@ public:
     inline OUString GetMark(DecodeMechanism eMechanism = DECODE_TO_IURI,
                              rtl_TextEncoding eCharset
                                  = RTL_TEXTENCODING_UTF8) const
-    { return decode(m_aFragment, getEscapePrefix(), eMechanism, eCharset); }
+    { return decode(m_aFragment, eMechanism, eCharset); }
 
     inline bool SetMark(OUString const & rTheFragment,
                         EncodeMechanism eMechanism = WAS_ENCODED,
@@ -848,7 +835,7 @@ public:
 
         @param pDelimiter  Upon successful return, this parameter can return
         the character that is the 'main' delimiter within the returned file
-        system path (e.g., "/" for Unix, "\" for DOS, ":" for Mac).  This is
+        system path (e.g., "/" for Unix, "\" for DOS).  This is
         especially useful for routines that later try to shorten the returned
         file system path at a 'good' position, e.g. to fit it into some
         limited display space.
@@ -861,47 +848,34 @@ public:
     OUString getFSysPath(FSysStyle eStyle, sal_Unicode * pDelimiter = 0)
         const;
 
+    // Data URLs:
+    std::unique_ptr<SvMemoryStream> getData();
+
     // POP3 and URLs:
 
-    OUString GetMsgId(DecodeMechanism eMechanism = DECODE_TO_IURI,
-                       rtl_TextEncoding eCharset = RTL_TEXTENCODING_UTF8)
-        const;
+    static OUString GetMsgId(DecodeMechanism eMechanism = DECODE_TO_IURI,
+                       rtl_TextEncoding eCharset = RTL_TEXTENCODING_UTF8);
 
     // Coding:
 
     enum Part
     {
-        PART_OBSOLETE_NORMAL = 0x001, // Obsolete, do not use!
-        PART_OBSOLETE_FILE = 0x002, // Obsolete, do not use!
-        PART_OBSOLETE_PARAM = 0x004, // Obsolete, do not use!
-        PART_USER_PASSWORD = 0x008,
-        PART_IMAP_ACHAR = 0x010,
-        PART_VIM = 0x020,
-        PART_HOST_EXTRA = 0x040,
-        PART_FPATH = 0x080,
-        PART_AUTHORITY = 0x100,
-        PART_PATH_SEGMENTS_EXTRA = 0x200,
-        PART_REL_SEGMENT_EXTRA = 0x400,
-        PART_URIC = 0x800,
-        PART_HTTP_PATH = 0x1000,
-        PART_FILE_SEGMENT_EXTRA = 0x2000, // Obsolete, do not use!
-        PART_MESSAGE_ID = 0x4000,
-        PART_MESSAGE_ID_PATH = 0x8000,
-        PART_MAILTO = 0x10000,
-        PART_PATH_BEFORE_QUERY = 0x20000,
-        PART_PCHAR = 0x40000,
-        PART_FRAGMENT = 0x80000, // Obsolete, do not use!
-        PART_VISIBLE = 0x100000,
-        PART_VISIBLE_NONSPECIAL = 0x200000,
-        PART_CREATEFRAGMENT = 0x400000,
-        PART_UNO_PARAM_VALUE = 0x800000,
-        PART_UNAMBIGUOUS = 0x1000000,
-        PART_URIC_NO_SLASH = 0x2000000,
-        PART_HTTP_QUERY = 0x4000000, //TODO! unused?
-        PART_NEWS_ARTICLE_LOCALPART = 0x8000000,
-        max_part = 0x80000000
-            // Do not use!  Only there to allow compatible changes in the
-            // future.
+        PART_USER_PASSWORD          = 0x00001,
+        PART_FPATH                  = 0x00008,
+        PART_AUTHORITY              = 0x00010,
+        PART_REL_SEGMENT_EXTRA      = 0x00020,
+        PART_URIC                   = 0x00040,
+        PART_HTTP_PATH              = 0x00080,
+        PART_MESSAGE_ID_PATH        = 0x00100,
+        PART_MAILTO                 = 0x00200,
+        PART_PATH_BEFORE_QUERY      = 0x00400,
+        PART_PCHAR                  = 0x00800,
+        PART_VISIBLE                = 0x01000,
+        PART_VISIBLE_NONSPECIAL     = 0x02000,
+        PART_UNO_PARAM_VALUE        = 0x04000,
+        PART_UNAMBIGUOUS            = 0x08000,
+        PART_URIC_NO_SLASH          = 0x10000,
+        PART_HTTP_QUERY             = 0x20000, //TODO! unused?
     };
 
     enum EscapeType
@@ -920,9 +894,6 @@ public:
         be encoded (replaced by escape sequences).  Characters outside the US-
         ASCII range are always 'forbidden.'
 
-        @param cEscapePrefix  The first character in an escape sequence
-        (normally '%').
-
         @param eMechanism  See the general discussion for set-methods.
 
         @param eCharset  See the general discussion for set-methods.
@@ -931,7 +902,6 @@ public:
         charset ('forbidden' characters replaced by escape sequences).
      */
     static inline OUString encode(OUString const & rText, Part ePart,
-                                   sal_Char cEscapePrefix,
                                    EncodeMechanism eMechanism,
                                    rtl_TextEncoding eCharset
                                        = RTL_TEXTENCODING_UTF8);
@@ -939,9 +909,6 @@ public:
     /** Decode some text.
 
         @param rText  Some (encoded) text.
-
-        @param cEscapePrefix  The first character in an escape sequence
-        (normally '%').
 
         @param eMechanism  See the general discussion for get-methods.
 
@@ -951,29 +918,23 @@ public:
         charset (escape sequences replaced by 'raw' characters).
      */
     static inline OUString decode(OUString const & rText,
-                                   sal_Char cEscapePrefix,
                                    DecodeMechanism eMechanism,
                                    rtl_TextEncoding eCharset
                                        = RTL_TEXTENCODING_UTF8);
 
     static inline OUString decode(OUStringBuffer const & rText,
-                                   sal_Char cEscapePrefix,
                                    DecodeMechanism eMechanism,
                                    rtl_TextEncoding eCharset
                                        = RTL_TEXTENCODING_UTF8);
 
-    static void appendUCS4Escape(OUStringBuffer & rTheText,
-                                 sal_Char cEscapePrefix,
-                                 sal_uInt32 nUCS4);
+    static void appendUCS4Escape(OUStringBuffer & rTheText, sal_uInt32 nUCS4);
 
     static void appendUCS4(OUStringBuffer & rTheText, sal_uInt32 nUCS4,
                            EscapeType eEscapeType, bool bOctets, Part ePart,
-                           sal_Char cEscapePrefix, rtl_TextEncoding eCharset,
-                           bool bKeepVisibleEscapes);
+                           rtl_TextEncoding eCharset, bool bKeepVisibleEscapes);
 
     static sal_uInt32 getUTF32(sal_Unicode const *& rBegin,
                                sal_Unicode const * pEnd, bool bOctets,
-                               sal_Char cEscapePrefix,
                                EncodeMechanism eMechanism,
                                rtl_TextEncoding eCharset,
                                EscapeType & rEscapeType);
@@ -1061,7 +1022,7 @@ public:
     OUString CutExtension(DecodeMechanism eMechanism = DECODE_TO_IURI,
                            rtl_TextEncoding eCharset = RTL_TEXTENCODING_UTF8);
 
-    bool IsCaseSensitive() const;
+    static bool IsCaseSensitive() { return true; }
 
 
 private:
@@ -1249,32 +1210,25 @@ private:
 
     // Coding:
 
-    static inline sal_Char getEscapePrefix(INetProtocol eTheScheme)
-    { return eTheScheme == INET_PROT_VIM ? '=' : '%'; }
-
-    inline sal_Char getEscapePrefix() const
-    { return getEscapePrefix(m_eScheme); }
-
     TOOLS_DLLPRIVATE static inline void appendEscape(
-        OUStringBuffer & rTheText, sal_Char cEscapePrefix,
-        sal_uInt32 nOctet);
+        OUStringBuffer & rTheText, sal_uInt32 nOctet);
 
     static OUString encodeText(
         sal_Unicode const * pBegin, sal_Unicode const * pEnd, bool bOctets,
-        Part ePart, sal_Char cEscapePrefix, EncodeMechanism eMechanism,
-        rtl_TextEncoding eCharset, bool bKeepVisibleEscapes);
+        Part ePart, EncodeMechanism eMechanism, rtl_TextEncoding eCharset,
+        bool bKeepVisibleEscapes);
 
     static inline OUString encodeText(
         OUString const & rTheText, bool bOctets, Part ePart,
-        sal_Char cEscapePrefix, EncodeMechanism eMechanism,
-        rtl_TextEncoding eCharset, bool bKeepVisibleEscapes);
+        EncodeMechanism eMechanism, rtl_TextEncoding eCharset,
+        bool bKeepVisibleEscapes);
 
     static OUString decode(
         sal_Unicode const * pBegin, sal_Unicode const * pEnd,
-        sal_Char cEscapePrefix, DecodeMechanism, rtl_TextEncoding eCharset);
+        DecodeMechanism, rtl_TextEncoding eCharset);
 
     inline OUString decode(
-        SubString const & rSubString, sal_Char cEscapePrefix,
+        SubString const & rSubString,
         DecodeMechanism eMechanism, rtl_TextEncoding eCharset) const;
 
     // Specialized helpers:
@@ -1289,33 +1243,30 @@ private:
 // static
 inline OUString INetURLObject::encodeText(OUString const & rTheText,
                                            bool bOctets, Part ePart,
-                                           sal_Char cEscapePrefix,
                                            EncodeMechanism eMechanism,
                                            rtl_TextEncoding eCharset,
                                            bool bKeepVisibleEscapes)
 {
     return encodeText(rTheText.getStr(),
                       rTheText.getStr() + rTheText.getLength(), bOctets, ePart,
-                      cEscapePrefix, eMechanism, eCharset,
-                      bKeepVisibleEscapes);
+                      eMechanism, eCharset, bKeepVisibleEscapes);
 }
 
 inline OUString INetURLObject::decode(SubString const & rSubString,
-                                       sal_Char cEscapePrefix,
                                        DecodeMechanism eMechanism,
                                        rtl_TextEncoding eCharset) const
 {
     return rSubString.isPresent() ?
                decode(m_aAbsURIRef.getStr() + rSubString.getBegin(),
                       m_aAbsURIRef.getStr() + rSubString.getEnd(),
-                      cEscapePrefix, eMechanism, eCharset) :
+                      eMechanism, eCharset) :
                OUString();
 }
 
 inline INetURLObject::INetURLObject(OUString const & rTheAbsURIRef,
                                     EncodeMechanism eMechanism,
                                     rtl_TextEncoding eCharset):
-    m_eScheme(INET_PROT_NOT_VALID), m_eSmartScheme(INET_PROT_HTTP)
+    m_eScheme(INetProtocol::NotValid), m_eSmartScheme(INetProtocol::Http)
 {
     setAbsURIRef(rTheAbsURIRef, false, eMechanism, eCharset, false,
                  FSysStyle(0));
@@ -1334,7 +1285,7 @@ inline INetURLObject::INetURLObject(OUString const & rTheAbsURIRef,
                                     EncodeMechanism eMechanism,
                                     rtl_TextEncoding eCharset,
                                     FSysStyle eStyle):
-    m_eScheme(INET_PROT_NOT_VALID), m_eSmartScheme(eTheSmartScheme)
+    m_eScheme(INetProtocol::NotValid), m_eSmartScheme(eTheSmartScheme)
 {
     setAbsURIRef(rTheAbsURIRef, false, eMechanism, eCharset, true, eStyle);
 }
@@ -1472,38 +1423,34 @@ inline bool INetURLObject::SetMark(OUString const & rTheFragment,
 
 inline INetURLObject::INetURLObject(OUString const & rFSysPath,
                                     FSysStyle eStyle):
-    m_eScheme(INET_PROT_NOT_VALID), m_eSmartScheme(INET_PROT_HTTP)
+    m_eScheme(INetProtocol::NotValid), m_eSmartScheme(INetProtocol::Http)
 {
     setFSysPath(rFSysPath, eStyle);
 }
 
 // static
 inline OUString INetURLObject::encode(OUString const & rText, Part ePart,
-                                       sal_Char cEscapePrefix,
                                        EncodeMechanism eMechanism,
                                        rtl_TextEncoding eCharset)
 {
-    return encodeText(rText, false, ePart, cEscapePrefix, eMechanism,
-                      eCharset, false);
+    return encodeText(rText, false, ePart, eMechanism, eCharset, false);
 }
 
 // static
 inline OUString INetURLObject::decode(OUString const & rText,
-                                       sal_Char cEscapePrefix,
                                        DecodeMechanism eMechanism,
                                        rtl_TextEncoding eCharset)
 {
     return decode(rText.getStr(), rText.getStr() + rText.getLength(),
-                  cEscapePrefix, eMechanism, eCharset);
+                  eMechanism, eCharset);
 }
 
 inline OUString INetURLObject::decode(OUStringBuffer const & rText,
-                                       sal_Char cEscapePrefix,
                                        DecodeMechanism eMechanism,
                                        rtl_TextEncoding eCharset)
 {
     return decode(rText.getStr(), rText.getStr() + rText.getLength(),
-                  cEscapePrefix, eMechanism, eCharset);
+                  eMechanism, eCharset);
 }
 
 #endif

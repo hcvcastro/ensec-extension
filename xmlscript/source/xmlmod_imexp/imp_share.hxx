@@ -17,6 +17,9 @@
  *   the License at http://www.apache.org/licenses/LICENSE-2.0 .
  */
 
+#ifndef INCLUDED_XMLSCRIPT_SOURCE_XMLMOD_IMEXP_IMP_SHARE_HXX
+#define INCLUDED_XMLSCRIPT_SOURCE_XMLMOD_IMEXP_IMP_SHARE_HXX
+
 #include <xmlscript/xmlmod_imexp.hxx>
 
 #include <cppuhelper/implbase1.hxx>
@@ -33,18 +36,13 @@
 
 #include <vector>
 
-using namespace ::rtl;
-using namespace ::std;
-using namespace ::com::sun::star;
-using namespace ::com::sun::star::uno;
-
 namespace xmlscript
 {
 
 // Script module import
 
 struct ModuleImport
-    : public ::cppu::WeakImplHelper1< xml::input::XRoot >
+    : public ::cppu::WeakImplHelper1< css::xml::input::XRoot >
 {
     friend class ModuleElement;
 
@@ -55,75 +53,79 @@ struct ModuleImport
     sal_Int32 XMLNS_XLINK_UID;
 
 public:
-    inline ModuleImport( ModuleDescriptor& rModuleDesc )
-        SAL_THROW_EXTERN_C()
-        : mrModuleDesc( rModuleDesc ) {}
-    virtual ~ModuleImport()
-        SAL_THROW_EXTERN_C();
+    ModuleImport(ModuleDescriptor& rModuleDesc)
+        : mrModuleDesc(rModuleDesc)
+        , XMLNS_SCRIPT_UID(0)
+        , XMLNS_LIBRARY_UID(0)
+        , XMLNS_XLINK_UID(0)
+    {
+    }
+
+    virtual ~ModuleImport();
 
     // XRoot
     virtual void SAL_CALL startDocument(
-        Reference< xml::input::XNamespaceMapping > const & xNamespaceMapping )
-        throw (xml::sax::SAXException, RuntimeException);
+        css::uno::Reference< css::xml::input::XNamespaceMapping > const & xNamespaceMapping )
+        throw (css::xml::sax::SAXException, css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual void SAL_CALL endDocument()
-        throw (xml::sax::SAXException, RuntimeException);
+        throw (css::xml::sax::SAXException, css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual void SAL_CALL processingInstruction(
         OUString const & rTarget, OUString const & rData )
-        throw (xml::sax::SAXException, RuntimeException);
+        throw (css::xml::sax::SAXException, css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual void SAL_CALL setDocumentLocator(
-        Reference< xml::sax::XLocator > const & xLocator )
-        throw (xml::sax::SAXException, RuntimeException);
-    virtual Reference< xml::input::XElement > SAL_CALL startRootElement(
+        css::uno::Reference< css::xml::sax::XLocator > const & xLocator )
+        throw (css::xml::sax::SAXException, css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual css::uno::Reference< css::xml::input::XElement > SAL_CALL startRootElement(
         sal_Int32 nUid, OUString const & rLocalName,
-        Reference< xml::input::XAttributes > const & xAttributes )
-        throw (xml::sax::SAXException, RuntimeException);
+        css::uno::Reference< css::xml::input::XAttributes > const & xAttributes )
+        throw (css::xml::sax::SAXException, css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 };
 
 class ModuleElement
-    : public ::cppu::WeakImplHelper1< xml::input::XElement >
+    : public ::cppu::WeakImplHelper1< css::xml::input::XElement >
 {
 protected:
     ModuleImport * _pImport;
     ModuleElement * _pParent;
 
     OUString _aLocalName;
-    Reference< xml::input::XAttributes > _xAttributes;
+    css::uno::Reference< css::xml::input::XAttributes > _xAttributes;
     OUStringBuffer _StrBuffer;
 
 public:
     ModuleElement(
         OUString const & rLocalName,
-        Reference< xml::input::XAttributes > const & xAttributes,
-        ModuleElement * pParent, ModuleImport * pImport )
-        SAL_THROW_EXTERN_C();
-    virtual ~ModuleElement()
-        SAL_THROW_EXTERN_C();
+        css::uno::Reference< css::xml::input::XAttributes > const & xAttributes,
+        ModuleElement * pParent, ModuleImport * pImport );
+    virtual ~ModuleElement();
 
     // XElement
-    virtual Reference< xml::input::XElement > SAL_CALL getParent()
-        throw (RuntimeException);
+    virtual css::uno::Reference< css::xml::input::XElement > SAL_CALL getParent()
+        throw (css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual OUString SAL_CALL getLocalName()
-        throw (RuntimeException);
+        throw (css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual sal_Int32 SAL_CALL getUid()
-        throw (RuntimeException);
-    virtual Reference< xml::input::XAttributes > SAL_CALL getAttributes()
-        throw (RuntimeException);
+        throw (css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual css::uno::Reference< css::xml::input::XAttributes > SAL_CALL getAttributes()
+        throw (css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual void SAL_CALL ignorableWhitespace(
         OUString const & rWhitespaces )
-        throw (xml::sax::SAXException, RuntimeException);
+        throw (css::xml::sax::SAXException, css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual void SAL_CALL characters( OUString const & rChars )
-        throw (xml::sax::SAXException, RuntimeException);
+        throw (css::xml::sax::SAXException, css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual void SAL_CALL processingInstruction(
         OUString const & rTarget, OUString const & rData )
-        throw (xml::sax::SAXException, RuntimeException);
+        throw (css::xml::sax::SAXException, css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual void SAL_CALL endElement()
-        throw (xml::sax::SAXException, RuntimeException);
-    virtual Reference< xml::input::XElement > SAL_CALL startChildElement(
+        throw (css::xml::sax::SAXException, css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual css::uno::Reference< css::xml::input::XElement > SAL_CALL startChildElement(
         sal_Int32 nUid, OUString const & rLocalName,
-        Reference< xml::input::XAttributes > const & xAttributes )
-        throw (xml::sax::SAXException, RuntimeException);
+        css::uno::Reference< css::xml::input::XAttributes > const & xAttributes )
+        throw (css::xml::sax::SAXException, css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 };
 
 }
+
+#endif // INCLUDED_XMLSCRIPT_SOURCE_XMLMOD_IMEXP_IMP_SHARE_HXX
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

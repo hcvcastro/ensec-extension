@@ -16,8 +16,8 @@
  *   except in compliance with the License. You may obtain a copy of
  *   the License at http://www.apache.org/licenses/LICENSE-2.0 .
  */
-#ifndef _CONFIG_HXX
-#define _CONFIG_HXX
+#ifndef INCLUDED_TOOLS_CONFIG_HXX
+#define INCLUDED_TOOLS_CONFIG_HXX
 
 #include <tools/toolsdllapi.h>
 #include <rtl/ustring.hxx>
@@ -35,7 +35,6 @@ private:
     sal_uIntPtr         mnDataUpdateId;
     sal_uInt16          mnLockCount;
     bool                mbPersistence;
-    bool                mbDummy1;
 
     TOOLS_DLLPRIVATE bool           ImplUpdateConfig() const;
     TOOLS_DLLPRIVATE ImplGroupData* ImplGetGroup() const;
@@ -54,7 +53,6 @@ public:
     bool HasGroup(const OString& rGroup) const;
 
     OString ReadKey(const OString& rKey) const;
-    OUString ReadKey(const OString& rKey, rtl_TextEncoding eEncoding) const;
     OString ReadKey(const OString& rKey, const OString& rDefault) const;
     void                WriteKey(const OString& rKey, const OString& rValue);
     void DeleteKey(const OString& rKey);
@@ -70,8 +68,8 @@ public:
     bool                IsPersistenceEnabled() const { return mbPersistence; }
 
 private:
-    TOOLS_DLLPRIVATE    Config( const Config& rConfig );
-    TOOLS_DLLPRIVATE Config&            operator = ( const Config& rConfig );
+                        Config( const Config& rConfig ) SAL_DELETED_FUNCTION;
+    Config&             operator = ( const Config& rConfig ) SAL_DELETED_FUNCTION;
 };
 
 #endif

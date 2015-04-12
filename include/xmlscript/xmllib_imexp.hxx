@@ -28,7 +28,7 @@
 namespace xmlscript
 {
 
-//==============================================================================
+
 // Library container export
 // HACK C++ struct to transport info. Later the container
 // itself should do the export/import and use exportet XML
@@ -37,11 +37,11 @@ struct XMLSCRIPT_DLLPUBLIC LibDescriptor
 {
     OUString aName;
     OUString aStorageURL;
-    sal_Bool bLink;
-    sal_Bool bReadOnly;
-    sal_Bool bPasswordProtected;
+    bool bLink;
+    bool bReadOnly;
+    bool bPasswordProtected;
     ::com::sun::star::uno::Sequence< OUString > aElementNames;
-    sal_Bool bPreload;
+    bool bPreload;
 };
 
 struct XMLSCRIPT_DLLPUBLIC LibDescriptorArray
@@ -60,26 +60,22 @@ XMLSCRIPT_DLLPUBLIC void
 SAL_CALL exportLibraryContainer(
     ::com::sun::star::uno::Reference<
     ::com::sun::star::xml::sax::XWriter > const & xOut,
-    const LibDescriptorArray* pLibArray )
-        SAL_THROW_EXTERN_C();
+    const LibDescriptorArray* pLibArray );
 
 XMLSCRIPT_DLLPUBLIC ::com::sun::star::uno::Reference<
     ::com::sun::star::xml::sax::XDocumentHandler >
-SAL_CALL importLibraryContainer( LibDescriptorArray* pLibArray )
-        SAL_THROW_EXTERN_C();
+SAL_CALL importLibraryContainer( LibDescriptorArray* pLibArray );
 
 
 XMLSCRIPT_DLLPUBLIC void
 SAL_CALL exportLibrary(
     ::com::sun::star::uno::Reference<
     ::com::sun::star::xml::sax::XWriter > const & xOut,
-    const LibDescriptor& rLib )
-        SAL_THROW_EXTERN_C();
+    const LibDescriptor& rLib );
 
 XMLSCRIPT_DLLPUBLIC ::com::sun::star::uno::Reference<
     ::com::sun::star::xml::sax::XDocumentHandler >
-SAL_CALL importLibrary( LibDescriptor& rLib )
-        SAL_THROW_EXTERN_C();
+SAL_CALL importLibrary( LibDescriptor& rLib );
 
 }
 

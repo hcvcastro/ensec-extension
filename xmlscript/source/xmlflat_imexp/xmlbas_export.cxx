@@ -17,6 +17,9 @@
  *   the License at http://www.apache.org/licenses/LICENSE-2.0 .
  */
 
+#include <sal/config.h>
+
+#include "unoservices.hxx"
 #include "xmlbas_export.hxx"
 #include <xmlscript/xmlns.h>
 #include <xmlscript/xml_helper.hxx>
@@ -39,64 +42,26 @@ namespace xmlscript
 
     OUString getImplementationName_XMLBasicExporter()
     {
-        static OUString* pImplName = 0;
-        if ( !pImplName )
-        {
-            ::osl::MutexGuard aGuard( ::osl::Mutex::getGlobalMutex() );
-            if ( !pImplName )
-            {
-                static OUString aImplName( "com.sun.star.comp.xmlscript.XMLBasicExporter" );
-                pImplName = &aImplName;
-            }
-        }
-        return *pImplName;
+        return OUString( "com.sun.star.comp.xmlscript.XMLBasicExporter" );
     }
 
     Sequence< OUString > getSupportedServiceNames_XMLBasicExporter()
     {
-        static Sequence< OUString >* pNames = 0;
-        if ( !pNames )
-        {
-            ::osl::MutexGuard aGuard( ::osl::Mutex::getGlobalMutex() );
-            if ( !pNames )
-            {
-                static Sequence< OUString > aNames(1);
-                aNames.getArray()[0] = "com.sun.star.document.XMLBasicExporter";
-                pNames = &aNames;
-            }
-        }
-        return *pNames;
+        Sequence< OUString > aNames(1);
+        aNames.getArray()[0] = "com.sun.star.document.XMLBasicExporter";
+        return aNames;
     }
 
     OUString getImplementationName_XMLOasisBasicExporter()
     {
-        static OUString* pImplName = 0;
-        if ( !pImplName )
-        {
-            ::osl::MutexGuard aGuard( ::osl::Mutex::getGlobalMutex() );
-            if ( !pImplName )
-            {
-                static OUString aImplName( "com.sun.star.comp.xmlscript.XMLOasisBasicExporter" );
-                pImplName = &aImplName;
-            }
-        }
-        return *pImplName;
+        return OUString( "com.sun.star.comp.xmlscript.XMLOasisBasicExporter" );
     }
 
     Sequence< OUString > getSupportedServiceNames_XMLOasisBasicExporter()
     {
-        static Sequence< OUString >* pNames = 0;
-        if ( !pNames )
-        {
-            ::osl::MutexGuard aGuard( ::osl::Mutex::getGlobalMutex() );
-            if ( !pNames )
-            {
-                static Sequence< OUString > aNames(1);
-                aNames.getArray()[0] = "com.sun.star.document.XMLOasisBasicExporter";
-                pNames = &aNames;
-            }
-        }
-        return *pNames;
+        Sequence< OUString > aNames(1);
+        aNames.getArray()[0] = "com.sun.star.document.XMLOasisBasicExporter";
+        return aNames;
     }
 
     // XMLBasicExporterBase
@@ -112,14 +77,14 @@ namespace xmlscript
     }
 
     // XServiceInfo
-    sal_Bool XMLBasicExporterBase::supportsService( const OUString& rServiceName ) throw (RuntimeException)
+    sal_Bool XMLBasicExporterBase::supportsService( const OUString& rServiceName ) throw (RuntimeException, std::exception)
     {
         return cppu::supportsService(this, rServiceName);
     }
 
     // XInitialization
 
-    void XMLBasicExporterBase::initialize( const Sequence< Any >& aArguments ) throw (Exception, RuntimeException)
+    void XMLBasicExporterBase::initialize( const Sequence< Any >& aArguments ) throw (Exception, RuntimeException, std::exception)
     {
         ::osl::MutexGuard aGuard( m_aMutex );
 
@@ -129,19 +94,19 @@ namespace xmlscript
 
             if ( !m_xHandler.is() )
             {
-                throw RuntimeException( "XMLBasicExporterBase::initialize: invalid argument format!", Reference< XInterface >() );
+                throw RuntimeException( "XMLBasicExporterBase::initialize: invalid argument format!" );
             }
         }
         else
         {
-            throw RuntimeException( "XMLBasicExporterBase::initialize: invalid number of arguments!", Reference< XInterface >() );
+            throw RuntimeException( "XMLBasicExporterBase::initialize: invalid number of arguments!" );
         }
     }
 
     // XExporter
 
     void XMLBasicExporterBase::setSourceDocument( const Reference< XComponent >& rxDoc )
-        throw (IllegalArgumentException, RuntimeException)
+        throw (IllegalArgumentException, RuntimeException, std::exception)
     {
         ::osl::MutexGuard aGuard( m_aMutex );
 
@@ -156,11 +121,11 @@ namespace xmlscript
     // XFilter
 
 sal_Bool XMLBasicExporterBase::filter( const Sequence< beans::PropertyValue >& /*aDescriptor*/ )
-        throw (RuntimeException)
+        throw (RuntimeException, std::exception)
     {
         ::osl::MutexGuard aGuard( m_aMutex );
 
-        sal_Bool bReturn = sal_True;
+        bool bReturn = true;
 
         try
         {
@@ -369,29 +334,29 @@ sal_Bool XMLBasicExporterBase::filter( const Sequence< beans::PropertyValue >& /
         catch ( const container::NoSuchElementException& e )
         {
             SAL_INFO("xmlscript.xmlflat", "XMLBasicExporterBase::filter: caught NoSuchElementException reason " << e.Message );
-            bReturn = sal_False;
+            bReturn = false;
         }
         catch ( const lang::IllegalArgumentException& e )
         {
             SAL_INFO("xmlscript.xmlflat", "XMLBasicExporterBase::filter: caught IllegalArgumentException reason " << e.Message );
-            bReturn = sal_False;
+            bReturn = false;
         }
         catch ( const lang::WrappedTargetException& e )
         {
             SAL_INFO("xmlscript.xmlflat", "XMLBasicExporterBase::filter: caught WrappedTargetException reason " << e.Message );
-            bReturn = sal_False;
+            bReturn = false;
         }
         catch ( const xml::sax::SAXException& e )
         {
             SAL_INFO("xmlscript.xmlflat", "XMLBasicExporterBase::filter: caught SAXException reason " << e.Message );
-            bReturn = sal_False;
+            bReturn = false;
         }
 
         return bReturn;
     }
 
     void XMLBasicExporterBase::cancel()
-        throw (RuntimeException)
+        throw (RuntimeException, std::exception)
     {
         ::osl::MutexGuard aGuard( m_aMutex );
 
@@ -411,12 +376,12 @@ sal_Bool XMLBasicExporterBase::filter( const Sequence< beans::PropertyValue >& /
 
     // XServiceInfo
 
-    OUString XMLBasicExporter::getImplementationName(  ) throw (RuntimeException)
+    OUString XMLBasicExporter::getImplementationName(  ) throw (RuntimeException, std::exception)
     {
         return getImplementationName_XMLBasicExporter();
     }
 
-    Sequence< OUString > XMLBasicExporter::getSupportedServiceNames(  ) throw (RuntimeException)
+    Sequence< OUString > XMLBasicExporter::getSupportedServiceNames(  ) throw (RuntimeException, std::exception)
     {
         return getSupportedServiceNames_XMLBasicExporter();
     }
@@ -434,12 +399,12 @@ sal_Bool XMLBasicExporterBase::filter( const Sequence< beans::PropertyValue >& /
 
     // XServiceInfo
 
-    OUString XMLOasisBasicExporter::getImplementationName(  ) throw (RuntimeException)
+    OUString XMLOasisBasicExporter::getImplementationName(  ) throw (RuntimeException, std::exception)
     {
         return getImplementationName_XMLOasisBasicExporter();
     }
 
-    Sequence< OUString > XMLOasisBasicExporter::getSupportedServiceNames(  ) throw (RuntimeException)
+    Sequence< OUString > XMLOasisBasicExporter::getSupportedServiceNames(  ) throw (RuntimeException, std::exception)
     {
         return getSupportedServiceNames_XMLOasisBasicExporter();
     }
@@ -448,14 +413,12 @@ sal_Bool XMLBasicExporterBase::filter( const Sequence< beans::PropertyValue >& /
 
     Reference< XInterface > SAL_CALL create_XMLBasicExporter(
         Reference< XComponentContext > const & xContext )
-        SAL_THROW_EXTERN_C()
     {
         return static_cast< lang::XTypeProvider * >( new XMLBasicExporter( xContext ) );
     }
 
     Reference< XInterface > SAL_CALL create_XMLOasisBasicExporter(
         Reference< XComponentContext > const & xContext )
-        SAL_THROW_EXTERN_C()
     {
         return static_cast< lang::XTypeProvider * >( new XMLOasisBasicExporter( xContext ) );
     }

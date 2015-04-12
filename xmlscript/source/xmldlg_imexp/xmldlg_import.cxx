@@ -30,6 +30,7 @@
 #include <com/sun/star/awt/FontWeight.hpp>
 #include <com/sun/star/awt/FontWidth.hpp>
 #include <com/sun/star/awt/ImagePosition.hpp>
+#include <com/sun/star/awt/ImageScaleMode.hpp>
 #include <com/sun/star/awt/LineEndFormat.hpp>
 #include <com/sun/star/awt/PushButtonType.hpp>
 #include <com/sun/star/awt/VisualEffect.hpp>
@@ -38,6 +39,7 @@
 #include <com/sun/star/util/Time.hpp>
 #include <tools/date.hxx>
 #include <tools/time.hxx>
+#include <osl/diagnose.h>
 
 #include <com/sun/star/script/XScriptEventsSupplier.hpp>
 #include <com/sun/star/script/ScriptEventDescriptor.hpp>
@@ -64,7 +66,7 @@ namespace xmlscript
 {
 
 void EventElement::endElement()
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     static_cast< ControlElement * >( _pParent )->_events.push_back( this );
 }
@@ -73,7 +75,6 @@ ControlElement::ControlElement(
     OUString const & rLocalName,
     Reference< xml::input::XAttributes > const & xAttributes,
     ElementBase * pParent, DialogImport * pImport )
-    SAL_THROW_EXTERN_C()
     : ElementBase(
         pImport->XMLNS_DIALOGS_UID, rLocalName, xAttributes, pParent, pImport )
 {
@@ -281,7 +282,7 @@ bool StyleElement::importVisualEffectStyle(
             _visualEffect = awt::VisualEffect::FLAT;
         }
         else
-            OSL_ASSERT( 0 );
+            OSL_ASSERT( false );
 
         _hasValue |= 0x40;
         xProps->setPropertyValue( "VisualEffect", makeAny(_visualEffect) );
@@ -912,9 +913,9 @@ bool ImportContext::importDataAwareProperty(
 {
     OUString sLinkedCell;
     OUString sCellRange;
-    if ( rPropName.equals( "linked-cell" ) )
+    if ( rPropName == "linked-cell" )
        sLinkedCell = xAttributes->getValueByUidName( _pImport->XMLNS_DIALOGS_UID, rPropName );
-    if ( rPropName.equals( "source-cell-range" ) )
+    if ( rPropName == "source-cell-range" )
         sCellRange = xAttributes->getValueByUidName( _pImport->XMLNS_DIALOGS_UID, rPropName );
     bool bRes = false;
     Reference< lang::XMultiServiceFactory > xFac( _pImport->getDocOwner(), UNO_QUERY );
@@ -1193,7 +1194,7 @@ bool ImportContext::importTimeProperty(
             _pImport->XMLNS_DIALOGS_UID, rAttrName ) );
     if (!aValue.isEmpty())
     {
-        ::Time aTTime(toInt32( aValue ) * ::Time::nanoPerCenti);
+        ::tools::Time aTTime(toInt32( aValue ) * ::tools::Time::nanoPerCenti);
         util::Time aUTime(aTTime.GetUNOTime());
         _xControlModel->setPropertyValue( rPropName, makeAny( aUTime ) );
         return true;
@@ -1358,6 +1359,42 @@ bool ImportContext::importSelectionTypeProperty(
         }
 
         _xControlModel->setPropertyValue( rPropName, makeAny( eSelectionType ) );
+        return true;
+    }
+    return false;
+}
+
+bool ImportContext::importImageScaleModeProperty(
+    OUString const & rPropName, OUString const & rAttrName,
+    Reference< xml::input::XAttributes > const & xAttributes )
+{
+    OUString aImageScaleMode(
+        xAttributes->getValueByUidName(
+            _pImport->XMLNS_DIALOGS_UID, rAttrName ) );
+    if (!aImageScaleMode.isEmpty())
+    {
+        sal_Int16 nImageScaleMode;
+
+        if (aImageScaleMode == "none")
+        {
+            nImageScaleMode = awt::ImageScaleMode::NONE;
+        }
+        else if (aImageScaleMode == "isotropic")
+        {
+            nImageScaleMode = awt::ImageScaleMode::ISOTROPIC;
+        }
+        else if (aImageScaleMode == "anisotropic")
+        {
+            nImageScaleMode = awt::ImageScaleMode::ANISOTROPIC;
+        }
+        else
+        {
+            throw xml::sax::SAXException(
+                OUString( "invalid scale image mode value!" ),
+                Reference< XInterface >(), Any() );
+        }
+
+        _xControlModel->setPropertyValue( rPropName, makeAny( nImageScaleMode ) );
         return true;
     }
     return false;
@@ -1600,57 +1637,57 @@ void ImportContext::importDefaults(
 }
 
 Reference< xml::input::XElement > ElementBase::getParent()
-    throw (RuntimeException)
+    throw (RuntimeException, std::exception)
 {
     return static_cast< xml::input::XElement * >( _pParent );
 }
 
 OUString ElementBase::getLocalName()
-    throw (RuntimeException)
+    throw (RuntimeException, std::exception)
 {
     return _aLocalName;
 }
 
 sal_Int32 ElementBase::getUid()
-    throw (RuntimeException)
+    throw (RuntimeException, std::exception)
 {
     return _nUid;
 }
 
 Reference< xml::input::XAttributes > ElementBase::getAttributes()
-    throw (RuntimeException)
+    throw (RuntimeException, std::exception)
 {
     return _xAttributes;
 }
 
 void ElementBase::ignorableWhitespace(
     OUString const & /*rWhitespaces*/ )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     // not used
 }
 
 void ElementBase::characters( OUString const & /*rChars*/ )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     // not used, all characters ignored
 }
 
 void ElementBase::endElement()
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
 }
 
 void ElementBase::processingInstruction(
     OUString const & /*Target*/, OUString const & /*Data*/ )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
 }
 
 Reference< xml::input::XElement > ElementBase::startChildElement(
     sal_Int32 /*nUid*/, OUString const & /*rLocalName*/,
     Reference< xml::input::XAttributes > const & /*xAttributes*/ )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     throw xml::sax::SAXException( "unexpected element!", Reference< XInterface >(), Any() );
 }
@@ -1659,7 +1696,6 @@ ElementBase::ElementBase(
     sal_Int32 nUid, OUString const & rLocalName,
     Reference< xml::input::XAttributes > const & xAttributes,
     ElementBase * pParent, DialogImport * pImport )
-    SAL_THROW_EXTERN_C()
     : _pImport( pImport )
     , _pParent( pParent )
     , _nUid( nUid )
@@ -1673,8 +1709,8 @@ ElementBase::ElementBase(
         _pParent->acquire();
     }
 }
+
 ElementBase::~ElementBase()
-    SAL_THROW_EXTERN_C()
 {
     _pImport->release();
 
@@ -1694,28 +1730,28 @@ ElementBase::~ElementBase()
 
 void DialogImport::startDocument(
     Reference< xml::input::XNamespaceMapping > const & xNamespaceMapping )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     XMLNS_DIALOGS_UID = xNamespaceMapping->getUidByUri( XMLNS_DIALOGS_URI );
     XMLNS_SCRIPT_UID = xNamespaceMapping->getUidByUri( XMLNS_SCRIPT_URI );
 }
 
 void DialogImport::endDocument()
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     // ignored
 }
 
 void DialogImport::processingInstruction(
     OUString const & /*rTarget*/, OUString const & /*rData*/ )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     // ignored for now: xxx todo
 }
 
 void DialogImport::setDocumentLocator(
     Reference< xml::sax::XLocator > const & /*xLocator*/ )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     // ignored for now: xxx todo
 }
@@ -1723,7 +1759,7 @@ void DialogImport::setDocumentLocator(
 Reference< xml::input::XElement > DialogImport::startRootElement(
     sal_Int32 nUid, OUString const & rLocalName,
     Reference< xml::input::XAttributes > const & xAttributes )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     if (XMLNS_DIALOGS_UID != nUid)
     {
@@ -1741,7 +1777,6 @@ Reference< xml::input::XElement > DialogImport::startRootElement(
 }
 
 DialogImport::~DialogImport()
-    SAL_THROW_EXTERN_C()
 {
 #if OSL_DEBUG_LEVEL > 1
     SAL_INFO("xmlscript.xmldlg", "DialogImport::~DialogImport()." );
@@ -1766,7 +1801,6 @@ Reference< util::XNumberFormatsSupplier > const & DialogImport::getNumberFormats
 void DialogImport::addStyle(
     OUString const & rStyleId,
     Reference< xml::input::XElement > const & xStyle )
-    SAL_THROW_EXTERN_C()
 {
     (*_pStyleNames).push_back( rStyleId );
     (*_pStyles).push_back( xStyle );
@@ -1774,7 +1808,6 @@ void DialogImport::addStyle(
 
 Reference< xml::input::XElement > DialogImport::getStyle(
     OUString const & rStyleId ) const
-    SAL_THROW_EXTERN_C()
 {
     for ( size_t nPos = 0; nPos < (*_pStyleNames).size(); ++nPos )
     {
@@ -1790,7 +1823,6 @@ Reference< xml::sax::XDocumentHandler > SAL_CALL importDialogModel(
     Reference< container::XNameContainer > const & xDialogModel,
     Reference< XComponentContext > const & xContext,
     Reference< XModel > const & xDocument )
-    SAL_THROW_EXTERN_C()
 {
     // single set of styles and stylenames apply to all containees
     :: boost::shared_ptr< ::std::vector< OUString > > pStyleNames( new ::std::vector< OUString > );

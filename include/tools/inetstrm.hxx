@@ -23,7 +23,6 @@
 #include <sal/types.h>
 #include <rtl/ustring.hxx>
 
-class INetMessage;
 class INetMIMEMessage;
 class SvMemoryStream;
 class SvStream;
@@ -34,39 +33,6 @@ enum INetStreamStatus
     INETSTREAM_STATUS_WOULDBLOCK = -3,
     INETSTREAM_STATUS_OK         = -2,
     INETSTREAM_STATUS_ERROR      = -1
-};
-
-class TOOLS_DLLPUBLIC INetIStream
-{
-    // Not implemented.
-    INetIStream (const INetIStream& rStrm);
-    INetIStream& operator= (const INetIStream& rStrm);
-
-protected:
-    virtual int GetData (sal_Char *pData, sal_uIntPtr nSize) = 0;
-
-public:
-    INetIStream ();
-    virtual ~INetIStream (void);
-
-    int Read (sal_Char *pData, sal_uIntPtr nSize);
-};
-
-class INetOStream
-{
-    // Not implemented.
-    INetOStream (const INetOStream& rStrm);
-    INetOStream& operator= (const INetOStream& rStrm);
-
-protected:
-    virtual int PutData (
-        const sal_Char *pData, sal_uIntPtr nSize) = 0;
-
-public:
-    INetOStream ();
-    virtual ~INetOStream (void);
-
-    int Write (const sal_Char *pData, sal_uIntPtr nSize);
 };
 
 enum INetMessageStreamState
@@ -81,9 +47,9 @@ enum INetMessageStreamState
 };
 
 /// Message Generator Interface.
-class INetMessageIStream : public INetIStream
+class INetMessageIStream
 {
-    INetMessage    *pSourceMsg;
+    INetMIMEMessage *pSourceMsg;
     bool            bHeaderGenerated;
 
     sal_uIntPtr           nBufSiz;
@@ -96,11 +62,8 @@ class INetMessageIStream : public INetIStream
     sal_Char       *pMsgRead;
     sal_Char       *pMsgWrite;
 
-    virtual int GetData (sal_Char *pData, sal_uIntPtr nSize);
-
-    // Not implemented.
-    INetMessageIStream (const INetMessageIStream& rStrm);
-    INetMessageIStream& operator= (const INetMessageIStream& rStrm);
+    INetMessageIStream (const INetMessageIStream& rStrm) SAL_DELETED_FUNCTION;
+    INetMessageIStream& operator= (const INetMessageIStream& rStrm) SAL_DELETED_FUNCTION;
 
 protected:
     virtual int GetMsgLine (sal_Char *pData, sal_uIntPtr nSize);
@@ -109,28 +72,27 @@ public:
     INetMessageIStream (sal_uIntPtr nBufferSize = 2048);
     virtual ~INetMessageIStream (void);
 
-    INetMessage *GetSourceMessage (void) const { return pSourceMsg; }
-    void SetSourceMessage (INetMessage *pMsg) { pSourceMsg = pMsg; }
+    TOOLS_DLLPUBLIC int Read (sal_Char *pData, sal_uIntPtr nSize);
 
-    void GenerateHeader (bool bGen = true) { bHeaderGenerated = !bGen; }
+    INetMIMEMessage *GetSourceMessage (void) const { return pSourceMsg; }
+    void SetSourceMessage (INetMIMEMessage *pMsg) { pSourceMsg = pMsg; }
+
+    void SetHeaderGenerated() { bHeaderGenerated = true; }
     bool IsHeaderGenerated (void) const { return bHeaderGenerated; }
 };
 
 /// Message Parser Interface.
-class INetMessageOStream : public INetOStream
+class INetMessageOStream
 {
-    INetMessage            *pTargetMsg;
+    INetMIMEMessage        *pTargetMsg;
     bool                    bHeaderParsed;
 
     INetMessageStreamState  eOState;
 
     SvMemoryStream         *pMsgBuffer;
 
-    virtual int PutData (const sal_Char *pData, sal_uIntPtr nSize);
-
-    // Not implemented.
-    INetMessageOStream (const INetMessageOStream& rStrm);
-    INetMessageOStream& operator= (const INetMessageOStream& rStrm);
+    INetMessageOStream (const INetMessageOStream& rStrm) SAL_DELETED_FUNCTION;
+    INetMessageOStream& operator= (const INetMessageOStream& rStrm) SAL_DELETED_FUNCTION;
 
 protected:
     virtual int PutMsgLine (const sal_Char *pData, sal_uIntPtr nSize);
@@ -139,36 +101,26 @@ public:
     INetMessageOStream (void);
     virtual ~INetMessageOStream (void);
 
-    INetMessage *GetTargetMessage (void) const { return pTargetMsg; }
-    void SetTargetMessage (INetMessage *pMsg) { pTargetMsg = pMsg; }
+    int Write (const sal_Char *pData, sal_uIntPtr nSize);
+
+    INetMIMEMessage *GetTargetMessage (void) const { return pTargetMsg; }
+    void SetTargetMessage (INetMIMEMessage *pMsg) { pTargetMsg = pMsg; }
 
     void ParseHeader (bool bParse = true) { bHeaderParsed = !bParse; }
     bool IsHeaderParsed (void) const { return bHeaderParsed; }
 };
 
-class INetMessageIOStream
-    : public INetMessageIStream,
-      public INetMessageOStream
-{
-    // Not implemented.
-    INetMessageIOStream (const INetMessageIOStream& rStrm);
-    INetMessageIOStream& operator= (const INetMessageIOStream& rStrm);
-
-public:
-    INetMessageIOStream (sal_uIntPtr nBufferSize = 2048);
-    virtual ~INetMessageIOStream (void);
-};
-
 enum INetMessageEncoding
 {
     INETMSG_ENCODING_7BIT,
-    INETMSG_ENCODING_8BIT,
     INETMSG_ENCODING_BINARY,
     INETMSG_ENCODING_QUOTED,
     INETMSG_ENCODING_BASE64
 };
 
-class TOOLS_DLLPUBLIC INetMIMEMessageStream : public INetMessageIOStream
+class TOOLS_DLLPUBLIC INetMIMEMessageStream
+    : public INetMessageIStream,
+      public INetMessageOStream
 {
     int                    eState;
 
@@ -184,37 +136,16 @@ class TOOLS_DLLPUBLIC INetMIMEMessageStream : public INetMessageIOStream
     static INetMessageEncoding GetMsgEncoding (
         const OUString& rContentType);
 
-    // Not implemented.
-    INetMIMEMessageStream (const INetMIMEMessageStream& rStrm);
-    INetMIMEMessageStream& operator= (const INetMIMEMessageStream& rStrm);
+    INetMIMEMessageStream (const INetMIMEMessageStream& rStrm) SAL_DELETED_FUNCTION;
+    INetMIMEMessageStream& operator= (const INetMIMEMessageStream& rStrm) SAL_DELETED_FUNCTION;
 
 protected:
-    virtual int GetMsgLine (sal_Char *pData, sal_uIntPtr nSize);
-    virtual int PutMsgLine (const sal_Char *pData, sal_uIntPtr nSize);
+    virtual int GetMsgLine (sal_Char *pData, sal_uIntPtr nSize) SAL_OVERRIDE;
+    virtual int PutMsgLine (const sal_Char *pData, sal_uIntPtr nSize) SAL_OVERRIDE;
 
 public:
     INetMIMEMessageStream (sal_uIntPtr nBufferSize = 2048);
     virtual ~INetMIMEMessageStream (void);
-
-    using INetMessageIStream::SetSourceMessage;
-    void SetSourceMessage (INetMIMEMessage *pMsg)
-    {
-        INetMessageIStream::SetSourceMessage ((INetMessage *)pMsg);
-    }
-    INetMIMEMessage *GetSourceMessage (void) const
-    {
-        return ((INetMIMEMessage *)INetMessageIStream::GetSourceMessage());
-    }
-
-    using INetMessageOStream::SetTargetMessage;
-    void SetTargetMessage (INetMIMEMessage *pMsg)
-    {
-        INetMessageOStream::SetTargetMessage ((INetMessage *)pMsg);
-    }
-    INetMIMEMessage *GetTargetMessage (void) const
-    {
-        return ((INetMIMEMessage *)INetMessageOStream::GetTargetMessage());
-    }
 };
 
 #endif

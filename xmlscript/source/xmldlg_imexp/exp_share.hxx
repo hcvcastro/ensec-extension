@@ -17,6 +17,9 @@
  *   the License at http://www.apache.org/licenses/LICENSE-2.0 .
  */
 
+#ifndef INCLUDED_XMLSCRIPT_SOURCE_XMLDLG_IMEXP_EXP_SHARE_HXX
+#define INCLUDED_XMLSCRIPT_SOURCE_XMLDLG_IMEXP_EXP_SHARE_HXX
+
 #include "common.hxx"
 #include "misc.hxx"
 #include <xmlscript/xmldlg_imexp.hxx>
@@ -53,12 +56,20 @@ struct Style
 
     OUString _id;
 
-    inline Style( short all_ ) SAL_THROW_EXTERN_C()
-        : _fontRelief( css::awt::FontRelief::NONE )
-        , _fontEmphasisMark( css::awt::FontEmphasisMark::NONE )
-        , _all( all_ )
-        , _set( 0 )
-        {}
+    Style( short all_ )
+        : _backgroundColor(0)
+        , _textColor(0)
+        , _textLineColor(0)
+        , _border(0)
+        , _borderColor(0)
+        , _fontRelief(css::awt::FontRelief::NONE)
+        , _fontEmphasisMark(css::awt::FontEmphasisMark::NONE)
+        , _fillColor(0)
+        , _visualEffect(0)
+        , _all(all_)
+        , _set(0)
+    {
+    }
 
     css::uno::Reference< css::xml::sax::XAttributeList > createElement();
 };
@@ -67,9 +78,9 @@ class StyleBag
     ::std::vector< Style * > _styles;
 
 public:
-    ~StyleBag() SAL_THROW_EXTERN_C();
+    ~StyleBag() ;
 
-    OUString getStyleId( Style const & rStyle ) SAL_THROW_EXTERN_C();
+    OUString getStyleId( Style const & rStyle );
 
     void dump( css::uno::Reference< css::xml::sax::XExtendedDocumentHandler >
                const & xOut );
@@ -87,7 +98,6 @@ public:
         css::uno::Reference< css::beans::XPropertySet > const & xProps,
         css::uno::Reference< css::beans::XPropertyState > const & xPropState,
         OUString const & name, css::uno::Reference< css::frame::XModel > const & xDocument )
-        SAL_THROW_EXTERN_C()
         : XMLElement( name )
         , _xProps( xProps )
         , _xPropState( xPropState )
@@ -95,7 +105,6 @@ public:
         {}
     inline ElementDescriptor(
         OUString const & name )
-        SAL_THROW_EXTERN_C()
         : XMLElement( name )
         {}
 
@@ -152,70 +161,45 @@ public:
         OUString const & rPropName, OUString const & rAttrName );
     void readSelectionTypeAttr(
         OUString const & rPropName, OUString const & rAttrName );
+    void readImageScaleModeAttr(
+        OUString const & rPropName, OUString const & rAttrName );
     void readDataAwareAttr(
         OUString const & rAttrName );
     inline void addBoolAttr(
-        OUString const & rAttrName, sal_Bool bValue )
+        OUString const & rAttrName, bool bValue )
         { addAttribute( rAttrName, OUString::boolean(bValue) ); }
     void addNumberFormatAttr(
         css::uno::Reference< css::beans::XPropertySet >
         const & xFormatProperties );
 
-    void readEvents() SAL_THROW_EXTERN_C();
-    void readDialogModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readBullitinBoard( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readMultiPageModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readFrameModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readPageModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readButtonModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readEditModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readCheckBoxModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readRadioButtonModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readComboBoxModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readCurrencyFieldModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readDateFieldModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readFileControlModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readTreeControlModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readFixedTextModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readGroupBoxModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readImageControlModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readListBoxModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readNumericFieldModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readPatternFieldModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readFormattedFieldModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readTimeFieldModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readFixedLineModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readProgressBarModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readScrollBarModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readSpinButtonModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
-    void readFixedHyperLinkModel( StyleBag * all_styles )
-        SAL_THROW_EXTERN_C();
+    void readEvents();
+    void readDialogModel( StyleBag * all_styles );
+    void readBullitinBoard( StyleBag * all_styles );
+    void readMultiPageModel( StyleBag * all_styles );
+    void readFrameModel( StyleBag * all_styles );
+    void readPageModel( StyleBag * all_styles );
+    void readButtonModel( StyleBag * all_styles );
+    void readEditModel( StyleBag * all_styles );
+    void readCheckBoxModel( StyleBag * all_styles );
+    void readRadioButtonModel( StyleBag * all_styles );
+    void readComboBoxModel( StyleBag * all_styles );
+    void readCurrencyFieldModel( StyleBag * all_styles );
+    void readDateFieldModel( StyleBag * all_styles );
+    void readFileControlModel( StyleBag * all_styles );
+    void readTreeControlModel( StyleBag * all_styles );
+    void readFixedTextModel( StyleBag * all_styles );
+    void readGroupBoxModel( StyleBag * all_styles );
+    void readImageControlModel( StyleBag * all_styles );
+    void readListBoxModel( StyleBag * all_styles );
+    void readNumericFieldModel( StyleBag * all_styles );
+    void readPatternFieldModel( StyleBag * all_styles );
+    void readFormattedFieldModel( StyleBag * all_styles );
+    void readTimeFieldModel( StyleBag * all_styles );
+    void readFixedLineModel( StyleBag * all_styles );
+    void readProgressBarModel( StyleBag * all_styles );
+    void readScrollBarModel( StyleBag * all_styles );
+    void readSpinButtonModel( StyleBag * all_styles );
+    void readFixedHyperLinkModel( StyleBag * all_styles );
 };
 
 template<typename T>
@@ -246,7 +230,7 @@ inline void ElementDescriptor::read<sal_Bool>(
         _xPropState->getPropertyState( propName ))
     {
         css::uno::Any a( _xProps->getPropertyValue( propName ) );
-        sal_Bool v = sal_Bool();
+        bool v;
         if (a >>= v)
             addAttribute( attrName, OUString::boolean(v) );
         else
@@ -270,5 +254,7 @@ inline bool ElementDescriptor::readProp(
 }
 
 }
+
+#endif // INCLUDED_XMLSCRIPT_SOURCE_XMLDLG_IMEXP_EXP_SHARE_HXX
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

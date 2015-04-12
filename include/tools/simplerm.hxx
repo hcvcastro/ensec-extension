@@ -51,7 +51,7 @@ public:
     virtual                 ~SimpleResMgr();
 
     static SimpleResMgr*    Create( const sal_Char* pPrefixName,
-                                    LanguageTag aLocale = LanguageTag( LANGUAGE_SYSTEM) );// only in VCL
+                                    const LanguageTag& rLocale = LanguageTag( LANGUAGE_SYSTEM) );// only in VCL
 
     bool                    IsValid() const { return m_pResImpl != NULL; }
 
@@ -65,7 +65,7 @@ public:
     */
     OUString           ReadString( sal_uInt32 nId );
 
-    /** checks whether a certain resource is availble
+    /** checks whether a certain resource is available
         @param  _resourceType
             the type of the resource to check. Currently, only RSC_STRING (strings) and RSC_RESOURCE (blobs)
             are supported, for every other type, <FALSE/> will be returned.

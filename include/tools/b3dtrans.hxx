@@ -124,9 +124,9 @@ public:
 
     // Orientation
     void SetOrientation(
-        basegfx::B3DPoint aVRP = basegfx::B3DPoint(0.0,0.0,1.0),
-        basegfx::B3DVector aVPN = basegfx::B3DVector(0.0,0.0,1.0),
-        basegfx::B3DVector aVUP = basegfx::B3DVector(0.0,1.0,0.0));
+        const basegfx::B3DPoint& rVRP = basegfx::B3DPoint(0.0,0.0,1.0),
+        const basegfx::B3DVector& rVPN = basegfx::B3DVector(0.0,0.0,1.0),
+        const basegfx::B3DVector& rVUP = basegfx::B3DVector(0.0,1.0,0.0));
     const basegfx::B3DHomMatrix& GetOrientation() { return maOrientation; }
     const basegfx::B3DHomMatrix& GetInvOrientation() { return maInvOrientation; }
 
@@ -181,7 +181,6 @@ protected:
     void PostSetObjectTrans();
     void PostSetOrientation();
     void PostSetProjection();
-    void PostSetViewport();
 
     virtual void DeviceRectangleChange();
 };
@@ -227,7 +226,7 @@ private:
     double                  fFocalLength;
     double                  fBankAngle;
 
-    unsigned                bUseFocalLength         : 1;
+    bool                    bUseFocalLength         : 1;
 
 public:
     B3dCamera(
@@ -251,7 +250,7 @@ protected:
     void CalcNewViewportValues();
     bool CalcFocalLength();
 
-    virtual void DeviceRectangleChange();
+    virtual void DeviceRectangleChange() SAL_OVERRIDE;
 };
 
 #endif

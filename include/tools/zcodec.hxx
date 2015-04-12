@@ -21,45 +21,24 @@
 #define INCLUDED_TOOLS_ZCODEC_HXX
 
 #include <tools/toolsdllapi.h>
-#include <tools/solar.h>
 
-// Defines
-
-#define DEFAULT_IN_BUFSIZE          (0x00008000UL)
-#define DEFAULT_OUT_BUFSIZE         (0x00008000UL)
-
-#define MAX_MEM_USAGE 8
-
-// memory requirement using compress:
-//  [ INBUFFER ] + [ OUTBUFFER ] + 128KB + 1 << (MEM_USAGE+9)
-// memory requirement using decompress:
-//  [ INBUFFER ] + [ OUTBUFFER ] + 32KB
-
-#define ZCODEC_NO_COMPRESSION       (0x00000000UL)
-#define ZCODEC_BEST_SPEED           (0x00000001UL)
-#define ZCODEC_DEFAULT_COMPRESSION  (0x00000006UL)
-#define ZCODEC_BEST_COMPRESSION     (0x00000009UL)
-
-#define ZCODEC_DEFAULT_STRATEGY     (0x00000000UL)
-#define ZCODEC_ZFILTERED            (0x00000100UL)
-#define ZCODEC_ZHUFFMAN_ONLY        (0x00000200UL)
-
-#define ZCODEC_UPDATE_CRC           (0x00010000UL)
-#define ZCODEC_GZ_LIB               (0x00020000UL)
-
-#define ZCODEC_PNG_DEFAULT ( ZCODEC_NO_COMPRESSION | ZCODEC_DEFAULT_STRATEGY | ZCODEC_UPDATE_CRC )
-#define ZCODEC_DEFAULT  ( ZCODEC_DEFAULT_COMPRESSION | ZCODEC_DEFAULT_STRATEGY )
+#define ZCODEC_NO_COMPRESSION       0
+#define ZCODEC_DEFAULT_COMPRESSION  6
 
 class SvStream;
 
+// The overall client call protocol is one of:
+// * BeginCompression, Compress, EndCompression
+// * BeginCompression, Decompress, EndCompression
+// * BeginCompression, Write*, EndCompression
+// * BeginCompression, Read*, EndCompression
+// * BeginCompression, ReadAsynchron*, EndCompression
 class TOOLS_DLLPUBLIC ZCodec
 {
-private:
-    sal_uIntPtr     mbInit;
+    enum State { STATE_INIT, STATE_DECOMPRESS, STATE_COMPRESS };
+    State           meState;
     bool            mbStatus;
     bool            mbFinish;
-    sal_uIntPtr     mnMemUsage;
-    SvStream*       mpIStm;
     sal_uInt8*      mpInBuf;
     sal_uIntPtr     mnInBufSize;
     sal_uIntPtr     mnInToRead;
@@ -68,20 +47,23 @@ private:
     sal_uIntPtr     mnOutBufSize;
 
     sal_uIntPtr     mnCRC;
-    sal_uIntPtr     mnCompressMethod;
+    int             mnCompressLevel;
+    bool            mbUpdateCrc;
+    bool            mbGzLib;
     void*           mpsC_Stream;
 
-    void            ImplInitBuf( bool nIOFlag );
-    void            ImplWriteBack( void );
+    void            InitCompress();
+    void            InitDecompress(SvStream & inStream);
+    void            ImplWriteBack();
+
+    void            UpdateCRC( sal_uInt8* pSource, long nDatSize );
 
 public:
-                    ZCodec( sal_uIntPtr nInBuf, sal_uIntPtr nOutBuf, sal_uIntPtr nMemUsage = MAX_MEM_USAGE );
-                    ZCodec( void );
-    virtual         ~ZCodec();
+                    ZCodec( sal_uIntPtr nInBuf = 0x8000UL, sal_uIntPtr nOutBuf = 0x8000UL );
+                    ~ZCodec();
 
-    virtual void    BeginCompression( sal_uIntPtr nCompressMethod = ZCODEC_DEFAULT );
-    virtual long    EndCompression();
-    bool            IsFinished () const { return mbFinish; }
+    void            BeginCompression( int nCompressLevel = ZCODEC_DEFAULT_COMPRESSION, bool updateCrc = false, bool gzLib = false );
+    long            EndCompression();
 
     long            Compress( SvStream& rIStm, SvStream& rOStm );
     long            Decompress( SvStream& rIStm, SvStream& rOStm );
@@ -91,18 +73,9 @@ public:
     long            ReadAsynchron( SvStream& rIStm, sal_uInt8* pData, sal_uIntPtr nSize );
 
     void            SetBreak( sal_uIntPtr );
-    sal_uIntPtr     GetBreak( void );
+    sal_uIntPtr     GetBreak();
     void            SetCRC( sal_uIntPtr nCurrentCRC );
-    sal_uIntPtr     UpdateCRC( sal_uIntPtr nLatestCRC, sal_uInt8* pSource, long nDatSize );
-    sal_uIntPtr     GetCRC();
-};
-
-class GZCodec : public ZCodec
-{
-public:
-                    GZCodec(){};
-                    ~GZCodec(){};
-    virtual void    BeginCompression( sal_uIntPtr nCompressMethod = ZCODEC_DEFAULT );
+    sal_uIntPtr     GetCRC() { return mnCRC;}
 };
 
 #endif

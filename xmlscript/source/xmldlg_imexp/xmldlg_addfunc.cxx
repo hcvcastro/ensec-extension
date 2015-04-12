@@ -47,10 +47,10 @@ public:
 
     // XInputStreamProvider
     virtual Reference< io::XInputStream > SAL_CALL createInputStream()
-        throw (RuntimeException);
+        throw (RuntimeException, std::exception) SAL_OVERRIDE;
 };
 Reference< io::XInputStream > InputStreamProvider::createInputStream()
-    throw (RuntimeException)
+    throw (RuntimeException, std::exception)
 {
     return ::xmlscript::createInputStream( _bytes );
 }
@@ -59,7 +59,6 @@ Reference< io::XInputStreamProvider > SAL_CALL exportDialogModel(
     Reference< container::XNameContainer > const & xDialogModel,
     Reference< XComponentContext > const & xContext,
     Reference< XModel > const & xDocument )
-    SAL_THROW_EXTERN_C()
 {
     Reference< xml::sax::XWriter > xWriter = xml::sax::Writer::create(xContext);
 
@@ -77,7 +76,6 @@ void SAL_CALL importDialogModel(
     Reference< container::XNameContainer > const & xDialogModel,
     Reference< XComponentContext > const & xContext,
     Reference< XModel > const & xDocument )
-    SAL_THROW_EXTERN_C()
 {
     Reference< xml::sax::XParser > xParser = xml::sax::Parser::create( xContext );
 

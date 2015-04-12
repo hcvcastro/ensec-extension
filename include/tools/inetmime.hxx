@@ -356,6 +356,41 @@ public:
                                               INetContentTypeParameterList *
                                                   pParameters);
 
+    /** Parse the body of an RFC 2045 Content-Type header field.
+
+        @param pBegin  The range (that must be valid) from non-null pBegin,
+        inclusive. to non-null pEnd, exclusive, forms the body of the
+        Content-Type header field.  It must be of the form
+
+          token "/" token *(";" token "=" (token / quoted-string))
+
+        with intervening linear white space and comments (cf. RFCs 822, 2045).
+        The RFC 2231 extension are supported.  The encoding of rMediaType
+        should be US-ASCII, but any Unicode values in the range U+0080..U+FFFF
+        are interpretet 'as appropriate.'
+
+        @param pType  If not null, returns the type (the first of the above
+        tokens), in US-ASCII encoding and converted to lower case.
+
+        @param pSubType  If not null, returns the sub-type (the second of the
+        above tokens), in US-ASCII encoding and converted to lower case.
+
+        @param pParameters  If not null, returns the parameters as a list of
+        INetContentTypeParameters (the attributes are in US-ASCII encoding and
+        converted to lower case, the values are in Unicode encoding).  If
+        null, only the syntax of the parameters is checked, but they are not
+        returned.
+
+        @return  Null if the syntax of the field body is incorrect (i.e., does
+        not start with type and sub-type tokens).  Otherwise, a pointer past the
+        longest valid input prefix.  If null is returned, none of the output
+        parameters will be modified.
+     */
+    static sal_Unicode const * scanContentType(
+        sal_Unicode const *pBegin, sal_Unicode const * pEnd,
+        OUString * pType = 0, OUString * pSubType = 0,
+        INetContentTypeParameterList * pParameters = 0);
+
     static inline rtl_TextEncoding translateToMIME(rtl_TextEncoding
                                                        eEncoding);
 
@@ -679,20 +714,7 @@ protected:
 
         @return  The length of pOctets (without the terminating null).
      */
-    virtual sal_Size writeSequence(const sal_Char * pSequence);
-
-    /** Write a sequence of octets.
-
-        @descr  The supplied sequence of UCS-4 characters is interpreted as a
-        sequence of octets.  It is an error if any of the elements of the
-        sequence has a numerical value greater than 255.
-
-        @param pBegin  Points to the start of the sequence, must not be null.
-
-        @param pEnd  Points past the end of the sequence, must be >= pBegin.
-     */
-    virtual void writeSequence(const sal_uInt32 * pBegin,
-                               const sal_uInt32 * pEnd);
+    sal_Size writeSequence(const sal_Char * pSequence);
 
     /** Write a sequence of octets.
 
@@ -704,7 +726,7 @@ protected:
 
         @param pEnd  Points past the end of the sequence, must be >= pBegin.
      */
-    virtual void writeSequence(const sal_Unicode * pBegin,
+    void writeSequence(const sal_Unicode * pBegin,
                                const sal_Unicode * pEnd);
 
 public:
@@ -744,18 +766,6 @@ public:
      */
     void write(const sal_Char * pBegin, sal_Size nLength)
     { write(pBegin, pBegin + nLength); }
-
-    /** Write a sequence of octets.
-
-        @descr  The supplied sequence of UCS-4 characters is interpreted as a
-        sequence of octets.  It is an error if any of the elements of the
-        sequence has a numerical value greater than 255.
-
-        @param pBegin  Points to the start of the sequence, must not be null.
-
-        @param pEnd  Points past the end of the sequence, must be >= pBegin.
-     */
-    inline void write(const sal_uInt32 * pBegin, const sal_uInt32 * pEnd);
 
     /** Write a sequence of octets.
 
@@ -844,13 +854,6 @@ inline void INetMIMEOutputSink::write(const sal_Char * pBegin,
     m_nColumn += pEnd - pBegin;
 }
 
-inline void INetMIMEOutputSink::write(const sal_uInt32 * pBegin,
-                                      const sal_uInt32 * pEnd)
-{
-    writeSequence(pBegin, pEnd);
-    m_nColumn += pEnd - pBegin;
-}
-
 inline void INetMIMEOutputSink::write(const sal_Unicode * pBegin,
                                       const sal_Unicode * pEnd)
 {
@@ -896,7 +899,7 @@ class INetMIMEStringOutputSink: public INetMIMEOutputSink
     using INetMIMEOutputSink::writeSequence;
 
     virtual void writeSequence(const sal_Char * pBegin,
-                               const sal_Char * pEnd);
+                               const sal_Char * pEnd) SAL_OVERRIDE;
 
 public:
     inline INetMIMEStringOutputSink(sal_uInt32 nColumn = 0,
@@ -904,7 +907,7 @@ public:
                                         = INetMIME::SOFT_LINE_LENGTH_LIMIT):
         INetMIMEOutputSink(nColumn, nLineLengthLimit) {}
 
-    virtual ErrCode getError() const;
+    virtual ErrCode getError() const SAL_OVERRIDE;
 
     OString takeBuffer()
     {
@@ -960,7 +963,7 @@ public:
 
     ~INetMIMEEncodedWordOutputSink();
 
-    INetMIMEEncodedWordOutputSink & operator <<(sal_uInt32 nChar);
+    INetMIMEEncodedWordOutputSink & WriteUInt32(sal_uInt32 nChar);
 
     inline void write(const sal_Char * pBegin, const sal_Char * pEnd);
 
@@ -978,6 +981,7 @@ inline INetMIMEEncodedWordOutputSink::INetMIMEEncodedWordOutputSink(
     m_nExtraSpaces(0),
     m_pEncodingList(INetMIME::createPreferredCharsetList(ePreferredEncoding)),
     m_ePrevCoding(CODING_NONE),
+    m_ePrevMIMEEncoding(RTL_TEXTENCODING_DONTKNOW),
     m_eCoding(CODING_NONE),
     m_nQuotedEscaped(0),
     m_eEncodedWordState(STATE_INITIAL)
@@ -996,7 +1000,7 @@ inline void INetMIMEEncodedWordOutputSink::write(const sal_Char * pBegin,
                "INetMIMEEncodedWordOutputSink::write(): Bad sequence");
 
     while (pBegin != pEnd)
-        operator <<(*pBegin++);
+        WriteUInt32(*pBegin++);
 }
 
 inline void INetMIMEEncodedWordOutputSink::write(const sal_Unicode * pBegin,
@@ -1006,7 +1010,7 @@ inline void INetMIMEEncodedWordOutputSink::write(const sal_Unicode * pBegin,
                "INetMIMEEncodedWordOutputSink::write(): Bad sequence");
 
     while (pBegin != pEnd)
-        operator <<(*pBegin++);
+        WriteUInt32(*pBegin++);
 }
 
 inline bool INetMIMEEncodedWordOutputSink::flush()

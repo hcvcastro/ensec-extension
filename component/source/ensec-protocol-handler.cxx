@@ -883,7 +883,8 @@ EnsecProtocolHandler::dispatch( const util::URL& aURL,
 
   if ( aURL.Protocol.compareToAscii("bolivia@shell.ensec:") == 0 ) {
     if ( aURL.Path.equalsAsciiL( RTL_CONSTASCII_STRINGPARAM("Calendario" ) ) ) {
-        generarCronogramaTrabajo();
+        //generarCronogramaTrabajo();
+        UpdateCalendar();
     }
     else if ( aURL.Path.equalsAsciiL( RTL_CONSTASCII_STRINGPARAM("Reporte" ) ) ) {
       openSheet();
@@ -1601,8 +1602,9 @@ EnsecProtocolHandler::generarMes( const Reference<sdbc::XDataSource>& xDataSourc
                                   sal_Int32 nMonth )
 {
     char strBuffer[700];
+    sal_Int32 nYear = 2015;
     OString strParam = OUStringToOString(strAsignatura, RTL_TEXTENCODING_UTF8);
-    sprintf(strBuffer, "SELECT STARTDATE, DESCRIPTION, CATEGORY FROM CALENDARIO WHERE MONTH(STARTDATE)=%d UNION SELECT STARTDATE, DESCRIPTION, CATEGORY FROM CRONOGRAMA WHERE MONTH(STARTDATE)=%d AND ASIGNATURA='%s'  ORDER BY STARTDATE, DESCRIPTION", nMonth, nMonth, strParam.getStr());
+    sprintf(strBuffer, "SELECT STARTDATE, SUBJECT, CATEGORY FROM CALENDARIO WHERE YEAR(STARTDATE)=%d AND MONTH(STARTDATE)=%d UNION SELECT STARTDATE, SUBJECT, CATEGORY FROM CRONOGRAMA WHERE YEAR(STARTDATE)=%d AND MONTH(STARTDATE)=%d AND ASIGNATURA='%s'  ORDER BY STARTDATE, SUBJECT", nYear, nMonth, nYear, nMonth, strParam.getStr());
 
     Reference<sdbc::XConnection> xConnection ( xDataSource->getConnection( OUString(RTL_CONSTASCII_USTRINGPARAM("")), OUString(RTL_CONSTASCII_USTRINGPARAM(""))), uno::UNO_QUERY_THROW );
     //OUString strSQL = OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT * FROM CALENDARIO"));
@@ -1819,9 +1821,10 @@ EnsecProtocolHandler::generarRow( const Reference<sheet::XSpreadsheetDocument>& 
 
     char strBuffer[20];
     aDate = xRow->getDate(1);
-    sprintf(strBuffer, "%d/%d/%d", aDate.Year, aDate.Month, aDate.Day);
+    sprintf(strBuffer, "%d/%d/%d", aDate.Month, aDate.Day, aDate.Year);
 
     xCell->setFormula( OUString::createFromAscii(strBuffer) );
+    //xCell->setValue( aDate );
     if ( strCategory.getLength() != 0 && strCategory.compareToAscii("Normal") != 0 ) 
         xCellProp->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("CharWeight")), 
                                      uno::makeAny(awt::FontWeight::BOLD) );

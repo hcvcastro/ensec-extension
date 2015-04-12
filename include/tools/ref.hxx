@@ -19,83 +19,78 @@
 #ifndef INCLUDED_TOOLS_REF_HXX
 #define INCLUDED_TOOLS_REF_HXX
 
+#include <sal/config.h>
+
+#include <cassert>
+
 #include <tools/toolsdllapi.h>
 #include <vector>
 
-#define PRV_SV_IMPL_REF_COUNTERS( ClassName, Ref, AddRef, AddNextRef, ReleaseRef, pRefbase ) \
-inline ClassName##Ref::ClassName##Ref( const ClassName##Ref & rObj )        \
-    { pObj = rObj.pObj; if( pObj ) { pRefbase->AddNextRef; } }              \
-inline ClassName##Ref::ClassName##Ref( ClassName * pObjP )                  \
-{ pObj = pObjP; if( pObj ) { pRefbase->AddRef; } }                          \
-inline void ClassName##Ref::Clear()                                         \
-{                                                                           \
-    if( pObj )                                                              \
-    {                                                                       \
-        ClassName* const pRefObj = pRefbase;                                \
-        pObj = 0;                                                           \
-        pRefObj->ReleaseRef;                                                \
-    }                                                                       \
-}                                                                           \
-inline ClassName##Ref::~ClassName##Ref()                                    \
-{ if( pObj ) { pRefbase->ReleaseRef; } }                                    \
-inline ClassName##Ref & ClassName##Ref::                                    \
-            operator = ( const ClassName##Ref & rObj )                      \
-{                                                                           \
-    if( rObj.pObj ) rObj.pRefbase->AddNextRef;                              \
-    ClassName* const pRefObj = pRefbase;                                    \
-    pObj = rObj.pObj;                                                       \
-    if( pRefObj ) { pRefObj->ReleaseRef; }                                  \
-    return *this;                                                           \
-}                                                                           \
-inline ClassName##Ref & ClassName##Ref::operator = ( ClassName * pObjP )    \
-{ return *this = ClassName##Ref( pObjP ); }
+/**
+   This implements similar functionality to boost::intrusive_ptr
+*/
 
-#define PRV_SV_DECL_REF_LOCK(ClassName, Ref)    \
-protected:                                      \
-    ClassName * pObj;                           \
-public:                                         \
-    inline               ClassName##Ref() { pObj = 0; }                 \
-    inline               ClassName##Ref( const ClassName##Ref & rObj ); \
-    inline               ClassName##Ref( ClassName * pObjP );           \
-    inline void          Clear();                                       \
-    inline               ~ClassName##Ref();                             \
-    inline ClassName##Ref & operator = ( const ClassName##Ref & rObj ); \
-    inline ClassName##Ref & operator = ( ClassName * pObj );            \
-    inline sal_Bool        Is() const { return pObj != NULL; }          \
-    inline ClassName *     operator &  () const { return pObj; }        \
-    inline ClassName *     operator -> () const { return pObj; }        \
-    inline ClassName &     operator *  () const { return *pObj; }       \
-    inline operator ClassName * () const { return pObj; }
+namespace tools {
 
-#define PRV_SV_DECL_REF( ClassName )            \
-PRV_SV_DECL_REF_LOCK( ClassName, Ref )
+/** T must be a class that extends SvRefBase */
+template<typename T> class SAL_DLLPUBLIC_RTTI SvRef {
+public:
+    SvRef(): pObj(0) {}
 
-#define SV_DECL_REF( ClassName )                \
-class ClassName;                                \
-class ClassName##Ref                            \
-{                                               \
-    PRV_SV_DECL_REF( ClassName )                \
+    SvRef(SvRef const & rObj): pObj(rObj.pObj)
+    {
+        if (pObj != 0) pObj->AddNextRef();
+    }
+
+    SvRef(T * pObjP): pObj(pObjP)
+    {
+        if (pObj != 0) pObj->AddFirstRef();
+    }
+
+    ~SvRef()
+    {
+        if (pObj != 0) pObj->ReleaseRef();
+    }
+
+    void Clear()
+    {
+        if (pObj != 0) {
+            T * pRefObj = pObj;
+            pObj = 0;
+            pRefObj->ReleaseRef();
+        }
+    }
+
+    SvRef & operator =(SvRef const & rObj)
+    {
+        if (rObj.pObj != 0) {
+            rObj.pObj->AddNextRef();
+        }
+        T * pRefObj = pObj;
+        pObj = rObj.pObj;
+        if (pRefObj != 0) {
+            pRefObj->ReleaseRef();
+        }
+        return *this;
+    }
+
+    bool Is()         const { return pObj != 0; }
+
+    T * get()         const { return pObj; }
+
+    T * operator &()  const { return pObj; }
+
+    T * operator ->() const { assert(pObj != 0); return pObj; }
+
+    T & operator *()  const { assert(pObj != 0); return *pObj; }
+
+    operator T *()    const { return pObj; }
+
+protected:
+    T * pObj;
 };
 
-#define SV_DECL_LOCK( ClassName )               \
-class ClassName;                                \
-class ClassName##Lock                           \
-{                                               \
-    PRV_SV_DECL_REF_LOCK( ClassName, Lock )     \
-};
-
-#define SV_IMPL_REF( ClassName )                                \
-PRV_SV_IMPL_REF_COUNTERS( ClassName, Ref, AddRef(), AddNextRef(),\
-                          ReleaseReference(), pObj )
-
-#define SV_IMPL_LOCK( ClassName )                                   \
-PRV_SV_IMPL_REF_COUNTERS( ClassName, Lock, OwnerLock( sal_True ),       \
-                          OwnerLock( sal_True ), OwnerLock( sal_False ),    \
-                          pObj )
-
-#define SV_DECL_IMPL_REF(ClassName)             \
-    SV_DECL_REF(ClassName)                      \
-    SV_IMPL_REF(ClassName)
+}
 
 template<typename T>
 class SvRefMemberList : private std::vector<T>
@@ -124,7 +119,7 @@ public:
         {
               T p = *it;
               if( p )
-                  p->ReleaseReference();
+                  p->ReleaseRef();
         }
         base_t::clear();
     }
@@ -132,7 +127,7 @@ public:
     inline void push_back( T p )
     {
         base_t::push_back( p );
-        p->AddRef();
+        p->AddFirstRef();
     }
 
     inline void insert(const SvRefMemberList& rOther)
@@ -148,102 +143,121 @@ public:
         T p = base_t::back();
         base_t::pop_back();
         if( p )
-            p->ReleaseReference();
+            p->ReleaseRef();
         return p;
     }
 };
 
-#define SV_NO_DELETE_REFCOUNT  0x80000000
 
+/** Classes that want to be referenced-counted via SvRef<T>, should extend this base class */
 class TOOLS_DLLPUBLIC SvRefBase
 {
-    sal_uIntPtr nRefCount;
+    // the only reason this is not bool is because MSVC cannot handle mixed type bitfields
+    unsigned int bNoDelete : 1;
+    unsigned int nRefCount : 31;
 
 protected:
     virtual         ~SvRefBase();
-    virtual void    QueryDelete();
 
 public:
-                    SvRefBase() { nRefCount = SV_NO_DELETE_REFCOUNT; }
-                    SvRefBase( const SvRefBase & /* rObj */ )
-                    { nRefCount = SV_NO_DELETE_REFCOUNT; }
-    SvRefBase &     operator = ( const SvRefBase & ) { return *this; }
+                    SvRefBase() : bNoDelete(1), nRefCount(0) {}
+
+                    SvRefBase( const SvRefBase & /* rObj */ )  : bNoDelete(1), nRefCount(0) {}
+
+    SvRefBase &     operator = ( const SvRefBase & )
+                    { return *this; }
 
     void            RestoreNoDelete()
+                    { bNoDelete = 1; }
+
+    void            AddNextRef()
                     {
-                        if( nRefCount < SV_NO_DELETE_REFCOUNT )
-                            nRefCount += SV_NO_DELETE_REFCOUNT;
+                        assert( nRefCount < (1 << 30) && "Do not add refs to dead objects" );
+                        ++nRefCount;
                     }
-    sal_uIntPtr     AddNextRef() { return ++nRefCount; }
-    sal_uIntPtr     AddRef()
+
+    void            AddFirstRef()
                     {
-                        if( nRefCount >= SV_NO_DELETE_REFCOUNT )
-                            nRefCount -= SV_NO_DELETE_REFCOUNT;
-                        return ++nRefCount;
+                        assert( nRefCount < (1 << 30) && "Do not add refs to dead objects" );
+                        if( bNoDelete )
+                            bNoDelete = 0;
+                        ++nRefCount;
                     }
-    void            ReleaseReference()
+
+    void            ReleaseRef()
                     {
-                        if( !--nRefCount )
-                            QueryDelete();
+                        assert( nRefCount >= 1);
+                        if( --nRefCount == 0 && !bNoDelete)
+                        {
+                            // I'm not sure about the original purpose of this line, but right now
+                            // it serves the purpose that anything that attempts to do an AddRef()
+                            // after an object is deleted will trip an assert.
+                            nRefCount = 1 << 30;
+                            delete this;
+                        }
                     }
-    sal_uIntPtr     ReleaseRef()
-                    {
-                        sal_uIntPtr n = --nRefCount;
-                        if( !n )
-                            QueryDelete();
-                        return n;
-                    }
-    sal_uIntPtr     GetRefCount() const { return nRefCount; }
+
+    unsigned int    GetRefCount() const
+                    { return nRefCount; }
 };
 
-SV_DECL_IMPL_REF(SvRefBase)
+template<typename T>
+class SvCompatWeakBase;
 
+/** SvCompatWeakHdl acts as a intermediary between SvCompatWeakRef<T> and T.
+*/
+template<typename T>
 class SvCompatWeakHdl : public SvRefBase
 {
-    friend class SvCompatWeakBase;
-    void* _pObj;
-    SvCompatWeakHdl( void* pObj ) : _pObj( pObj ) {}
+    friend class SvCompatWeakBase<T>;
+    T* _pObj;
+
+    SvCompatWeakHdl( T* pObj ) : _pObj( pObj ) {}
 
 public:
-    void ResetWeakBase( ) { _pObj = 0; }
-    void* GetObj() { return _pObj; }
+    void  ResetWeakBase( ) { _pObj = 0; }
+    T*    GetObj()        { return _pObj; }
 };
 
-SV_DECL_IMPL_REF( SvCompatWeakHdl )
-
+/** We only have one place that extends this, in include/sfx2/frame.hxx, class SfxFrame.
+    Its function is to notify the SvCompatWeakHdl when an SfxFrame object is deleted.
+*/
+template<typename T>
 class SvCompatWeakBase
 {
-    SvCompatWeakHdlRef _xHdl;
+    tools::SvRef< SvCompatWeakHdl<T> > _xHdl;
 
 public:
-    SvCompatWeakHdl* GetHdl() { return _xHdl; }
+    /** Does not use initializer due to compiler warnings,
+        because the lifetime of the _xHdl object can exceed the lifetime of this class.
+     */
+    SvCompatWeakBase( T* pObj ) { _xHdl = new SvCompatWeakHdl<T>( pObj ); }
 
-    // does not use Initalizer due to compiler warnings
-    SvCompatWeakBase( void* pObj ) { _xHdl = new SvCompatWeakHdl( pObj ); }
     ~SvCompatWeakBase() { _xHdl->ResetWeakBase(); }
+
+    SvCompatWeakHdl<T>* GetHdl() { return _xHdl; }
 };
 
-#define SV_DECL_COMPAT_WEAK( ClassName )                            \
-class ClassName##Weak                                               \
-{                                                                   \
-    SvCompatWeakHdlRef _xHdl;                                       \
-public:                                                             \
-    inline               ClassName##Weak( ) {}                      \
-    inline               ClassName##Weak( ClassName* pObj ) {       \
-        if( pObj ) _xHdl = pObj->GetHdl(); }                        \
-    inline void          Clear() { _xHdl.Clear(); }                 \
-    inline ClassName##Weak& operator = ( ClassName * pObj ) {       \
-        _xHdl = pObj ? pObj->GetHdl() : 0; return *this; }          \
-    inline sal_Bool            Is() const {                         \
-        return _xHdl.Is() && _xHdl->GetObj(); }                     \
-    inline ClassName *     operator &  () const {                   \
-        return (ClassName*) ( _xHdl.Is() ? _xHdl->GetObj() : 0 ); } \
-    inline ClassName *     operator -> () const {                   \
-        return (ClassName*) ( _xHdl.Is() ? _xHdl->GetObj() : 0 ); } \
-    inline ClassName &     operator *  () const {                   \
-        return *(ClassName*) _xHdl->GetObj(); }                     \
-    inline operator ClassName * () const {                          \
-        return (ClassName*) (_xHdl.Is() ? _xHdl->GetObj() : 0 ); }  \
+/** We only have one weak reference in LO, in include/sfx2/frame.hxx, class SfxFrameWeak.
+*/
+template<typename T>
+class SvCompatWeakRef
+{
+    tools::SvRef< SvCompatWeakHdl<T> > _xHdl;
+public:
+    inline               SvCompatWeakRef( ) {}
+    inline               SvCompatWeakRef( T* pObj )
+                         {  if( pObj ) _xHdl = pObj->GetHdl(); }
+    inline SvCompatWeakRef& operator = ( T * pObj )
+                         {  _xHdl = pObj ? pObj->GetHdl() : 0; return *this; }
+    inline bool          Is() const
+                         { return _xHdl.Is() && _xHdl->GetObj(); }
+    inline T*            operator -> () const
+                         { return _xHdl.Is() ? _xHdl->GetObj() : 0; }
+    inline T*            operator &  () const
+                         { return _xHdl.Is() ? _xHdl->GetObj() : 0; }
+    inline operator T* () const
+                         { return _xHdl.Is() ? _xHdl->GetObj() : 0; }
 };
 
 #endif

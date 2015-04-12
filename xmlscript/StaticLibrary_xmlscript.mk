@@ -15,28 +15,11 @@ $(eval $(call gb_StaticLibrary_use_custom_headers,xmlscript,sdkapi/sdkapi))
 
 $(eval $(call gb_StaticLibrary_set_componentfile,xmlscript,xmlscript/util/xmlscript))
 
-#$(eval $(call gb_StaticLibrary_use_sdk_api,xmlscript))
-
-#$(eval $(call gb_StaticLibrary_use_libraries,xmlscript,\
-	$(gb_UWINAPI) \
-))
-
-#    comphelper \
-#    cppu \
-#    cppuhelper \
-#   sal \
-#    tl \
-#	i18nlangtag \
-
 $(eval $(call gb_StaticLibrary_set_include,xmlscript,\
     -I$(SRCDIR)/xmlscript/source/inc \
 	-I$(dir $(call gb_CustomTarget_get_target,sdkapi/sdkapi))   \
 	-I$(OO_SDK_HOME)/include \
     $$(INCLUDE) \
-))
-
-#$(eval $(call gb_StaticLibrary_add_defs,xmlscript,\
-    -DXMLSCRIPT_DLLIMPLEMENTATION \
 ))
 
 $(eval $(call gb_StaticLibrary_add_ldflags,xmlscript,\

@@ -17,8 +17,8 @@
  *   the License at http://www.apache.org/licenses/LICENSE-2.0 .
  */
 
-#ifndef INCLUDED_XMLSCRIPT_MISC_HXX
-#define INCLUDED_XMLSCRIPT_MISC_HXX
+#ifndef INCLUDED_XMLSCRIPT_SOURCE_INC_MISC_HXX
+#define INCLUDED_XMLSCRIPT_SOURCE_INC_MISC_HXX
 
 #include <com/sun/star/uno/Any.hxx>
 
@@ -31,7 +31,7 @@ inline void extract_throw( T * p, ::com::sun::star::uno::Any const & a )
     if (! (a >>= *p))
     {
         throw ::com::sun::star::uno::RuntimeException(
-            "expected " + ::getCppuType( p ).getTypeName(),
+            "expected " + cppu::UnoType<T>::get().getTypeName(),
             ::com::sun::star::uno::Reference<
             ::com::sun::star::uno::XInterface>() );
     }

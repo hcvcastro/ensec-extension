@@ -20,59 +20,62 @@
 #include "imp_share.hxx"
 #include "xml_import.hxx"
 
+using namespace css;
+using namespace css::uno;
+
 namespace xmlscript
 {
 
 Reference< xml::input::XElement > LibElementBase::getParent()
-    throw (RuntimeException)
+    throw (RuntimeException, std::exception)
 {
     return static_cast< xml::input::XElement * >( _pParent );
 }
 
 OUString LibElementBase::getLocalName()
-    throw (RuntimeException)
+    throw (RuntimeException, std::exception)
 {
     return _aLocalName;
 }
 
 sal_Int32 LibElementBase::getUid()
-    throw (RuntimeException)
+    throw (RuntimeException, std::exception)
 {
     return _pImport->XMLNS_LIBRARY_UID;
 }
 
 Reference< xml::input::XAttributes > LibElementBase::getAttributes()
-    throw (RuntimeException)
+    throw (RuntimeException, std::exception)
 {
     return _xAttributes;
 }
 
 void LibElementBase::ignorableWhitespace(
     OUString const & /*rWhitespaces*/ )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
 }
 
 void LibElementBase::characters( OUString const & /*rChars*/ )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     // not used, all characters ignored
 }
 
 void LibElementBase::processingInstruction(
     OUString const & /*rTarget*/, OUString const & /*rData*/ )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
 }
 
 void LibElementBase::endElement()
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
 }
 Reference< xml::input::XElement > LibElementBase::startChildElement(
     sal_Int32 /*nUid*/, OUString const & /*rLocalName*/,
     Reference< xml::input::XAttributes > const & /*xAttributes*/ )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     throw xml::sax::SAXException("unexpected element!", Reference< XInterface >(), Any() );
 }
@@ -81,7 +84,6 @@ LibElementBase::LibElementBase(
     OUString const & rLocalName,
     Reference< xml::input::XAttributes > const & xAttributes,
     LibElementBase * pParent, LibraryImport * pImport )
-    SAL_THROW_EXTERN_C()
     : _pImport( pImport )
     , _pParent( pParent )
     , _aLocalName( rLocalName )
@@ -96,7 +98,6 @@ LibElementBase::LibElementBase(
 }
 
 LibElementBase::~LibElementBase()
-    SAL_THROW_EXTERN_C()
 {
     _pImport->release();
 
@@ -115,33 +116,33 @@ LibElementBase::~LibElementBase()
 
 void LibraryImport::startDocument(
     Reference< xml::input::XNamespaceMapping > const & xNamespaceMapping )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     XMLNS_LIBRARY_UID = xNamespaceMapping->getUidByUri( XMLNS_LIBRARY_URI );
     XMLNS_XLINK_UID = xNamespaceMapping->getUidByUri( XMLNS_XLINK_URI );
 }
 
 void LibraryImport::endDocument()
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
 }
 
 void LibraryImport::processingInstruction(
     OUString const & /*rTarget*/, OUString const & /*rData*/ )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
 }
 
 void LibraryImport::setDocumentLocator(
     Reference< xml::sax::XLocator > const & /*xLocator*/ )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
 }
 
 Reference< xml::input::XElement > LibraryImport::startRootElement(
     sal_Int32 nUid, OUString const & rLocalName,
     Reference< xml::input::XAttributes > const & xAttributes )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     if (XMLNS_LIBRARY_UID != nUid)
     {
@@ -154,7 +155,7 @@ Reference< xml::input::XElement > LibraryImport::startRootElement(
     else if ( mpLibDesc && rLocalName == "library" )
     {
         LibDescriptor& aDesc = *mpLibDesc;
-        aDesc.bLink = aDesc.bReadOnly = aDesc.bPasswordProtected = aDesc.bPreload = sal_False;
+        aDesc.bLink = aDesc.bReadOnly = aDesc.bPasswordProtected = aDesc.bPreload = false;
 
         aDesc.aName = xAttributes->getValueByUidName(XMLNS_LIBRARY_UID, "name" );
         getBoolAttr( &aDesc.bReadOnly, "readonly", xAttributes, XMLNS_LIBRARY_UID );
@@ -170,7 +171,6 @@ Reference< xml::input::XElement > LibraryImport::startRootElement(
 }
 
 LibraryImport::~LibraryImport()
-    SAL_THROW_EXTERN_C()
 {
 #if OSL_DEBUG_LEVEL > 1
     SAL_INFO("xmlscript.xmllib", "LibraryImport::~LibraryImport()." );
@@ -181,7 +181,7 @@ LibraryImport::~LibraryImport()
 Reference< xml::input::XElement > LibrariesElement::startChildElement(
     sal_Int32 nUid, OUString const & rLocalName,
     Reference< xml::input::XAttributes > const & xAttributes )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     if (_pImport->XMLNS_LIBRARY_UID != nUid)
     {
@@ -191,7 +191,7 @@ Reference< xml::input::XElement > LibrariesElement::startChildElement(
     else if ( rLocalName == "library" )
     {
         LibDescriptor aDesc;
-        aDesc.bLink = aDesc.bReadOnly = aDesc.bPasswordProtected = aDesc.bPreload = sal_False;
+        aDesc.bLink = aDesc.bReadOnly = aDesc.bPasswordProtected = aDesc.bPreload = false;
 
         aDesc.aName = xAttributes->getValueByUidName(_pImport->XMLNS_LIBRARY_UID, "name" );
         aDesc.aStorageURL = xAttributes->getValueByUidName( _pImport->XMLNS_XLINK_UID, "href" );
@@ -209,7 +209,7 @@ Reference< xml::input::XElement > LibrariesElement::startChildElement(
 }
 
 void LibrariesElement::endElement()
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     sal_Int32 nLibCount = _pImport->mpLibArray->mnLibCount = (sal_Int32)mLibDescriptors.size();
     _pImport->mpLibArray->mpLibs = new LibDescriptor[ nLibCount ];
@@ -225,7 +225,7 @@ void LibrariesElement::endElement()
 Reference< xml::input::XElement > LibraryElement::startChildElement(
     sal_Int32 nUid, OUString const & rLocalName,
     Reference< xml::input::XAttributes > const & xAttributes )
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     if (_pImport->XMLNS_LIBRARY_UID != nUid)
     {
@@ -247,7 +247,7 @@ Reference< xml::input::XElement > LibraryElement::startChildElement(
 }
 
 void LibraryElement::endElement()
-    throw (xml::sax::SAXException, RuntimeException)
+    throw (xml::sax::SAXException, RuntimeException, std::exception)
 {
     sal_Int32 nElementCount = mElements.size();
     Sequence< OUString > aElementNames( nElementCount );
@@ -263,7 +263,6 @@ void LibraryElement::endElement()
 
 Reference< ::com::sun::star::xml::sax::XDocumentHandler >
 SAL_CALL importLibraryContainer( LibDescriptorArray* pLibArray )
-        SAL_THROW_EXTERN_C()
 {
     return ::xmlscript::createDocumentHandler(
         static_cast< xml::input::XRoot * >( new LibraryImport( pLibArray ) ) );
@@ -271,7 +270,6 @@ SAL_CALL importLibraryContainer( LibDescriptorArray* pLibArray )
 
 ::com::sun::star::uno::Reference< ::com::sun::star::xml::sax::XDocumentHandler >
 SAL_CALL importLibrary( LibDescriptor& rLib )
-        SAL_THROW_EXTERN_C()
 {
     return ::xmlscript::createDocumentHandler(
         static_cast< xml::input::XRoot * >( new LibraryImport( &rLib ) ) );

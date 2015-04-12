@@ -33,7 +33,6 @@ void
 SAL_CALL exportLibraryContainer(
     Reference< xml::sax::XWriter > const & xOut,
     const LibDescriptorArray* pLibArray )
-        SAL_THROW_EXTERN_C()
 {
     xOut->startDocument();
 
@@ -94,7 +93,6 @@ void
 SAL_CALL exportLibrary(
     ::com::sun::star::uno::Reference< ::com::sun::star::xml::sax::XWriter > const & xOut,
     const LibDescriptor& rLib )
-        SAL_THROW_EXTERN_C()
 {
     xOut->startDocument();
 

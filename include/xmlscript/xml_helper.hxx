@@ -37,13 +37,12 @@ namespace xmlscript
 
 ##################################################################################################*/
 
-//==================================================================================================
+
 class XMLSCRIPT_DLLPUBLIC XMLElement
     : public ::cppu::WeakImplHelper1< ::com::sun::star::xml::sax::XAttributeList >
 {
 public:
     inline XMLElement( OUString const & name )
-        SAL_THROW_EXTERN_C()
         : _name( name )
         {}
 
@@ -52,30 +51,27 @@ public:
         @param xElem element reference
     */
     void SAL_CALL addSubElement(
-        ::com::sun::star::uno::Reference< ::com::sun::star::xml::sax::XAttributeList > const & xElem )
-        SAL_THROW_EXTERN_C();
+        ::com::sun::star::uno::Reference< ::com::sun::star::xml::sax::XAttributeList > const & xElem );
 
     /** Gets sub element of given index.  The index follows order in which sub elements were added.
 
         @param nIndex index of sub element
     */
-    ::com::sun::star::uno::Reference< ::com::sun::star::xml::sax::XAttributeList > SAL_CALL getSubElement( sal_Int32 nIndex )
-        SAL_THROW_EXTERN_C();
+    ::com::sun::star::uno::Reference< ::com::sun::star::xml::sax::XAttributeList > SAL_CALL getSubElement( sal_Int32 nIndex );
 
     /** Adds an attribute to elements.
 
         @param rAttrName qname of attribute
         @param rValue value string of element
     */
-    void SAL_CALL addAttribute( OUString const & rAttrName, OUString const & rValue )
-        SAL_THROW_EXTERN_C();
+    void SAL_CALL addAttribute( OUString const & rAttrName, OUString const & rValue );
 
     /** Gets the tag name (qname) of element.
 
         @return
                 qname of element
     */
-    inline OUString SAL_CALL getName() SAL_THROW_EXTERN_C()
+    inline OUString SAL_CALL getName()
         { return _name; }
 
     /** Dumps out element (and all sub elements).
@@ -93,17 +89,17 @@ public:
 
     // XAttributeList
     virtual sal_Int16 SAL_CALL getLength()
-        throw (::com::sun::star::uno::RuntimeException);
+        throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual OUString SAL_CALL getNameByIndex( sal_Int16 nPos )
-        throw (::com::sun::star::uno::RuntimeException);
+        throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual OUString SAL_CALL getTypeByIndex( sal_Int16 nPos )
-        throw (::com::sun::star::uno::RuntimeException);
+        throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual OUString SAL_CALL getTypeByName( OUString const & rName )
-        throw (::com::sun::star::uno::RuntimeException);
+        throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual OUString SAL_CALL getValueByIndex( sal_Int16 nPos )
-        throw (::com::sun::star::uno::RuntimeException);
+        throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     virtual OUString SAL_CALL getValueByName( OUString const & rName )
-        throw (::com::sun::star::uno::RuntimeException);
+        throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
 protected:
     OUString _name;
@@ -124,13 +120,11 @@ protected:
 
 XMLSCRIPT_DLLPUBLIC ::com::sun::star::uno::Reference< ::com::sun::star::io::XInputStream >
 SAL_CALL createInputStream(
-    ::rtl::ByteSequence const & rInData )
-    SAL_THROW_EXTERN_C();
+    ::rtl::ByteSequence const & rInData );
 
 XMLSCRIPT_DLLPUBLIC ::com::sun::star::uno::Reference< ::com::sun::star::io::XOutputStream >
 SAL_CALL createOutputStream(
-    ::rtl::ByteSequence * pOutData )
-    SAL_THROW_EXTERN_C();
+    ::rtl::ByteSequence * pOutData );
 
 }
 

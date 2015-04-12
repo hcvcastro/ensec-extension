@@ -24,31 +24,35 @@
 #include <tools/toolsdllapi.h>
 #include <com/sun/star/uno/Sequence.hxx>
 
+struct SvGUID
+{
+    sal_uInt32 Data1;
+    sal_uInt16 Data2;
+    sal_uInt16 Data3;
+    sal_uInt8  Data4[8];
+};
+
 struct ImpSvGlobalName
 {
-    sal_uInt8       szData[ 16 ];
+    struct SvGUID   szData;
     sal_uInt16      nRefCount;
 
     enum Empty { EMPTY };
 
-                ImpSvGlobalName()
+                ImpSvGlobalName(const SvGUID &rData)
+                    : szData(rData)
+                    , nRefCount(0)
                 {
-                    nRefCount = 0;
                 }
+                ImpSvGlobalName(sal_uInt32 n1, sal_uInt16 n2, sal_uInt16 n3,
+                          sal_uInt8 b8, sal_uInt8 b9, sal_uInt8 b10, sal_uInt8 b11,
+                          sal_uInt8 b12, sal_uInt8 b13, sal_uInt8 b14, sal_uInt8 b15);
                 ImpSvGlobalName( const ImpSvGlobalName & rObj );
                 ImpSvGlobalName( Empty );
 
     bool        operator == ( const ImpSvGlobalName & rObj ) const;
 };
 
-#ifdef WNT
-struct _GUID;
-typedef struct _GUID GUID;
-#else
-struct GUID;
-#endif
-
-typedef GUID CLSID;
 class SvStream;
 
 class TOOLS_DLLPUBLIC SvGlobalName
@@ -79,7 +83,7 @@ public:
             ~SvGlobalName();
 
     TOOLS_DLLPUBLIC friend SvStream & operator >> ( SvStream &, SvGlobalName & );
-    TOOLS_DLLPUBLIC friend SvStream & operator << ( SvStream &, const SvGlobalName & );
+    TOOLS_DLLPUBLIC friend SvStream & WriteSvGlobalName( SvStream &, const SvGlobalName & );
 
     bool          operator < ( const SvGlobalName & rObj ) const;
     SvGlobalName& operator += ( sal_uInt32 );
@@ -93,9 +97,8 @@ public:
     bool          MakeId( const OUString & rId );
     OUString      GetHexName() const;
 
-                  SvGlobalName( const CLSID & rId );
-    const CLSID & GetCLSID() const { return *(CLSID *)pImp->szData; }
-    const sal_uInt8* GetBytes() const { return pImp->szData; }
+                  SvGlobalName( const SvGUID & rId );
+    const SvGUID& GetCLSID() const { return pImp->szData; }
 
     // platform independent representation of a "GlobalName"
     // maybe transported remotely

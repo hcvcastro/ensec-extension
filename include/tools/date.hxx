@@ -20,11 +20,9 @@
 #define INCLUDED_TOOLS_DATE_HXX
 
 #include <tools/toolsdllapi.h>
-#include <tools/solar.h>
 #include <com/sun/star/util/Date.hpp>
+#include <com/sun/star/util/DateTime.hpp>
 #include <sal/log.hxx>
-
-class ResId;
 
 enum DayOfWeek { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY,
                  SATURDAY, SUNDAY };
@@ -54,7 +52,6 @@ public:
                     Date( DateInitEmpty)
                         { nDate = 0; }
                     Date( DateInitSystem );
-                    Date( const ResId & rResId );
                     Date( sal_uInt32 _nDate ) { Date::nDate = _nDate; }
                     Date( const Date& rDate )
                         { nDate = rDate.nDate; }
@@ -65,6 +62,7 @@ public:
                         SAL_WARN_IF(_rDate.Year < 0, "tools.datetime", "Negative year in css::util::Date to ::Date conversion");
                         init(_rDate.Day, _rDate.Month, _rDate.Year);
                     }
+                    Date( const ::com::sun::star::util::DateTime& _rDateTime );
 
     void            SetDate( sal_uInt32 nNewDate ) { nDate = nNewDate; }
     sal_uInt32      GetDate() const { return nDate; }
@@ -191,6 +189,9 @@ public:
     /// Semantically identical to Normalize() member method.
     static bool Normalize( sal_uInt16 & rDay, sal_uInt16 & rMonth, sal_uInt16 & rYear );
 
+ private:
+    /// An accelerated form of DateToDays on this date
+    long GetAsNormalizedDays() const;
 };
 
 #endif

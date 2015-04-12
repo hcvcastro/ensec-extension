@@ -20,13 +20,19 @@
 #define INCLUDED_TOOLS_GEN_HXX
 
 #include <tools/toolsdllapi.h>
-#include <tools/solar.h>
 
 #include <limits.h>
+#include <algorithm>
 #include <ostream>
 #include <cstdlib>
 
 class SvStream;
+namespace rtl
+{
+    class OString;
+}
+
+enum TriState { TRISTATE_FALSE, TRISTATE_TRUE, TRISTATE_INDET };
 
 // Pair
 
@@ -45,8 +51,8 @@ public:
     bool                operator == ( const Pair& rPair ) const;
     bool                operator != ( const Pair& rPair ) const;
 
-    TOOLS_DLLPUBLIC friend SvStream&    operator>>( SvStream& rIStream, Pair& rPair );
-    TOOLS_DLLPUBLIC friend SvStream&    operator<<( SvStream& rOStream, const Pair& rPair );
+    TOOLS_DLLPUBLIC friend SvStream&    ReadPair( SvStream& rIStream, Pair& rPair );
+    TOOLS_DLLPUBLIC friend SvStream&    WritePair( SvStream& rOStream, const Pair& rPair );
 
 protected:
     long                nA;
@@ -76,7 +82,7 @@ inline bool Pair::operator != ( const Pair& rPair ) const
 
 // Point
 
-class SAL_WARN_UNUSED Point : public Pair
+class SAL_DLLPUBLIC_EXPORT SAL_WARN_UNUSED Point : public Pair
 {
 public:
                         Point();
@@ -93,6 +99,9 @@ public:
     bool                IsBelow( const Point& rPoint ) const;
     bool                IsLeft( const Point& rPoint ) const;
     bool                IsRight( const Point& rPoint ) const;
+
+    void                RotateAround( long& rX, long& rY, short nOrientation ) const;
+
 
     Point&              operator += ( const Point& rPoint );
     Point&              operator -= ( const Point& rPoint );
@@ -419,8 +428,8 @@ public:
     friend inline Rectangle operator + ( const Rectangle& rRect, const Point& rPt );
     friend inline Rectangle operator - ( const Rectangle& rRect, const Point& rPt );
 
-    TOOLS_DLLPUBLIC friend SvStream&    operator>>( SvStream& rIStream, Rectangle& rRect );
-    TOOLS_DLLPUBLIC friend SvStream&    operator<<( SvStream& rOStream, const Rectangle& rRect );
+    TOOLS_DLLPUBLIC friend SvStream&    ReadRectangle( SvStream& rIStream, Rectangle& rRect );
+    TOOLS_DLLPUBLIC friend SvStream&    WriteRectangle( SvStream& rOStream, const Rectangle& rRect );
 
     // ONE
     long                getX() const { return nLeft; }
@@ -431,6 +440,8 @@ public:
     void                setY( long n ) { nBottom += n-nTop; nTop = n; }
     void                setWidth( long n ) { nRight = nLeft + n; }
     void                setHeight( long n ) { nBottom = nTop + n; }
+    /// Returns the string representation of the rectangle, format is "x, y, width, height".
+    rtl::OString        toString() const;
 
 private:
     long                nLeft;

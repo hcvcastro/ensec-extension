@@ -22,18 +22,25 @@
 #include <tools/toolsdllapi.h>
 #include <tools/gen.hxx>
 #include <tools/debug.hxx>
+#include <o3tl/typed_flags_set.hxx>
 
 #include <vector>
 
 #define POLY_APPEND             (0xFFFF)
 #define POLYPOLY_APPEND         (0xFFFF)
 
-#define POLY_OPTIMIZE_NONE      0x00000000UL
-#define POLY_OPTIMIZE_OPEN      0x00000001UL
-#define POLY_OPTIMIZE_CLOSE     0x00000002UL
-#define POLY_OPTIMIZE_NO_SAME   0x00000004UL
-#define POLY_OPTIMIZE_REDUCE    0x00000008UL
-#define POLY_OPTIMIZE_EDGES     0x00000010UL
+enum class PolyOptimizeFlags {
+    NONE      = 0x0000,
+    OPEN      = 0x0001,
+    CLOSE     = 0x0002,
+    NO_SAME   = 0x0004,
+    REDUCE    = 0x0008,
+    EDGES     = 0x0010,
+};
+namespace o3tl
+{
+    template<> struct typed_flags<PolyOptimizeFlags> : is_typed_flags<PolyOptimizeFlags, 0x001f> {};
+}
 
 enum PolyStyle
 {
@@ -73,7 +80,7 @@ public:
 class SvStream;
 class ImplPolygon;
 class ImplPolyPolygon;
-class PolyPolygon;
+namespace tools { class PolyPolygon; }
 
 namespace basegfx
 {
@@ -135,7 +142,7 @@ public:
     bool                IsRightOrientated() const;
     double              CalcDistance( sal_uInt16 nPt1, sal_uInt16 nPt2 );
     void                Clip( const Rectangle& rRect, bool bPolygon = true );
-    void                Optimize( sal_uIntPtr nOptimizeFlags, const PolyOptimizeData* pData = NULL );
+    void                Optimize( PolyOptimizeFlags nOptimizeFlags, const PolyOptimizeData* pData = NULL );
 
     /** Adaptive subdivision of polygons with curves
 
@@ -156,6 +163,7 @@ public:
         pixel.
      */
     void                AdaptiveSubdivide( Polygon& rResult, const double d = 1.0 ) const;
+    static Polygon      SubdivideBezier( const Polygon& rPoly );
 
     void                Move( long nHorzMove, long nVertMove );
     void                Translate( const Point& rTrans );
@@ -177,8 +185,8 @@ public:
 
     // streaming a Polygon does ignore PolyFlags, so use the Write Or Read
     // method to take care of PolyFlags
-    TOOLS_DLLPUBLIC friend SvStream&    operator>>( SvStream& rIStream, Polygon& rPoly );
-    TOOLS_DLLPUBLIC friend SvStream&    operator<<( SvStream& rOStream, const Polygon& rPoly );
+    TOOLS_DLLPUBLIC friend SvStream&    ReadPolygon( SvStream& rIStream, Polygon& rPoly );
+    TOOLS_DLLPUBLIC friend SvStream&    WritePolygon( SvStream& rOStream, const Polygon& rPoly );
 
     void                Read( SvStream& rIStream );
     void                Write( SvStream& rOStream ) const;
@@ -194,19 +202,21 @@ public:
     explicit Polygon(const ::basegfx::B2DPolygon& rPolygon);
 };
 
+namespace tools {
+
 class TOOLS_DLLPUBLIC SAL_WARN_UNUSED PolyPolygon
 {
 private:
     ImplPolyPolygon*    mpImplPolyPolygon;
 
-    TOOLS_DLLPRIVATE void  ImplDoOperation( const PolyPolygon& rPolyPoly, PolyPolygon& rResult, sal_uIntPtr nOperation ) const;
+    TOOLS_DLLPRIVATE void  ImplDoOperation( const tools::PolyPolygon& rPolyPoly, tools::PolyPolygon& rResult, sal_uIntPtr nOperation ) const;
     TOOLS_DLLPRIVATE void *ImplCreateArtVpath() const;
     TOOLS_DLLPRIVATE void  ImplSetFromArtVpath( void *pVpath );
 
 public:
                         PolyPolygon( sal_uInt16 nInitSize = 16, sal_uInt16 nResize = 16 );
                         PolyPolygon( const Polygon& rPoly );
-                        PolyPolygon( const PolyPolygon& rPolyPoly );
+                        PolyPolygon( const tools::PolyPolygon& rPolyPoly );
                         ~PolyPolygon();
 
     void                Insert( const Polygon& rPoly, sal_uInt16 nPos = POLYPOLY_APPEND );
@@ -221,7 +231,7 @@ public:
     sal_uInt16          Count() const;
     Rectangle           GetBoundRect() const;
     void                Clip( const Rectangle& rRect );
-    void                Optimize( sal_uIntPtr nOptimizeFlags, const PolyOptimizeData* pData = NULL );
+    void                Optimize( PolyOptimizeFlags nOptimizeFlags, const PolyOptimizeData* pData = NULL );
 
     /** Adaptive subdivision of polygons with curves
 
@@ -241,10 +251,11 @@ public:
         the original polygon is guaranteed to be smaller than one
         pixel.
      */
-    void                AdaptiveSubdivide( PolyPolygon& rResult, const double d = 1.0 ) const;
+    void                AdaptiveSubdivide( tools::PolyPolygon& rResult, const double d = 1.0 ) const;
+    static tools::PolyPolygon  SubdivideBezier( const tools::PolyPolygon& rPolyPoly );
 
-    void                GetIntersection( const PolyPolygon& rPolyPoly, PolyPolygon& rResult ) const;
-    void                GetUnion( const PolyPolygon& rPolyPoly, PolyPolygon& rResult ) const;
+    void                GetIntersection( const tools::PolyPolygon& rPolyPoly, tools::PolyPolygon& rResult ) const;
+    void                GetUnion( const tools::PolyPolygon& rPolyPoly, tools::PolyPolygon& rResult ) const;
 
     void                Move( long nHorzMove, long nVertMove );
     void                Translate( const Point& rTrans );
@@ -255,15 +266,15 @@ public:
     const Polygon&      operator[]( sal_uInt16 nPos ) const { return GetObject( nPos ); }
     Polygon&            operator[]( sal_uInt16 nPos );
 
-    PolyPolygon&        operator=( const PolyPolygon& rPolyPoly );
-    bool                operator==( const PolyPolygon& rPolyPoly ) const;
-    bool                operator!=( const PolyPolygon& rPolyPoly ) const
+    tools::PolyPolygon&        operator=( const tools::PolyPolygon& rPolyPoly );
+    bool                operator==( const tools::PolyPolygon& rPolyPoly ) const;
+    bool                operator!=( const tools::PolyPolygon& rPolyPoly ) const
                             { return !(PolyPolygon::operator==( rPolyPoly )); }
 
-    bool                IsEqual( const PolyPolygon& rPolyPoly ) const;
+    bool                IsEqual( const tools::PolyPolygon& rPolyPoly ) const;
 
-    TOOLS_DLLPUBLIC friend SvStream&    operator>>( SvStream& rIStream, PolyPolygon& rPolyPoly );
-    TOOLS_DLLPUBLIC friend SvStream&    operator<<( SvStream& rOStream, const PolyPolygon& rPolyPoly );
+    TOOLS_DLLPUBLIC friend SvStream&    ReadPolyPolygon( SvStream& rIStream, tools::PolyPolygon& rPolyPoly );
+    TOOLS_DLLPUBLIC friend SvStream&    WritePolyPolygon( SvStream& rOStream, const tools::PolyPolygon& rPolyPoly );
 
     void                Read( SvStream& rIStream );
     void                Write( SvStream& rOStream ) const;
@@ -276,7 +287,21 @@ public:
      explicit PolyPolygon(const ::basegfx::B2DPolyPolygon& rPolyPolygon);
 };
 
-typedef std::vector< PolyPolygon > PolyPolyVector;
+} /* namespace tools */
+
+typedef std::vector< tools::PolyPolygon > PolyPolyVector;
+
+
+template<typename charT, typename traits>
+inline std::basic_ostream<charT, traits> & operator <<(
+    std::basic_ostream<charT, traits> & stream, const tools::PolyPolygon& rPolyPoly)
+{
+    if (!rPolyPoly.Count())
+        stream << "EMPTY";
+    for (sal_uInt16 i = 0; i < rPolyPoly.Count(); ++i)
+        stream << "[" << i << "] " << rPolyPoly.GetObject(i);
+    return stream;
+}
 
 #endif
 

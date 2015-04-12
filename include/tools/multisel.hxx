@@ -80,9 +80,7 @@ public:
     long            NextSelected();
 
     size_t          GetRangeCount() const { return aSels.size(); }
-    const Range&    GetRange( size_t nRange ) const {
-                        return *(const Range*)aSels[nRange];
-                    }
+    const Range&    GetRange( size_t nRange ) const { return *aSels[nRange]; }
 };
 
 class TOOLS_DLLPUBLIC StringRangeEnumerator
@@ -125,7 +123,7 @@ public:
     public:
         Iterator() : pEnumerator( NULL ), pPossibleValues( NULL ), nRangeIndex( -1 ), nCurrent( -1 ) {}
         Iterator& operator++();
-        sal_Int32 operator*() const;
+        sal_Int32 operator*() const { return nCurrent;}
         bool operator==(const Iterator&) const;
         bool operator!=(const Iterator& i_rComp) const
         { return ! (*this == i_rComp); }

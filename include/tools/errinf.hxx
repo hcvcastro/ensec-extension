@@ -30,7 +30,7 @@
 
 class EDcr_Impl;
 class ErrHdl_Impl;
-class Window;
+namespace vcl { class Window; }
 
 class ErrorInfo
 {
@@ -57,7 +57,7 @@ private:
     EDcr_Impl*              pImpl;
 
 public:
-                            TYPEINFO();
+                            TYPEINFO_OVERRIDE();
 
                             DynamicErrorInfo(sal_uIntPtr lUserId, sal_uInt16 nMask);
     virtual                 ~DynamicErrorInfo();
@@ -72,7 +72,7 @@ private:
     OUString                aString;
 
 public:
-                            TYPEINFO();
+                            TYPEINFO_OVERRIDE();
 
                             StringErrorInfo( sal_uIntPtr lUserId,
                                             const OUString& aStringP,
@@ -87,7 +87,7 @@ private:
     OUString aArg2;
 
 public:
-    TYPEINFO();
+    TYPEINFO_OVERRIDE();
 
     TwoStringErrorInfo(sal_uIntPtr nUserID, const OUString & rTheArg1,
                        const OUString & rTheArg2, sal_uInt16 nFlags = 0):
@@ -102,7 +102,7 @@ public:
 class TOOLS_DLLPUBLIC MessageInfo : public DynamicErrorInfo
 {
 public:
-    TYPEINFO();
+    TYPEINFO_OVERRIDE();
 
     MessageInfo(sal_uIntPtr UserId, sal_uInt16 nFlags = 0) :
         DynamicErrorInfo(UserId, nFlags) {}
@@ -121,20 +121,20 @@ class TOOLS_DLLPUBLIC ErrorContext
 
 private:
     ErrorContext*           pNext;
-    Window*                 pWin;
+    vcl::Window*                 pWin;
 
 public:
-                            ErrorContext(Window *pWin=0);
+                            ErrorContext(vcl::Window *pWin=0);
     virtual                 ~ErrorContext();
 
     virtual bool            GetString( sal_uIntPtr nErrId, OUString& rCtxStr ) = 0;
-    Window*                 GetParent() { return pWin; }
+    vcl::Window*                 GetParent() { return pWin; }
 
     static ErrorContext*    GetContext();
 };
 
 typedef sal_uInt16 WindowDisplayErrorFunc(
-    Window *, sal_uInt16 nMask, const OUString &rErr, const OUString &rAction);
+    vcl::Window *, sal_uInt16 nMask, const OUString &rErr, const OUString &rAction);
 
 typedef void BasicDisplayErrorFunc(
     const OUString &rErr, const OUString &rAction);
@@ -163,16 +163,6 @@ public:
 
     static void         RegisterDisplay( BasicDisplayErrorFunc* );
     static void         RegisterDisplay( WindowDisplayErrorFunc* );
-};
-
-class TOOLS_DLLPUBLIC SimpleErrorHandler : private ErrorHandler
-{
-protected:
-    virtual bool        CreateString( const ErrorInfo*, OUString &,
-                                      sal_uInt16 &nMask ) const;
-
-public:
-                        SimpleErrorHandler();
 };
 
 #endif

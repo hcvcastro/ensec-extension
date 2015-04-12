@@ -30,7 +30,6 @@ void
 SAL_CALL exportScriptModule(
     Reference< xml::sax::XWriter > const & xOut,
     const ModuleDescriptor& rMod )
-        SAL_THROW_EXTERN_C()
 {
     xOut->startDocument();
 

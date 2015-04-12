@@ -20,13 +20,14 @@
 #define INCLUDED_TOOLS_CONTNR_HXX
 
 #include <tools/toolsdllapi.h>
-#include <tools/solar.h>
 
 #include <limits.h>
 
-#define CONTAINER_APPEND            ULONG_MAX
-#define CONTAINER_ENTRY_NOTFOUND    ULONG_MAX
-#define LIST_APPEND           CONTAINER_APPEND
+#define CONTAINER_APPEND            (ULONG_MAX)
+#define CONTAINER_ENTRY_NOTFOUND    (ULONG_MAX)
+
+#define TREELIST_APPEND             (ULONG_MAX)
+#define TREELIST_ENTRY_NOTFOUND     (ULONG_MAX)
 
 #endif
 

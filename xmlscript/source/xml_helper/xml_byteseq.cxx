@@ -39,7 +39,6 @@ class BSeqInputStream
 
 public:
     inline BSeqInputStream( ByteSequence const & rSeq )
-        SAL_THROW_EXTERN_C()
         : _seq( rSeq )
         , _nPos( 0 )
         {}
@@ -47,22 +46,22 @@ public:
     // XInputStream
     virtual sal_Int32 SAL_CALL readBytes(
         Sequence< sal_Int8 > & rData, sal_Int32 nBytesToRead )
-        throw (io::NotConnectedException, io::BufferSizeExceededException, io::IOException, RuntimeException);
+        throw (io::NotConnectedException, io::BufferSizeExceededException, io::IOException, RuntimeException, std::exception) SAL_OVERRIDE;
     virtual sal_Int32 SAL_CALL readSomeBytes(
         Sequence< sal_Int8 > & rData, sal_Int32 nMaxBytesToRead )
-        throw (io::NotConnectedException, io::BufferSizeExceededException, io::IOException, RuntimeException);
+        throw (io::NotConnectedException, io::BufferSizeExceededException, io::IOException, RuntimeException, std::exception) SAL_OVERRIDE;
     virtual void SAL_CALL skipBytes(
         sal_Int32 nBytesToSkip )
-        throw (io::NotConnectedException, io::BufferSizeExceededException, io::IOException, RuntimeException);
+        throw (io::NotConnectedException, io::BufferSizeExceededException, io::IOException, RuntimeException, std::exception) SAL_OVERRIDE;
     virtual sal_Int32 SAL_CALL available()
-        throw (io::NotConnectedException, io::IOException, RuntimeException);
+        throw (io::NotConnectedException, io::IOException, RuntimeException, std::exception) SAL_OVERRIDE;
     virtual void SAL_CALL closeInput()
-        throw (io::NotConnectedException, io::IOException, RuntimeException);
+        throw (io::NotConnectedException, io::IOException, RuntimeException, std::exception) SAL_OVERRIDE;
 };
 
 sal_Int32 BSeqInputStream::readBytes(
     Sequence< sal_Int8 > & rData, sal_Int32 nBytesToRead )
-    throw (io::NotConnectedException, io::BufferSizeExceededException, io::IOException, RuntimeException)
+    throw (io::NotConnectedException, io::BufferSizeExceededException, io::IOException, RuntimeException, std::exception)
 {
     nBytesToRead = ((nBytesToRead > _seq.getLength() - _nPos)
                     ? _seq.getLength() - _nPos
@@ -76,25 +75,25 @@ sal_Int32 BSeqInputStream::readBytes(
 
 sal_Int32 BSeqInputStream::readSomeBytes(
     Sequence< sal_Int8 > & rData, sal_Int32 nMaxBytesToRead )
-    throw (io::NotConnectedException, io::BufferSizeExceededException, io::IOException, RuntimeException)
+    throw (io::NotConnectedException, io::BufferSizeExceededException, io::IOException, RuntimeException, std::exception)
 {
     return readBytes( rData, nMaxBytesToRead );
 }
 
 void BSeqInputStream::skipBytes(
     sal_Int32 /*nBytesToSkip*/ )
-    throw (io::NotConnectedException, io::BufferSizeExceededException, io::IOException, RuntimeException)
+    throw (io::NotConnectedException, io::BufferSizeExceededException, io::IOException, RuntimeException, std::exception)
 {
 }
 
 sal_Int32 BSeqInputStream::available()
-    throw (io::NotConnectedException, io::IOException, RuntimeException)
+    throw (io::NotConnectedException, io::IOException, RuntimeException, std::exception)
 {
     return (_seq.getLength() - _nPos);
 }
 
 void BSeqInputStream::closeInput()
-    throw (io::NotConnectedException, io::IOException, RuntimeException)
+    throw (io::NotConnectedException, io::IOException, RuntimeException, std::exception)
 {
 }
 
@@ -105,47 +104,44 @@ class BSeqOutputStream
 
 public:
     inline BSeqOutputStream( ByteSequence * seq )
-        SAL_THROW_EXTERN_C()
         : _seq( seq )
         {}
 
     // XOutputStream
     virtual void SAL_CALL writeBytes(
         Sequence< sal_Int8 > const & rData )
-        throw (io::NotConnectedException, io::BufferSizeExceededException, RuntimeException);
+        throw (io::NotConnectedException, io::BufferSizeExceededException, RuntimeException, std::exception) SAL_OVERRIDE;
     virtual void SAL_CALL flush()
-        throw (io::NotConnectedException, io::BufferSizeExceededException, RuntimeException);
+        throw (io::NotConnectedException, io::BufferSizeExceededException, RuntimeException, std::exception) SAL_OVERRIDE;
     virtual void SAL_CALL closeOutput()
-        throw (io::NotConnectedException, io::BufferSizeExceededException, RuntimeException);
+        throw (io::NotConnectedException, io::BufferSizeExceededException, RuntimeException, std::exception) SAL_OVERRIDE;
 };
 
 void BSeqOutputStream::writeBytes( Sequence< sal_Int8 > const & rData )
-    throw (io::NotConnectedException, io::BufferSizeExceededException, RuntimeException)
+    throw (io::NotConnectedException, io::BufferSizeExceededException, RuntimeException, std::exception)
 {
     sal_Int32 nPos = _seq->getLength();
     _seq->realloc( nPos + rData.getLength() );
-    memcpy( (char *)_seq->getArray() + nPos,
-                      (char const *)rData.getConstArray(),
+    memcpy( _seq->getArray() + nPos,
+                      rData.getConstArray(),
                       rData.getLength() );
 }
 void BSeqOutputStream::flush()
-    throw (io::NotConnectedException, io::BufferSizeExceededException, RuntimeException)
+    throw (io::NotConnectedException, io::BufferSizeExceededException, RuntimeException, std::exception)
 {
 }
 
 void BSeqOutputStream::closeOutput()
-    throw (io::NotConnectedException, io::BufferSizeExceededException, RuntimeException)
+    throw (io::NotConnectedException, io::BufferSizeExceededException, RuntimeException, std::exception)
 {
 }
 
 Reference< io::XInputStream > SAL_CALL createInputStream( ByteSequence const & rInData )
-    SAL_THROW_EXTERN_C()
 {
     return new BSeqInputStream( rInData );
 }
 
 Reference< io::XOutputStream > SAL_CALL createOutputStream( ByteSequence * pOutData )
-    SAL_THROW_EXTERN_C()
 {
     return new BSeqOutputStream( pOutData );
 }
