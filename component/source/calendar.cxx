@@ -119,12 +119,18 @@ void EnsecProtocolHandler::UpdateCalendar()
 	    xTextStrm = io::TextInputStream::create( mxContext );
 	    xTextStrm->setInputStream( xInputStream );
 	    xText.set( xTextStrm, uno::UNO_QUERY_THROW);
-        }
 
-	do
-	{
+	    while (!xText->isEOF()) 
+	    {
+		OUString aCodeLine = xText->readLine(); 
+
+        	ShowMessageBox ( awt::MessageBoxType_MESSAGEBOX,
+                         	awt::MessageBoxButtons::BUTTONS_OK,
+                         	"Test",
+                         	aCodeLine );
+	    }
+        }
 	
-	} while (!xText->isEOF());
 
         /*Reference <util::XURLTransformer> xTransformer (util::URLTransformer::create( mxContext ) );
         const Reference<deployment::XPackageInformationProvider> xPackageInfo = deployment::PackageInformationProvider::get(mxContext);
