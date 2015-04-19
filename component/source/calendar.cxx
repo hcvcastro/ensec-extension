@@ -27,6 +27,7 @@
  ************************************************************************/
 #include <cppuhelper/bootstrap.hxx>
 #include <cppuhelper/component.hxx>
+#include <boost/scoped_ptr.hpp>
 
 #ifndef _COM_SUN_STAR_DEPLOYMENT_PACKAGEINFORMATIONPROVIDER_HPP_
 #include <com/sun/star/deployment/PackageInformationProvider.hpp>
@@ -42,6 +43,10 @@
 
 #ifndef _COM_SUN_STAR_IO_XINPUTSTREAMPROVIDER_HPP_
 #include <com/sun/star/io/XInputStreamProvider.hpp>
+#endif
+
+#ifndef _COM_SUN_STAR_IO_TEXTINPUTSTREAM_HPP_
+#include <com/sun/star/io/TextInputStream.hpp>
 #endif
 
 #ifndef _COM_SUN_STAR_UCB_XSIMPLEFILEACCESS_HPP_
@@ -104,16 +109,22 @@ void EnsecProtocolHandler::UpdateCalendar()
     {
         OUString sFile = PickCSVFile();
 
-        Reference<ucb::XSimpleFileAccess3> xFile( ucb::SimpleFileAccess::create(mxContext) );
-        Reference<io::XInputStream> xInput;
+        Reference<ucb::XSimpleFileAccess3> xFile( ucb::SimpleFileAccess::create(mxContext ));
+        Reference<io::XInputStream> xInputStream;
+	Reference<io::XTextInputStream2> xTextStrm;
+	Reference<io::XTextInputStream> xText;
         if( xFile->exists( sFile ) )
         {
-            xInput = xFile->openFileRead( sFile );
-            
-
+            xInputStream = xFile->openFileRead( sFile );
+	    xTextStrm = io::TextInputStream::create( mxContext );
+	    xTextStrm->setInputStream( xInputStream );
+	    xText.set( xTextStrm, uno::UNO_QUERY_THROW);
         }
 
-
+	do
+	{
+	
+	} while (!xText->isEOF());
 
         /*Reference <util::XURLTransformer> xTransformer (util::URLTransformer::create( mxContext ) );
         const Reference<deployment::XPackageInformationProvider> xPackageInfo = deployment::PackageInformationProvider::get(mxContext);
