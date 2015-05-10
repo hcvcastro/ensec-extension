@@ -700,6 +700,7 @@ $(eval $(call gb_Helper_register_libraries,EXTENSIONLIBS, \
 	active_native \
 	mysqlc \
 	passive_native \
+	ensec-component \
 ))
 
 ifneq ($(ENABLE_JAVA),)
