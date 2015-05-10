@@ -1,0 +1,23 @@
+ # config variable for Ensec Extension
+ # this file is intented to be able to be included in a Makefile
+ # and not to be sourced in a shell session
+ #
+
+# Horrible hack to prepend spaces to expansions
+# Spaces are usually eaten by make parser but not if variable expands to space.
+# Space prefix is desirable because system CFLAGS may be completely empty,
+# which means that the variables defined here would need extra twiddling
+# to get them into invoked external configures and override pkg-config there.
+
+export OO_OFFICE_HOME=@OO_OFFICE_HOME@
+export OO_SDK_HOME=@OO_SDK_HOME@
+export OO_SDK_PLATFORM=@OO_SDK_PLATFORM@
+export OO_SDK_BIN=@OO_SDK_BIN@
+export OO_SDK_CLASSES=@OO_SDK_CLASSES@
+export OO_SDK_IDL=@OO_SDK_IDL@
+export OO_SDK_INCLUDE=@OO_SDK_INCLUDE@
+export OO_SDK_URE_TYPES=@OO_SDK_URE_TYPES@
+export OO_SDK_OFFICE_TYPES=@OO_SDK_OFFICE_TYPES@
+export CPPUMAKER=@CPPUMAKER@
+export OO_UNOPKG=@OO_UNOPKG@
+

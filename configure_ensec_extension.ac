@@ -1,0 +1,149 @@
+dnl -*- Mode: Autoconf; tab-width: 4; indent-tabs-mode: nil; fill-column: 102 -*-
+dnl .ure.ac serves as input for the GNU autoconf package
+dnl in order to create a configure script.
+
+# The version number in the second argumemnt to AC_INIT should be four numbers separated by
+# periods. Some parts of the code requires the first one to be less than 128 and the others to be less
+# than 256. The four numbers can optionally be followed by a period and a free-form string containing
+# no spaces or periods, like "frobozz-mumble-42" or "alpha0". If the free-form string ends with one or
+# several non-alphanumeric characters, those are split off and used only for the
+# ABOUTBOXPRODUCTVERSIONSUFFIX in openoffice.lst. Why that is necessary, no idea.
+
+AC_INIT([ensec-extension],[0.1.0],[],[],[http://github.com/hcvcastro/ensec-extension])
+
+AC_PREREQ([2.59])
+
+dnl ===================================================================
+dnl Setting OO_SDK_HOME.
+dnl ===================================================================
+
+AC_PATH_PROG(LOCATE, locate)
+if test -z "$LOCATE"; then
+    AC_MSG_ERROR([locate not found in \$PATH])
+else
+    AC_MSG_RESULT([yes])
+fi
+
+AC_MSG_CHECKING([checking LibreOffice SDK instalation... ])
+if test -z "$OO_SDK_HOME"; then
+   AC_MSG_RESULT([no])
+   AC_MSG_ERROR([you do not have LibreOffice SDK installed, please run autogen.sh])
+else
+   AC_MSG_RESULT([yes])
+fi
+
+OO_OFFICE_HOME=${OO_SDK_HOME%/*}
+AC_MSG_CHECKING([checking LibreOffice HOME instalation... ])
+if test -f "$OO_OFFICE_HOME/program/soffice.bin";
+then
+    AC_MSG_RESULT([yes])
+else
+   AC_MSG_ERROR([file soffice.bin not found in $OO_OFFICE_HOME/program/soffice.bin])
+fi
+
+AC_MSG_CHECKING([checking LibreOffice URE instalation... ])
+if test -f "$OO_OFFICE_HOME/ure/bin/regview";
+then
+    AC_MSG_RESULT([yes])
+else
+    if test -f "$OO_OFFICE_HOME/program/regview";
+    then
+        AC_MSG_RESULT([yes])        
+    else
+       AC_MSG_ERROR([file regview not found in $OO_OFFICE_HOME/ure/bin/regview or $OO_OFFICE_HOME/program/regview])
+    fi
+fi
+
+
+AC_PATH_PROG(CPPUMAKER, cppumaker, no, $OO_SDK_HOME/bin)
+if test -z "$CPPUMAKER"; then
+    AC_MSG_ERROR([cppumaker not found in $OO_SDK_HOME/bin])
+fi
+
+AC_PATH_PROG(IDLC, idlc, no, $OO_SDK_HOME/bin)
+if test -z "$IDLC"; then
+    AC_MSG_ERROR([idlc not found in $OO_SDK_HOME/bin])
+fi
+
+AC_PATH_PROG(JAVAMAKER, javamaker, no, $OO_SDK_HOME/bin)
+if test -z "$JAVAMAKER"; then
+    AC_MSG_ERROR([javamaker not found in $OO_SDK_HOME/bin])
+fi
+
+AC_PATH_PROG(REGCOMPARE, regcompare, no, $OO_SDK_HOME/bin)
+if test -z "$REGCOMPARE"; then
+    AC_MSG_ERROR([regcompare not found in $OO_SDK_HOME/bin])
+fi
+
+AC_PATH_PROG(UCPP, ucpp, no, $OO_SDK_HOME/bin)
+if test -z "$UCPP"; then
+    AC_MSG_ERROR([ucpp not found in $OO_SDK_HOME/bin])
+fi
+
+AC_MSG_CHECKING([checking types.rdb... ])
+if test -f "$OO_OFFICE_HOME/ure/share/misc/types.rdb";
+then
+    AC_MSG_RESULT([yes])
+    OO_SDK_URE_TYPES=$OO_OFFICE_HOME/ure/share/misc/types.rdb
+else
+    if test -f "$OO_OFFICE_HOME/program/types.rdb";
+    then
+        AC_MSG_RESULT([yes])        
+        OO_SDK_URE_TYPES=$OO_OFFICE_HOME/program/types.rdb
+    else
+       AC_MSG_ERROR([file types.rdb not found in $OO_OFFICE_HOME/ure/share/misc/types.rdb or $OO_OFFICE_HOME/program/types.rdb])
+    fi
+fi
+
+AC_MSG_CHECKING([checking offapi.rdb... ])
+if test -f "$OO_OFFICE_HOME/program/types/offapi.rdb";
+then
+    AC_MSG_RESULT([yes])
+    OO_SDK_OFFICE_TYPES=$OO_OFFICE_HOME/program/types/offapi.rdb
+else
+   AC_MSG_ERROR([file offapi.rdb not found in $OO_OFFICE_HOME/program/types/offapi.rdb])
+fi
+
+AC_PATH_PROG(OO_UNOPKG, unopkg, no, $OO_OFFICE_HOME/program)
+if test -z "$OO_UNOPKG"; then
+    AC_MSG_ERROR([unopkg not found in $OO_OFFICE_HOME/program])
+fi
+
+OO_SDK_PLATFORM=${PLATFORMID/%'_'*/}
+OO_SDK_BIN=$OO_SDK_HOME/bin
+OO_SDK_CLASSES=$OO_SDK_HOME/classes
+OO_SDK_IDL=$OO_SDK_HOME/idl
+OO_SDK_INCLUDE=$OO_SDK_HOME/include
+OO_SDK_LIB=$OO_SDK_HOME/lib
+OO_SDK_MISC=$OO_SDK_HOME/misc
+
+AC_SUBST(OO_OFFICE_HOME)
+AC_SUBST(OO_SDK_HOME)
+AC_SUBST(OO_SDK_PLATFORM)
+AC_SUBST(OO_SDK_BIN)
+AC_SUBST(OO_SDK_CLASSES)
+AC_SUBST(OO_SDK_IDL)
+AC_SUBST(OO_SDK_INCLUDE)
+AC_SUBST(OO_SDK_LIB)
+AC_SUBST(OO_SDK_URE_TYPES)
+AC_SUBST(OO_SDK_OFFICE_TYPES)
+AC_SUBST(CPPUMAKER)
+AC_SUBST(OO_UNOPKG)
+
+AC_CONFIG_FILES([config_ensec_extension.mk])
+AC_OUTPUT
+
+cat << _EOF
+****************************************************************************
+To configure, ensec extension:
+autogen.sh       ( optional  autogen.sh --enable-dgbutil )
+
+To build, ensec extension:
+$GNUMAKE module.all
+
+For details, run:
+$GNUMAKE help
+
+_EOF
+
+dnl vim:set shiftwidth=4 softtabstop=4 expandtab:
