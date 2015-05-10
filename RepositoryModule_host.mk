@@ -46,6 +46,7 @@ $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	i18nlangtag \
 	xmlreader \
 	xmlscript \
+	ensec \
 ))
 
 # Especially when building everything with symbols, the linking of the largest
