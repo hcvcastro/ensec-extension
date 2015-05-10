@@ -26,10 +26,10 @@
 #include <vector>
 #include <comphelper/comphelperdllapi.h>
 
-//.........................................................................
+
 namespace comphelper
 {
-//.........................................................................
+
 
 // infos about one single property
 struct COMPHELPER_DLLPUBLIC PropertyDescription
@@ -61,9 +61,9 @@ struct COMPHELPER_DLLPUBLIC PropertyDescription
     }
 };
 
-//==========================================================================
+
 //= OPropertyContainerHelper
-//==========================================================================
+
 /** helper class for managing property values, and implementing most of the X*Property* interfaces
 
     The property values are usually held in derived classes, but can also be given to the
@@ -84,8 +84,6 @@ private:
     typedef Properties::iterator                    PropertiesIterator;
     typedef Properties::const_iterator              ConstPropertiesIterator;
     Properties      m_aProperties;
-
-    sal_Bool        m_bUnused;
 
 protected:
     OPropertyContainerHelper();
@@ -139,26 +137,24 @@ protected:
 
 
     /// checkes whether a property with the given handle has been registered
-    sal_Bool    isRegisteredProperty( sal_Int32 _nHandle ) const;
+    bool    isRegisteredProperty( sal_Int32 _nHandle ) const;
 
     /// checkes whether a property with the given name has been registered
-    sal_Bool    isRegisteredProperty( const OUString& _rName ) const;
+    bool    isRegisteredProperty( const OUString& _rName ) const;
 
 
     // helper for implementing OPropertySetHelper overridables
-    sal_Bool    convertFastPropertyValue(
+    bool    convertFastPropertyValue(
                     ::com::sun::star::uno::Any & rConvertedValue,
                     ::com::sun::star::uno::Any & rOldValue,
                     sal_Int32 nHandle,
                     const ::com::sun::star::uno::Any& rValue
-                )
-                SAL_THROW((::com::sun::star::lang::IllegalArgumentException));
+                );
 
-    void        setFastPropertyValue(
+    bool        setFastPropertyValue(
                         sal_Int32 nHandle,
                         const ::com::sun::star::uno::Any& rValue
-                    )
-                    SAL_THROW((::com::sun::star::uno::Exception));
+                    );
 
     void        getFastPropertyValue(
                         ::com::sun::star::uno::Any& rValue,
@@ -190,13 +186,13 @@ private:
     COMPHELPER_DLLPRIVATE PropertiesIterator    searchHandle(sal_Int32 _nHandle);
 
 private:
-    COMPHELPER_DLLPRIVATE OPropertyContainerHelper( const OPropertyContainerHelper& );            // never implemented
-    COMPHELPER_DLLPRIVATE OPropertyContainerHelper& operator=( const OPropertyContainerHelper& ); // never implemented
+    OPropertyContainerHelper( const OPropertyContainerHelper& ) SAL_DELETED_FUNCTION;
+    OPropertyContainerHelper& operator=( const OPropertyContainerHelper& ) SAL_DELETED_FUNCTION;
 };
 
-//.........................................................................
+
 }   // namespace comphelper
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_PROPERTYCONTAINERHELPER_HXX
 

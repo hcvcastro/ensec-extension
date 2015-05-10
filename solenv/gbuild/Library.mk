@@ -45,13 +45,13 @@ $(WORKDIR)/Clean/Library/% :
 gb_Library__get_dir_for_layer = $(patsubst $(1):%,%,$(filter $(1):%,$(gb_Library_LAYER_DIRS)))
 gb_Library_get_instdir = $(call gb_Library__get_dir_for_layer,$(call gb_Library_get_layer,$(1)))
 
-gb_Library_get_ilib_target = $(if $(filter $(1),$(gb_Library_RTVERLIBS) $(gb_Library_UNOVERLIBS)),$(INSTDIR)/$(SDKDIRNAME)/lib/$(call gb_Library_get_ilibfilename,$(1)),$(gb_Library_DLLDIR)/$(call gb_Library_get_ilibfilename,$(1)))
+gb_Library_get_ilib_target = $(if $(filter $(1),$(gb_Library_RTVERLIBS) $(gb_Library_UNOVERLIBS)),$(call gb_Library_get_sdk_link_dir)/$(call gb_Library_get_ilibfilename,$(1)),$(gb_Library_DLLDIR)/$(call gb_Library_get_ilibfilename,$(1)))
 
 define gb_Library_Library
 $(call gb_Postprocess_register_target,AllLibraries,Library,$(1))
-ifeq (,$$(findstring $(1),$$(gb_Library_KNOWNLIBS)))
+ifeq (,$$(filter $(1),$$(gb_Library_KNOWNLIBS)))
 $$(eval $$(call gb_Output_info,Currently known libraries are: $(sort $(gb_Library_KNOWNLIBS)),ALL))
-$$(eval $$(call gb_Output_error,Library $(1) must be registered in Repository.mk))
+$$(eval $$(call gb_Output_error,Library $(1) must be registered in Repository.mk or RepositoryExternal.mk))
 endif
 
 $(if $(gb_Package_PRESTAGEDIR),\
@@ -125,9 +125,6 @@ endef
 # gb_Library_get_exports_target for that purpose, since it is already
 # the "final" target of the Library...
 define gb_Library_set_componentfile
-$(call gb_Library_get_target,$(gb_Library__get_name)) : \
-	COMPONENT := $$(if $$(and $$(COMPONENT),$(filter-out $(gb_MERGEDLIBS) $(gb_URELIBS),$(1))),\
-	  $$(call gb_Output_error,$(1) already has a component file $$(COMPONENT)))$(2)
 $(call gb_ComponentTarget_ComponentTarget,$(2),\
 	$(call gb_Library__get_componentprefix,$(gb_Library__get_name)),\
 	$(call gb_Library_get_runtime_filename,$(gb_Library__get_name)))
@@ -139,7 +136,7 @@ $(call gb_Library_get_clean_target,$(gb_Library__get_name)) : \
 	$(call gb_ComponentTarget_get_clean_target,$(2))
 endef
 
-gb_Library__get_name = $(if $(filter $(1),$(gb_MERGEDLIBS)),merged,$(if $(filter $(1),$(gb_URELIBS)),urelibs,$(1)))
+gb_Library__get_name = $(if $(filter $(1),$(gb_MERGEDLIBS)),merged,$(1))
 
 gb_Library__get_componentprefix = \
 	$(call gb_Library__get_layer_componentprefix,$(call \
@@ -226,6 +223,7 @@ $(eval $(foreach method,\
 	set_nativeres \
 	set_visibility_default \
 	set_warnings_not_errors \
+	set_external_code \
 	set_generated_cxx_suffix \
 ,\
 	$(call gb_Library__forward_to_Linktarget,$(method))\

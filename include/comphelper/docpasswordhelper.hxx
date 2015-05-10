@@ -37,7 +37,7 @@ enum DocPasswordVerifierResult
     DocPasswordVerifierResult_ABORT
 };
 
-// ============================================================================
+
 
 /** Base class for a password verifier used by the DocPasswordHelper class
     below.
@@ -50,7 +50,7 @@ class COMPHELPER_DLLPUBLIC IDocPasswordVerifier
 public:
     virtual             ~IDocPasswordVerifier();
 
-    /** Will be called everytime a password needs to be verified.
+    /** Will be called every time a password needs to be verified.
 
         @param rPassword
             The password to be verified
@@ -71,7 +71,7 @@ public:
      */
     virtual DocPasswordVerifierResult verifyPassword( const OUString& rPassword, ::com::sun::star::uno::Sequence< ::com::sun::star::beans::NamedValue >& o_rEncryptionData ) = 0;
 
-    /** Will be called everytime an encryption data needs to be verified.
+    /** Will be called every time an encryption data needs to be verified.
 
         @param rEncryptionData
             The data will be validated
@@ -82,21 +82,21 @@ public:
             - DocPasswordVerifierResult_WRONG_PASSWORD, if the encryption data is
               wrong.
             - DocPasswordVerifierResult_ABORT, if an unrecoverable error
-              occured while data verification. The password request loop
+              occurred while data verification. The password request loop
               will be aborted.
      */
     virtual DocPasswordVerifierResult verifyEncryptionData( const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::NamedValue >& o_rEncryptionData ) = 0;
 
 };
 
-// ============================================================================
+
 
 /** Helper that asks for a document password and checks its validity.
  */
 class COMPHELPER_DLLPUBLIC DocPasswordHelper
 {
 public:
-    // ------------------------------------------------------------------------
+
 
     /** This helper function generates the information related
         to "Password to modify" provided by user. The result
@@ -113,7 +113,7 @@ public:
     static ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyValue >
         GenerateNewModifyPasswordInfo( const OUString& aPassword );
 
-    // ------------------------------------------------------------------------
+
 
     /** This helper function allows to check whether
         the "Password to modify" provided by user is the correct one.
@@ -129,12 +129,12 @@ public:
             <FALSE/> otherwise
       */
 
-    static sal_Bool IsModifyPasswordCorrect(
+    static bool IsModifyPasswordCorrect(
                 const OUString& aPassword,
                 const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyValue >& aInfo );
 
 
-    // ------------------------------------------------------------------------
+
 
     /** This helper function generates the hash code based on the algorithm
         specified by MS for "Password to modify" feature of Word.
@@ -149,7 +149,7 @@ public:
     static sal_uInt32 GetWordHashAsUINT32(
                 const OUString& aString );
 
-    // ------------------------------------------------------------------------
+
 
     /** This helper function generates the hash code based on the algorithm
         specified by MS for "Password to modify" and passwords related to
@@ -170,7 +170,7 @@ public:
                 const OUString& aString,
                 rtl_TextEncoding nEnc = RTL_TEXTENCODING_UTF8 );
 
-    // ------------------------------------------------------------------------
+
 
     /** This helper function generates the hash code based on the algorithm
         specified by MS for "Password to modify" and passwords related to
@@ -191,7 +191,7 @@ public:
                 const OUString& aString,
                 rtl_TextEncoding nEnc = RTL_TEXTENCODING_UTF8 );
 
-    // ------------------------------------------------------------------------
+
 
     /** This helper function generates a random sequence of bytes of
         requested length.
@@ -200,7 +200,7 @@ public:
     static ::com::sun::star::uno::Sequence< sal_Int8 > GenerateRandomByteSequence(
                 sal_Int32 nLength );
 
-    // ------------------------------------------------------------------------
+
 
     /** This helper function generates a byte sequence representing the
         key digest value used by MSCodec_Std97 codec.
@@ -210,7 +210,7 @@ public:
                 const OUString& aPassword,
                 const ::com::sun::star::uno::Sequence< sal_Int8 >& aDocId );
 
-    // ------------------------------------------------------------------------
+
 
     /** This helper function generates a byte sequence representing the
         key digest value used by MSCodec_Std97 codec.
@@ -220,7 +220,15 @@ public:
                 const sal_uInt16 pPassData[16],
                 const ::com::sun::star::uno::Sequence< sal_Int8 >& aDocId );
 
-    // ------------------------------------------------------------------------
+    /** This helper function generates a byte sequence representing the
+        key digest value used by MSCodec_Std97 codec.
+      */
+
+    static ::com::sun::star::uno::Sequence< sal_Int8 > GenerateStd97Key(
+                const sal_uInt16 pPassData[16],
+                const sal_uInt8 pDocId[16] );
+
+
 
     /** This helper function tries to request and verify a password to load a
         protected document.
@@ -290,7 +298,7 @@ private:
                         ~DocPasswordHelper();
 };
 
-// ============================================================================
+
 
 } // namespace comphelper
 

@@ -35,8 +35,8 @@ else
 gb_AR := $(shell $(CC) -print-prog-name=ar)
 endif
 
-ifeq ($(strip $(gb_COMPILERDEFAULTOPTFLAGS)),)
-gb_COMPILERDEFAULTOPTFLAGS := -O2
+ifeq ($(strip $(gb_COMPILEROPTFLAGS)),)
+gb_COMPILEROPTFLAGS := -O2
 endif
 
 gb_SHORTSTDC3 := 1
@@ -53,6 +53,7 @@ gb_CFLAGS_COMMON := \
 	-Wall \
 	-Wendif-labels \
 	-Wextra \
+	-Wstrict-prototypes \
 	-Wundef \
 	-Wunused-macros \
 	-fmessage-length=0 \
@@ -61,6 +62,8 @@ gb_CFLAGS_COMMON := \
 
 gb_CXXFLAGS_COMMON := \
 	-Wall \
+	-Wno-missing-braces \
+	-Wnon-virtual-dtor \
 	-Wendif-labels \
 	-Wextra \
 	-Wundef \
@@ -68,6 +71,8 @@ gb_CXXFLAGS_COMMON := \
 	-fmessage-length=0 \
 	-fno-common \
 	-pipe \
+
+gb_CXXFLAGS_Wundef = -Wno-undef
 
 ifneq ($(HAVE_THREADSAFE_STATICS),TRUE)
 gb_CXXFLAGS_COMMON += -fno-threadsafe-statics
@@ -77,7 +82,7 @@ ifeq ($(strip $(gb_GCOV)),YES)
 gb_CFLAGS_COMMON += -fprofile-arcs -ftest-coverage
 gb_CXXFLAGS_COMMON += -fprofile-arcs -ftest-coverage
 gb_LinkTarget_LDFLAGS += -fprofile-arcs -lgcov
-gb_COMPILERDEFAULTOPTFLAGS := -O0
+gb_COMPILEROPTFLAGS := -O0
 endif
 
 
@@ -85,25 +90,47 @@ ifeq ($(HAVE_GCC_VISIBILITY_FEATURE),TRUE)
 gb_VISIBILITY_FLAGS := -DHAVE_GCC_VISIBILITY_FEATURE
 # If CC or CXX already include -fvisibility=hidden, don't duplicate it
 ifeq (,$(filter -fvisibility=hidden,$(CC)))
-gb_VISIBILITY_FLAGS += -fvisibility=hidden
+gb__visibility_hidden := -fvisibility=hidden
+ifeq ($(COM_GCC_IS_CLANG),TRUE)
+ifneq ($(filter -fsanitize=%,$(CC)),)
+gb__visibility_hidden := -fvisibility-ms-compat
+endif
+endif
+gb_VISIBILITY_FLAGS += $(gb__visibility_hidden)
 endif
 ifneq ($(HAVE_GCC_VISIBILITY_BROKEN),TRUE)
-gb_CXXFLAGS_COMMON += -fvisibility-inlines-hidden
+gb_VISIBILITY_FLAGS_CXX := -fvisibility-inlines-hidden
 endif
+endif
+gb_CXXFLAGS_COMMON += $(gb_VISIBILITY_FLAGS_CXX)
+
+ifeq ($(HAVE_GCC_STACK_PROTECTOR_STRONG),TRUE)
+gb_CFLAGS_COMMON += -fstack-protector-strong
+gb_CXXFLAGS_COMMON += -fstack-protector-strong
+gb_LinkTarget_LDFLAGS += -fstack-protector-strong
 endif
 
-ifneq ($(EXTERNAL_WARNINGS_NOT_ERRORS),TRUE)
-gb_CFLAGS_WERROR := -Werror
-gb_CXXFLAGS_WERROR := -Werror
+gb_CFLAGS_WERROR := $(if $(ENABLE_WERROR),-Werror)
+
+# This is the default in non-C++11 mode
+ifeq ($(COM_GCC_IS_CLANG),TRUE)
+gb_CXX03FLAGS := -std=gnu++98 -Werror=c++11-extensions -Wno-c++11-long-long \
+    -Wno-deprecated-declarations
+else
+gb_CXX03FLAGS := -std=gnu++98 -pedantic-errors -Wno-long-long \
+    -Wno-variadic-macros -Wno-non-virtual-dtor -Wno-deprecated-declarations
 endif
 
-ifneq ($(MERGELIBS),)
-gb_CFLAGS_COMMON += -DLIBO_MERGELIBS
-gb_CXXFLAGS_COMMON += -DLIBO_MERGELIBS
-endif
+# On Windows MSVC only supports C90 so force gnu89 (especially in clang) to
+# to catch potential gnu89/C90 incompatibilities locally.
+gb_CFLAGS_COMMON += -std=gnu89
 
 ifeq ($(ENABLE_LTO),TRUE)
+ifeq ($(COM_GCC_IS_CLANG),TRUE)
 gb_LTOFLAGS := -flto
+else
+gb_LTOFLAGS := -flto=$(PARALLELISM) -fuse-linker-plugin -O2
+endif
 endif
 
 gb_LinkTarget_EXCEPTIONFLAGS := \
@@ -121,7 +148,6 @@ endif
 gb_PrecompiledHeader_EXCEPTIONFLAGS := $(gb_LinkTarget_EXCEPTIONFLAGS)
 
 # optimization level
-gb_COMPILEROPTFLAGS := $(gb_COMPILERDEFAULTOPTFLAGS)
 gb_COMPILERNOOPTFLAGS := -O0 -fstrict-aliasing -fstrict-overflow
 
 # Clang does not know -ggdb2 or some other options
@@ -154,8 +180,12 @@ gb_LinkTarget_INCLUDE :=\
 ifeq ($(COM_GCC_IS_CLANG),TRUE)
 ifeq ($(COMPILER_PLUGIN_TOOL),)
 gb_COMPILER_PLUGINS := -Xclang -load -Xclang $(BUILDDIR)/compilerplugins/obj/plugin.so -Xclang -add-plugin -Xclang loplugin
+ifneq ($(COMPILER_PLUGIN_WARNINGS_ONLY),)
+gb_COMPILER_PLUGINS += -Xclang -plugin-arg-loplugin -Xclang \
+    --warnings-only='$(COMPILER_PLUGIN_WARNINGS_ONLY)'
+endif
 else
-gb_COMPILER_PLUGINS := -Xclang -load -Xclang $(BUILDDIR)/compilerplugins/obj/plugin.so -Xclang -plugin -Xclang loplugin -Xclang -plugin-arg-loplugin -Xclang $(COMPILER_PLUGIN_TOOL)
+gb_COMPILER_PLUGINS := -Xclang -load -Xclang $(BUILDDIR)/compilerplugins/obj/plugin.so -Xclang -plugin -Xclang loplugin $(foreach plugin,$(COMPILER_PLUGIN_TOOL), -Xclang -plugin-arg-loplugin -Xclang $(plugin))
 ifneq ($(UPDATE_FILES),)
 gb_COMPILER_PLUGINS += -Xclang -plugin-arg-loplugin -Xclang --scope=$(UPDATE_FILES)
 endif

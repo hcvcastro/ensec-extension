@@ -20,14 +20,12 @@
 #ifndef INCLUDED_COMPHELPER_SEQUENCEASHASHMAP_HXX
 #define INCLUDED_COMPHELPER_SEQUENCEASHASHMAP_HXX
 
-#include <boost/unordered_map.hpp>
-
 #include <algorithm>
+#include <unordered_map>
 #include <com/sun/star/uno/Sequence.hxx>
 #include <com/sun/star/beans/PropertyValue.hpp>
 #include <com/sun/star/beans/NamedValue.hpp>
 
-#include <com/sun/star/beans/IllegalTypeException.hpp>
 #include <comphelper/comphelperdllapi.h>
 
 
@@ -42,7 +40,7 @@ namespace comphelper{
             such name sequences very easy ...
  */
 
-struct SequenceAsHashMapBase : public ::boost::unordered_map<
+struct SequenceAsHashMapBase : public std::unordered_map<
     OUString                    ,
     ::com::sun::star::uno::Any         ,
     OUStringHash                ,
@@ -52,60 +50,60 @@ struct SequenceAsHashMapBase : public ::boost::unordered_map<
 
 class COMPHELPER_DLLPUBLIC SequenceAsHashMap : public SequenceAsHashMapBase
 {
-    //-------------------------------------------
+
     public:
 
-        //---------------------------------------
+
         /** @short  creates an empty hash map.
          */
         SequenceAsHashMap();
 
-        //---------------------------------------
+
         /** @see    operator<<(const ::com::sun::star::uno::Any&)
          */
         SequenceAsHashMap(const ::com::sun::star::uno::Any& aSource);
 
-        //---------------------------------------
+
         /** @see    operator<<(const ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Any >&)
          */
         SequenceAsHashMap(const ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Any >& lSource);
 
-        //---------------------------------------
+
         /** @see    operator<<(const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyValue >&)
          */
         SequenceAsHashMap(const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyValue >& lSource);
 
-        //---------------------------------------
+
         /** @see    operator<<(const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::NamedValue >&)
          */
         SequenceAsHashMap(const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::NamedValue >& lSource);
 
-        //---------------------------------------
-        /** @short  not realy used but maybe useful :-)
+
+        /** @short  not really used but maybe useful :-)
          */
         ~SequenceAsHashMap();
 
-        //---------------------------------------
+
         /** @short  fill this map from the given
-                    any, which of course must contain
+                    Any, which of course must contain
                     a suitable sequence of element types
                     "css.beans.PropertyValue" or "css.beans.NamedValue".
 
             @attention  If the given Any is an empty one
-                        (if its set to VOID), no exception
+                        (if it's set to VOID), no exception
                         is thrown. In such case this instance will
                         be created as an empty one too!
 
             @param  aSource
                     contains the new items for this map.
 
-            @throw  An com::sun::star::beans::IllegalTypeException
-                    is thrown, if the given any does not contain a suitable sequence ...
+            @throw  A com::sun::star::lang::IllegalArgumentException
+                    is thrown, if the given Any does not contain a suitable sequence ...
                     but not if it's a VOID Any!
          */
         void operator<<(const ::com::sun::star::uno::Any& aSource);
 
-        //---------------------------------------
+
         /** @short  fill this map from the given
                     sequence, where every Any must contain
                     an item from type "css.beans.PropertyValue"
@@ -114,13 +112,13 @@ class COMPHELPER_DLLPUBLIC SequenceAsHashMap : public SequenceAsHashMapBase
             @param  lSource
                     contains the new items for this map.
 
-            @throw  An com::sun::star::beans::IllegalTypeException
-                    is thrown, if the given any sequence
+            @throw  A com::sun::star::lang::IllegalArgumentException
+                    is thrown, if the given Any sequence
                     uses wrong types for its items. VOID Any will be ignored!
          */
         void operator<<(const ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Any >& lSource);
 
-        //---------------------------------------
+
         /** @short  fill this map from the given
                     PropertyValue sequence.
 
@@ -129,7 +127,7 @@ class COMPHELPER_DLLPUBLIC SequenceAsHashMap : public SequenceAsHashMapBase
          */
         void operator<<(const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyValue >& lSource);
 
-        //---------------------------------------
+
         /** @short  fill this map from the given
                     NamedValue sequence.
 
@@ -138,7 +136,7 @@ class COMPHELPER_DLLPUBLIC SequenceAsHashMap : public SequenceAsHashMapBase
          */
         void operator<<(const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::NamedValue >& lSource);
 
-        //---------------------------------------
+
         /** @short  converts this map instance to an
                     PropertyValue sequence.
 
@@ -147,7 +145,7 @@ class COMPHELPER_DLLPUBLIC SequenceAsHashMap : public SequenceAsHashMapBase
          */
         void operator>>(::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyValue >& lDestination) const;
 
-        //---------------------------------------
+
         /** @short  converts this map instance to an
                     NamedValue sequence.
 
@@ -156,12 +154,12 @@ class COMPHELPER_DLLPUBLIC SequenceAsHashMap : public SequenceAsHashMapBase
          */
         void operator>>(::com::sun::star::uno::Sequence< ::com::sun::star::beans::NamedValue >& lDestination) const;
 
-        //---------------------------------------
+
         /** @short  return this map instance as an
                     Any, which can be
                     used in const environments only.
 
-            @descr  Its made const to prevent using of the
+            @descr  It's made const to prevent using of the
                     return value directly as an in/out parameter!
                     usage: myMethod(stlDequeAdapter.getAsAnyList());
 
@@ -172,14 +170,14 @@ class COMPHELPER_DLLPUBLIC SequenceAsHashMap : public SequenceAsHashMapBase
             @return A const Any, which
                     contains all items of this map.
          */
-        const ::com::sun::star::uno::Any getAsConstAny(::sal_Bool bAsPropertyValue) const;
+        const ::com::sun::star::uno::Any getAsConstAny(bool bAsPropertyValue) const;
 
-        //---------------------------------------
+
         /** @short  return this map instance to as a
                     NamedValue sequence, which can be
                     used in const environments only.
 
-            @descr  Its made const to prevent using of the
+            @descr  It's made const to prevent using of the
                     return value directly as an in/out parameter!
                     usage: myMethod(stlDequeAdapter.getAsNamedValueList());
 
@@ -188,12 +186,12 @@ class COMPHELPER_DLLPUBLIC SequenceAsHashMap : public SequenceAsHashMapBase
          */
         const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::NamedValue > getAsConstNamedValueList() const;
 
-        //---------------------------------------
+
         /** @short  return this map instance to as a
                     PropertyValue sequence, which can be
                     used in const environments only.
 
-            @descr  Its made const to prevent using of the
+            @descr  It's made const to prevent using of the
                     return value directly as an in/out parameter!
                     usage: myMethod(stlDequeAdapter.getAsPropertyValueList());
 
@@ -202,15 +200,15 @@ class COMPHELPER_DLLPUBLIC SequenceAsHashMap : public SequenceAsHashMapBase
          */
         const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyValue > getAsConstPropertyValueList() const;
 
-        //---------------------------------------
+
         /** @short  check if the specified item exists
                     and return its (unpacked!) value or it returns the
                     specified default value otherwise.
 
             @descr  If a value should be extracted only in case
-                    the requsted property exists realy (without creating
+                    the requested property exists really (without creating
                     of new items as it the index operator of a
-                    has_map does!) this method can be used.
+                    hash map does!) this method can be used.
 
             @param  sKey
                     key name of the item.
@@ -240,13 +238,13 @@ class COMPHELPER_DLLPUBLIC SequenceAsHashMap : public SequenceAsHashMapBase
             return aValue;
         }
 
-        //---------------------------------------
+
         /** @short  creates a new item with the specified
                     name and value only in case such item name
                     does not already exist.
 
             @descr  To check if the property already exists only
-                    her name is used for compare. Its value isnt
+                    its name is used for compare. Its value isn't
                     checked!
 
             @param  sKey
@@ -255,26 +253,26 @@ class COMPHELPER_DLLPUBLIC SequenceAsHashMap : public SequenceAsHashMapBase
             @param  aValue
                     the new (unpacked!) value.
                     Note: This value will be transformed to an Any
-                    internaly, because only Any values can be
+                    internally, because only Any values can be
                     part of a PropertyValue or NamedValue structure.
 
             @return TRUE if this property was added as new item;
                     FALSE if it already exists.
          */
         template< class TValueType >
-        sal_Bool createItemIfMissing(const OUString& sKey  ,
+        bool createItemIfMissing(const OUString& sKey  ,
                                      const TValueType&      aValue)
         {
             if (find(sKey) == end())
             {
-                (*this)[sKey] = ::com::sun::star::uno::makeAny(aValue);
-                return sal_True;
+                (*this)[sKey] = ::com::sun::star::uno::toAny(aValue);
+                return true;
             }
 
-            return sal_False;
+            return false;
         }
 
-        //---------------------------------------
+
         /** @short  check if all items of given map
                     exists in these called map also.
 
@@ -290,9 +288,9 @@ class COMPHELPER_DLLPUBLIC SequenceAsHashMap : public SequenceAsHashMapBase
                     TRUE if all items of Rcheck could be found
                     in these map; FALSE otherwise.
          */
-        sal_Bool match(const SequenceAsHashMap& rCheck) const;
+        bool match(const SequenceAsHashMap& rCheck) const;
 
-        //---------------------------------------
+
         /** @short  merge all values from the given map into
                     this one.
 

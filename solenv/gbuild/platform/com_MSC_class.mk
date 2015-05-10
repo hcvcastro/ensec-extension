@@ -34,40 +34,18 @@ endef
 
 # CObject class
 
-# $(call gb_CObject__command,object,relative-source,source,dep-file)
-define gb_CObject__command
-$(call gb_Output_announce,$(2).c,$(true),C  ,3)
+# $(call gb_CObject__command_pattern,object,flags,source,dep-file,compiler-plugins)
+define gb_CObject__command_pattern
 $(call gb_Helper_abbreviate_dirs,\
 	mkdir -p $(dir $(1)) $(dir $(4)) && \
 	unset INCLUDE && \
-	$(if $(filter YES,$(COBJECT_X64)), $(CXX_X64_BINARY), $(gb_CC)) \
+	$(if $(filter YES,$(CXXOBJECT_X64)), $(CXX_X64_BINARY), \
+		$(if $(filter %.c,$(3)), $(gb_CC), $(gb_CXX))) \
 		$(DEFS) \
+		$(if $(EXTERNAL_CODE),,$(gb_DEFS_INTERNAL)) \
 		$(gb_LTOFLAGS) \
-		$(T_CFLAGS) $(T_CFLAGS_APPEND) \
+		$(2) \
 		$(if $(WARNINGS_NOT_ERRORS),,$(gb_CFLAGS_WERROR)) \
-		-Fd$(PDBFILE) \
-		$(gb_COMPILERDEPFLAGS) \
-		-I$(dir $(3)) \
-		$(INCLUDE) \
-		$(if $(filter YES,$(COBJECT_X64)), -U_X86_ -D_AMD64_,) \
-		-c $(3) \
-		-Fo$(1)) $(call gb_create_deps,$(4),$(1),$(3))
-endef
-
-
-# CxxObject class
-
-# $(call gb_CxxObject__command,object,relative-source,source,dep-file)
-define gb_CxxObject__command
-$(call gb_Output_announce,$(2).cxx,$(true),CXX,3)
-$(call gb_Helper_abbreviate_dirs,\
-	mkdir -p $(dir $(1)) $(dir $(4)) && \
-	unset INCLUDE && \
-	$(if $(filter YES,$(CXXOBJECT_X64)), $(CXX_X64_BINARY), $(gb_CXX)) \
-		$(DEFS) \
-		$(gb_LTOFLAGS) \
-		$(T_CXXFLAGS) $(T_CXXFLAGS_APPEND) \
-		$(if $(WARNINGS_NOT_ERRORS),,$(gb_CXXFLAGS_WERROR)) \
 		-Fd$(PDBFILE) \
 		$(PCHFLAGS) \
 		$(gb_COMPILERDEPFLAGS) \
@@ -77,7 +55,6 @@ $(call gb_Helper_abbreviate_dirs,\
 		-c $(3) \
 		-Fo$(1)) $(call gb_create_deps,$(4),$(1),$(3))
 endef
-
 
 # PrecompiledHeader class
 
@@ -102,6 +79,7 @@ $(call gb_Helper_abbreviate_dirs,\
 	unset INCLUDE && \
 	$(gb_CXX) \
 		$(4) $(5) -Fd$(PDBFILE) \
+		$(if $(EXTERNAL_CODE),,$(gb_DEFS_INTERNAL)) \
 		$(gb_LTOFLAGS) \
 		$(gb_COMPILERDEPFLAGS) \
 		-I$(dir $(3)) \
@@ -160,8 +138,7 @@ gb_LinkTarget_get_linksearchpath_for_layer = \
 
 # avoid fatal error LNK1170 for Library_merged
 define gb_LinkTarget_MergedResponseFile
-cut -f -1000 -d ' ' $${RESPONSEFILE} > $${RESPONSEFILE}.1 && \
-cut -f 1001- -d ' ' $${RESPONSEFILE} >> $${RESPONSEFILE}.1 && \
+cat $${RESPONSEFILE} | sed 's/ /\n/g' | grep -v '^$$' > $${RESPONSEFILE}.1 && \
 mv $${RESPONSEFILE}.1 $${RESPONSEFILE} &&
 endef
 
@@ -194,7 +171,7 @@ $(call gb_Helper_abbreviate_dirs,\
 		$(if $(filter YES,$(LIBRARY_X64)), \
 			-LIBPATH:$(COMPATH)/lib/amd64 \
 			-LIBPATH:$(WINDOWS_SDK_HOME)/lib/x64 \
-		    $(if $(filter 80,$(WINDOWS_SDK_VERSION)),-LIBPATH:$(WINDOWS_SDK_HOME)/lib/win8/um/x64)) \
+		    $(if $(filter 80 81,$(WINDOWS_SDK_VERSION)),-LIBPATH:$(WINDOWS_SDK_HOME)/lib/$(WINDOWS_SDK_LIB_SUBDIR)/um/x64)) \
 		$(T_LDFLAGS) \
 		@$${RESPONSEFILE} \
 		$(foreach lib,$(LINKED_LIBS),$(call gb_Library_get_ilibfilename,$(lib))) \
@@ -213,11 +190,7 @@ $(call gb_Helper_abbreviate_dirs,\
 		$(if $(filter YES,$(LIBRARY_X64)),$(LINK_X64_BINARY),$(gb_LINK)) \
 			-dump -exports $(ILIBTARGET) \
 			>> $(WORKDIR)/LinkTarget/$(2).exports.tmp && \
-		if cmp -s $(WORKDIR)/LinkTarget/$(2).exports.tmp $(WORKDIR)/LinkTarget/$(2).exports; \
-			then rm $(WORKDIR)/LinkTarget/$(2).exports.tmp; \
-			else mv $(WORKDIR)/LinkTarget/$(2).exports.tmp $(WORKDIR)/LinkTarget/$(2).exports && \
-				touch -r $(1) $(WORKDIR)/LinkTarget/$(2).exports; \
-		fi) \
+		$(call gb_Helper_replace_if_different_and_touch,$(WORKDIR)/LinkTarget/$(2).exports.tmp,$(WORKDIR)/LinkTarget/$(2).exports,$(1))) \
 	; exit $$RC)
 endef
 
@@ -227,6 +200,8 @@ endef
 
 define gb_LinkTarget_use_system_win32_libs
 $(call gb_LinkTarget_add_libs,$(1),$(foreach lib,$(2),$(call gb_MSVCRT_subst,$(lib)).lib))
+$(if $(call gb_LinkTarget__is_merged,$(1)),\
+	$(call gb_LinkTarget_add_libs,$(call gb_Library_get_linktarget,merged),$(foreach lib,$(2),$(call gb_MSVCRT_subst,$(lib)).lib)))
 endef
 
 # Flags common for PE executables (EXEs and DLLs) 
@@ -348,6 +323,8 @@ define gb_Library_get_ilibfilename
 $(patsubst $(1):%,%,$(filter $(1):%,$(gb_Library_ILIBFILENAMES)))
 endef
 
+gb_Library_get_sdk_link_dir = $(INSTDIR)/$(SDKDIRNAME)/lib
+
 gb_Library_get_sdk_link_lib = $(gb_Library_get_ilib_target)
 
 # StaticLibrary class
@@ -392,8 +369,11 @@ endef
 # CppunitTest class
 
 gb_CppunitTest_DEFS := -D_DLL
-gb_CppunitTest_CPPTESTPRECOMMAND := $(gb_Helper_set_ld_path):"$(shell cygpath -w $(gb_Library_DLLDIR)):$(shell cygpath -w $(WORKDIR)/UnpackedTarball/cppunit/src/cppunit/$(if $(MSVC_USE_DEBUG_RUNTIME),DebugDll,ReleaseDll))"
-
+ifeq ($(GNUMAKE_WIN_NATIVE),TRUE)
+gb_CppunitTest_CPPTESTPRECOMMAND := $(call gb_Helper_prepend_ld_path,$(shell cygpath -w $(gb_Library_DLLDIR));$(shell cygpath -w $(WORKDIR)/UnpackedTarball/cppunit/src/cppunit/$(if $(MSVC_USE_DEBUG_RUNTIME),DebugDll,ReleaseDll)))
+else
+gb_CppunitTest_CPPTESTPRECOMMAND := $(call gb_Helper_prepend_ld_path,$(shell cygpath -u $(gb_Library_DLLDIR)):$(shell cygpath -u $(WORKDIR)/UnpackedTarball/cppunit/src/cppunit/$(if $(MSVC_USE_DEBUG_RUNTIME),DebugDll,ReleaseDll)))
+endif
 gb_CppunitTest_get_filename = test_$(1).dll
 gb_CppunitTest_get_ilibfilename = itest_$(1).lib
 
@@ -474,11 +454,6 @@ $(call gb_Helper_abbreviate_dirs,\
 		$(RCFILE) )
 endef
 
-define gb_WinResTarget_WinResTarget_platform
-$(call gb_WinResTarget_get_target,$(1)) : $(call gb_Package_get_target,solenv_inc)
-
-endef
-
 $(eval $(call gb_Helper_make_dep_targets,\
 	WinResTarget \
 ))
@@ -525,15 +500,27 @@ $(call gb_ExternalProject_get_preparation_target,$(1)) : $(call gb_Executable_ge
 $(call gb_ExternalProject_get_state_target,$(1),$(2)): WRAPPERS := $(gb_AUTOCONF_WRAPPERS)
 endef
 
+# Set INCLUDE and LIB variables and unset MAKEFLAGS when using nmake
+#
+# gb_ExternalProject_use_nmake project state_target
+define gb_ExternalProject_use_nmake
+$(call gb_ExternalProject_get_state_target,$(1),$(2)): NMAKE := $(true)
+endef
+
 # if ccache is enabled, then split it and use lastword as REAL_FOO
 # /opt/lo/bin/ccache /cygdrive/c/PROGRA~2/MICROS~2.0/VC/bin/cl.exe
 
 gb_AUTOCONF_WRAPPERS = \
-	REAL_CC="$(shell cygpath -w $(CC))" \
+	REAL_CC="$(shell cygpath -w $(filter-out -%,$(CC)))" \
+	REAL_CC_FLAGS="$(filter -%,$(CC))" \
 	CC="$(call gb_Executable_get_target,gcc-wrapper)" \
-	REAL_CXX="$(shell cygpath -w  $(CXX))" \
+	REAL_CXX="$(shell cygpath -w $(filter-out -%,$(CXX)))" \
+	REAL_CXX_FLAGS="$(filter -%,$(CXX))" \
 	CXX="$(call gb_Executable_get_target,g++-wrapper)" \
     LD="$(shell cygpath -w $(COMPATH)/bin/link.exe) -nologo"
+
+gb_ExternalProject_INCLUDE := \
+	$(subst -I,,$(subst $(WHITESPACE),;,$(subst -I. , ,$(SOLARINC))))
 
 # InstallScript class
 
@@ -560,6 +547,19 @@ else
 gb_UnoApiHeadersTarget_select_variant = $(2)
 endif
 
+# UIConfig class
+
+# use responsefile because cui has too many files for command line
+define gb_UIConfig__command
+$(call gb_Helper_abbreviate_dirs,\
+	RESPONSEFILE=$(call var2file,$(shell $(gb_MKTEMP)),100,$(if $(UI_IMAGELISTS),$(strip $(UI_IMAGELISTS)),/dev/null)) \
+	&& tr " " "\000" < $$RESPONSEFILE | tr -d "\r\n" > $$RESPONSEFILE.0 \
+	&& sort -u --files0-from=$$RESPONSEFILE.0 > $@ \
+	&& rm $$RESPONSEFILE $$RESPONSEFILE.0 \
+)
+
+endef
+
 # UIMenubarTarget class
 
 define gb_UIMenubarTarget__command
@@ -572,7 +572,7 @@ gb_UIMenubarTarget_UIMenubarTarget_platform :=
 
 # Python
 gb_Python_PRECOMMAND := PATH="$(shell cygpath -w $(INSTDIR)/program)" PYTHONHOME="$(INSTDIR)/program/python-core-$(PYTHON_VERSION)" PYTHONPATH="$(INSTDIR)/program/python-core-$(PYTHON_VERSION)/lib;$(INSTDIR)/program/python-core-$(PYTHON_VERSION)/lib/lib-dynload:$(INSTDIR)/program"
-gb_Python_INSTALLED_EXECUTABLE := $(INSTROOT)/$(LIBO_BIN_FOLDER)/python.exe
+gb_Python_INSTALLED_EXECUTABLE := $(INSTROOT)/$(LIBO_BIN_FOLDER)/python-core-$(PYTHON_VERSION)/bin/python.exe
 
 gb_ICU_PRECOMMAND := PATH="$(shell cygpath -w $(WORKDIR_FOR_BUILD)/UnpackedTarball/icu/source/lib)"
 

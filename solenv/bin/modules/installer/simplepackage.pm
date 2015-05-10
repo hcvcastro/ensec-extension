@@ -294,9 +294,9 @@ sub create_package
             $localtempdir = "$tempdir/$packagename";
             my $srcfolder = $localtempdir . "/" . $volume_name_classic_app . "\.app";
 
-            $volume_name             .= "_".$$languagestringref."_Language_Pack";
-            $volume_name_classic     .= "_".$$languagestringref."_Language_Pack";
-            $volume_name_classic_app .= "_".$$languagestringref."_Language_Pack";
+            $volume_name             .= " Language Pack";
+            $volume_name_classic     .= " Language Pack";
+            $volume_name_classic_app .= " Language Pack";
 
             my $appfolder = $localtempdir . "/" . $volume_name_classic_app . "\.app";
             my $contentsfolder = $appfolder . "/Contents";
@@ -342,6 +342,7 @@ sub create_package
             if ( $installer::globals::languagepack ) { $scriptfilename = "osx_install_languagepack.applescript"; }
             if ( $installer::globals::helppack ) { $scriptfilename = "osx_install_helppack.applescript"; }
             my $scripthelperfilename = $ENV{'SRCDIR'} . "/setup_native/scripts/mac_install.script";
+            # my $scripthelperrealfilename = $volume_name;
             my $scripthelperrealfilename = $volume_name_classic_app;
 
             # Finding both files in source tree
@@ -361,6 +362,7 @@ sub create_package
             my $scriptfilecontent = installer::files::read_file($scriptfilename);
             my $translationfilecontent = installer::files::read_file($installer::globals::macinstallfilename);
             localize_scriptfile($scriptfilecontent, $translationfilecontent, $languagestringref);
+            # replace_variables_in_scriptfile($scriptfilecontent, $volume_name, $allvariables);
             replace_variables_in_scriptfile($scriptfilecontent, $volume_name_classic, $volume_name_classic_app, $allvariables);
             installer::files::save_file($scriptfilename, $scriptfilecontent);
 
@@ -385,34 +387,22 @@ sub create_package
 
             # Replacing variables in Info.plist
             $scriptfilecontent = installer::files::read_file($destfile);
+            # replace_one_variable_in_shellscript($scriptfilecontent, $volume_name, "FULLPRODUCTNAME" );
             replace_one_variable_in_shellscript($scriptfilecontent, $volume_name_classic_app, "FULLAPPPRODUCTNAME" ); # OpenOffice.org Language Pack
             installer::files::save_file($destfile, $scriptfilecontent);
+
             chdir $localfrom;
-            if ( defined($ENV{'MACOSX_CODESIGNING_IDENTITY'}) && $ENV{'MACOSX_CODESIGNING_IDENTITY'} ne "" )
-            {
-                $systemcall = "$ENV{'SRCDIR'}/solenv/bin/macosx-codesign-app-bundle \"$appfolder\"";
-                print "... $systemcall ...\n";
-                my $returnvalue = system($systemcall);
-                $infoline = "Systemcall: $systemcall\n";
-                push( @installer::globals::logfileinfo, $infoline);
-
-                if ($returnvalue)
-                {
-                    $infoline = "ERROR: Could not execute \"$systemcall\"!\n";
-                    push( @installer::globals::logfileinfo, $infoline);
-                }
-                else
-                {
-                    $infoline = "Success: Executed \"$systemcall\" successfully!\n";
-                    push( @installer::globals::logfileinfo, $infoline);
-                }
-            }
-
         }
-        else
+        elsif ($volume_name_classic_app eq 'LibreOffice' || $volume_name_classic_app eq 'LibreOfficeDev')
         {
-            if (($volume_name_classic_app eq 'LibreOffice' || $volume_name_classic_app eq 'LibreOfficeDev') &&
-                defined($ENV{'MACOSX_CODESIGNING_IDENTITY'}) && $ENV{'MACOSX_CODESIGNING_IDENTITY'} ne "" )
+            my $subdir = "$tempdir/$packagename/$volume_name_classic_app.app/Contents/Resources";
+            if ( ! -d $subdir ) { installer::systemactions::create_directory($subdir); }
+            # iterate over OS X localizations
+            foreach $lang ("ca", "cs", "da", "de", "el", "en", "es", "fi", "fr", "hr", "hu", "id", "it", "ja", "ko", "ms", "nl", "no", "pl", "pt", "pt_PT", "ro", "ru", "sk", "sv", "th", "tr", "uk", "vi", "zh_CN", "zh_TW")
+            {
+                installer::systemactions::create_directory($subdir . "/" . $lang . ".lproj");
+            }
+            if ( defined($ENV{'MACOSX_CODESIGNING_IDENTITY'}) && $ENV{'MACOSX_CODESIGNING_IDENTITY'} ne "" )
             {
                 $systemcall = "$ENV{'SRCDIR'}/solenv/bin/macosx-codesign-app-bundle $localtempdir/$folder/$volume_name_classic_app.app";
                 print "... $systemcall ...\n";
@@ -433,9 +423,10 @@ sub create_package
             }
         }
 
-        # makehybrid doesn't preserve extended attributes (needed when codesigning data files like .jar)
-        # unfortunately this method is slower than makehybrid followed by convert
-        $systemcall = "cd $localtempdir && hdiutil create -srcfolder $folder -volname \"$volume_name\" -ov -format UDBZ $archive";
+        $systemcall = "cd $localtempdir && hdiutil create -srcfolder $folder $archive -ov -fs HFS+ -volname \"$volume_name\" -format UDBZ";
+        if (( $ref ne "" ) && ( $$ref ne "" )) {
+            $systemcall .= " && hdiutil unflatten $archive && Rez -a $$ref -o $archive && hdiutil flatten $archive &&";
+        }
     }
     else
     {
@@ -679,7 +670,7 @@ sub create_simple_package
     my $extensionfolder = get_extensions_dir($subfolderdir);
     installer::systemactions::remove_empty_dirs_in_folder($extensionfolder);
 
-    if ( $installer::globals::compiler =~ /^unxmacx/ )
+    if ( $installer::globals::platformid eq 'macosx_x86_64' )
     {
         installer::worker::put_scpactions_into_installset("$installdir/$packagename");
     }

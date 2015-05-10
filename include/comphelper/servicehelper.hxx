@@ -31,7 +31,7 @@ private:
 public:
     UnoTunnelIdInit() : m_aSeq(16)
     {
-        rtl_createUuid( (sal_uInt8*)m_aSeq.getArray(), 0, sal_True );
+        rtl_createUuid( reinterpret_cast<sal_uInt8*>(m_aSeq.getArray()), 0, sal_True );
     }
     const ::com::sun::star::uno::Sequence< sal_Int8 >& getSeq() const { return m_aSeq; }
 };
@@ -46,14 +46,14 @@ public:
     Usage:
         Put a UNO3_GETIMPLEMENTATION_DECL( classname ) inside your class
         definitian and UNO3_GETIMPLEMENTATION_IMPL( classname ) inside
-        your cxx file. Your class must inherit ::com::sun::star::uno::XUnoTunnel
+        your cxx file. Your class must inherit ::com::sun::star::lang::XUnoTunnel
         and export it with queryInterface. Implementation of XUnoTunnel is
         done by this macro.
 */
 #define UNO3_GETIMPLEMENTATION_DECL( classname ) \
     static const ::com::sun::star::uno::Sequence< sal_Int8 > & getUnoTunnelId() throw(); \
     static classname* getImplementation( const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XInterface >& xInt ); \
-    virtual sal_Int64 SAL_CALL getSomething( const ::com::sun::star::uno::Sequence< sal_Int8 >& aIdentifier ) throw(::com::sun::star::uno::RuntimeException);
+    virtual sal_Int64 SAL_CALL getSomething( const ::com::sun::star::uno::Sequence< sal_Int8 >& aIdentifier ) throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
 #define UNO3_GETIMPLEMENTATION_BASE_IMPL( classname ) \
 namespace \
@@ -76,7 +76,7 @@ classname* classname::getImplementation( const uno::Reference< uno::XInterface >
 
 #define UNO3_GETIMPLEMENTATION_IMPL( classname )\
 UNO3_GETIMPLEMENTATION_BASE_IMPL(classname)\
-sal_Int64 SAL_CALL classname::getSomething( const ::com::sun::star::uno::Sequence< sal_Int8 >& rId ) throw(::com::sun::star::uno::RuntimeException) \
+sal_Int64 SAL_CALL classname::getSomething( const ::com::sun::star::uno::Sequence< sal_Int8 >& rId ) throw(::com::sun::star::uno::RuntimeException, std::exception) \
 { \
     if( rId.getLength() == 16 && 0 == memcmp( getUnoTunnelId().getConstArray(), \
                                                          rId.getConstArray(), 16 ) ) \
@@ -88,7 +88,7 @@ sal_Int64 SAL_CALL classname::getSomething( const ::com::sun::star::uno::Sequenc
 
 #define UNO3_GETIMPLEMENTATION2_IMPL( classname, baseclass )\
 UNO3_GETIMPLEMENTATION_BASE_IMPL(classname)\
-sal_Int64 SAL_CALL classname::getSomething( const ::com::sun::star::uno::Sequence< sal_Int8 >& rId ) throw(::com::sun::star::uno::RuntimeException) \
+sal_Int64 SAL_CALL classname::getSomething( const ::com::sun::star::uno::Sequence< sal_Int8 >& rId ) throw(::com::sun::star::uno::RuntimeException, std::exception) \
 { \
     if( rId.getLength() == 16 && 0 == memcmp( getUnoTunnelId().getConstArray(), \
                                                          rId.getConstArray(), 16 ) ) \

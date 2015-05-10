@@ -16,144 +16,158 @@
  *   except in compliance with the License. You may obtain a copy of
  *   the License at http://www.apache.org/licenses/LICENSE-2.0 .
  */
+
 #ifndef INCLUDED_TOOLS_LINK_HXX
 #define INCLUDED_TOOLS_LINK_HXX
 
-#include <tools/toolsdllapi.h>
 #include <sal/config.h>
+
 #include <sal/types.h>
-#include <tools/solar.h>
 
-typedef sal_IntPtr (*PSTUB)( void*, void* );
+#define DECL_LINK(Member, ArgType) \
+    static sal_IntPtr LinkStub##Member(void *, void *); \
+    sal_IntPtr Member(ArgType)
 
-#define DECL_LINK( Method, ArgType ) \
-    sal_IntPtr Method( ArgType ); \
-    static sal_IntPtr LinkStub##Method( void* pThis, void* )
+#define DECL_STATIC_LINK(Class, Member, ArgType) \
+    static sal_IntPtr LinkStub##Member(void *, void *); \
+    static sal_IntPtr Member(Class *, ArgType)
 
-#define DECL_STATIC_LINK( Class, Method, ArgType ) \
-    static sal_IntPtr LinkStub##Method( void* pThis, void* ); \
-    static sal_IntPtr Method( Class*, ArgType )
+#define DECL_DLLPRIVATE_LINK(Member, ArgType) \
+    SAL_DLLPRIVATE static sal_IntPtr LinkStub##Member(void *, void *); \
+    SAL_DLLPRIVATE sal_IntPtr Member(ArgType)
 
-#define DECL_DLLPRIVATE_LINK(Method, ArgType) \
-    SAL_DLLPRIVATE sal_IntPtr Method(ArgType); \
-    SAL_DLLPRIVATE static sal_IntPtr LinkStub##Method(void * pThis, void *)
+#define DECL_DLLPRIVATE_STATIC_LINK(Class, Member, ArgType) \
+    SAL_DLLPRIVATE static sal_IntPtr LinkStub##Member(void *, void *); \
+    SAL_DLLPRIVATE static sal_IntPtr Member(Class *, ArgType)
 
-#define DECL_DLLPRIVATE_STATIC_LINK(Class, Method, ArgType) \
-    SAL_DLLPRIVATE static sal_IntPtr LinkStub##Method( void* pThis, void* ); \
-    SAL_DLLPRIVATE static sal_IntPtr Method(Class *, ArgType)
-
-#define IMPL_STUB(Class, Method, ArgType) \
-    sal_IntPtr Class::LinkStub##Method( void* pThis, void* pCaller) \
-    { \
-        return static_cast<Class*>(pThis)->Method( static_cast<ArgType>(pCaller) ); \
-    }
-
-#define IMPL_STATIC_LINK( Class, Method, ArgType, ArgName ) \
-    sal_IntPtr Class::LinkStub##Method( void* pThis, void* pCaller) \
-    { \
-        return Method( static_cast<Class*>(pThis), static_cast<ArgType>(pCaller) ); \
+#define IMPL_LINK(Class, Member, ArgType, ArgName) \
+    sal_IntPtr Class::LinkStub##Member(void * instance, void * data) { \
+        return static_cast<Class *>(instance)->Member( \
+            static_cast<ArgType>(data)); \
     } \
-    sal_IntPtr Class::Method( Class* pThis, ArgType ArgName )
+    sal_IntPtr Class::Member(ArgType ArgName)
 
-#define IMPL_STATIC_LINK_NOINSTANCE( Class, Method, ArgType, ArgName ) \
-    sal_IntPtr Class::LinkStub##Method( void* pThis, void* pCaller) \
-    { \
-        return Method( static_cast<Class*>(pThis), static_cast<ArgType>(pCaller) ); \
+#define IMPL_LINK_NOARG(Class, Member) \
+    sal_IntPtr Class::LinkStub##Member(void * instance, void * data) { \
+        return static_cast<Class *>(instance)->Member(data); \
     } \
-    sal_IntPtr Class::Method( SAL_UNUSED_PARAMETER Class*, ArgType ArgName )
+    sal_IntPtr Class::Member(SAL_UNUSED_PARAMETER void *)
 
-#define IMPL_STATIC_LINK_NOINSTANCE_NOARG( Class, Method ) \
-    sal_IntPtr Class::LinkStub##Method( void* pThis, void* pCaller) \
-    { \
-        return Method( static_cast<Class*>(pThis), pCaller ); \
+#define IMPL_STATIC_LINK(Class, Member, ArgType, ArgName) \
+    sal_IntPtr Class::LinkStub##Member(void * instance, void * data) { \
+        return Member( \
+            static_cast<Class *>(instance), static_cast<ArgType>(data)); \
     } \
-    sal_IntPtr Class::Method( SAL_UNUSED_PARAMETER Class*, SAL_UNUSED_PARAMETER void* )
+    sal_IntPtr Class::Member(Class * pThis, ArgType ArgName)
 
-#define LINK( Inst, Class, Member ) \
-    Link( static_cast<Class*>(Inst), &Class::LinkStub##Member )
+#define IMPL_STATIC_LINK_NOINSTANCE(Class, Member, ArgType, ArgName) \
+    sal_IntPtr Class::LinkStub##Member(void * instance, void * data) { \
+        return Member( \
+            static_cast<Class *>(instance), static_cast<ArgType>(data)); \
+    } \
+    sal_IntPtr Class::Member(SAL_UNUSED_PARAMETER Class *, ArgType ArgName)
 
-#define STATIC_LINK( Inst, Class, Member ) LINK(Inst, Class, Member)
+#define IMPL_STATIC_LINK_NOINSTANCE_NOARG(Class, Member) \
+    sal_IntPtr Class::LinkStub##Member(void * instance, void * data) { \
+        return Member(static_cast<Class *>(instance), data); \
+    } \
+    sal_IntPtr Class::Member( \
+        SAL_UNUSED_PARAMETER Class *, SAL_UNUSED_PARAMETER void *)
 
-#define IMPL_LINK( Class, Method, ArgType, ArgName ) \
-    IMPL_STUB( Class, Method, ArgType ) \
-    sal_IntPtr Class::Method( ArgType ArgName )
+#define DECL_LINK_TYPED(Member, ArgType, RetType) \
+    static RetType LinkStub##Member(void *, ArgType); \
+    RetType Member(ArgType)
 
-#define IMPL_LINK_NOARG( Class, Method ) \
-    IMPL_STUB( Class, Method, void* ) \
-    sal_IntPtr Class::Method( SAL_UNUSED_PARAMETER void* )
+#define DECL_STATIC_LINK_TYPED(Class, Member, ArgType, RetType) \
+    static RetType LinkStub##Member(void *, ArgType); \
+    static RetType Member(Class *, ArgType)
 
-#define IMPL_LINK_INLINE_START( Class, Method, ArgType, ArgName ) \
-    inline sal_IntPtr Class::Method( ArgType ArgName )
+#define DECL_DLLPRIVATE_LINK_TYPED(Member, ArgType, RetType) \
+    SAL_DLLPRIVATE static RetType LinkStub##Member(void *, ArgType); \
+    SAL_DLLPRIVATE RetType Member(ArgType)
 
-#define IMPL_LINK_INLINE_END( Class, Method, ArgType, ArgName ) \
-    IMPL_STUB( Class, Method, ArgType )
+#define DECL_DLLPRIVATE_STATIC_LINK_TYPED(Class, Member, ArgType, RetType) \
+    SAL_DLLPRIVATE static RetType LinkStub##Member(void *, ArgType); \
+    SAL_DLLPRIVATE static RetType Member(Class *, ArgType)
 
-#define IMPL_LINK_NOARG_INLINE_START( Class, Method ) \
-    inline sal_IntPtr Class::Method( SAL_UNUSED_PARAMETER void* )
+#define IMPL_LINK_TYPED(Class, Member, ArgType, ArgName, RetType) \
+    RetType Class::LinkStub##Member(void * instance, ArgType data) { \
+        return static_cast<Class *>(instance)->Member(data); \
+    } \
+    RetType Class::Member(ArgType ArgName)
 
-#define IMPL_LINK_NOARG_INLINE_END( Class, Method ) \
-    IMPL_STUB( Class, Method, void* )
+#define IMPL_LINK_NOARG_TYPED(Class, Member, ArgType, RetType) \
+    RetType Class::LinkStub##Member(void * instance, ArgType data) { \
+        return static_cast<Class *>(instance)->Member(data); \
+    } \
+    RetType Class::Member(SAL_UNUSED_PARAMETER ArgType)
 
-#define IMPL_LINK_INLINE( Class, Method, ArgType, ArgName, Body ) \
-    sal_IntPtr Class::Method( ArgType ArgName ) \
-    Body \
-    IMPL_STUB( Class, Method, ArgType )
+#define IMPL_STATIC_LINK_TYPED(Class, Member, ArgType, ArgName, RetType) \
+    RetType Class::LinkStub##Member(void * instance, ArgType data) { \
+        return Member(static_cast<Class *>(instance), data); \
+    } \
+    RetType Class::Member(Class * pThis, ArgType ArgName)
+
+#define IMPL_STATIC_LINK_NOINSTANCE_TYPED( \
+        Class, Member, ArgType, ArgName, RetType) \
+    RetType Class::LinkStub##Member(void * instance, ArgType data) { \
+        return Member(static_cast<Class *>(instance), data); \
+    } \
+    RetType Class::Member(SAL_UNUSED_PARAMETER Class *, ArgType ArgName)
+
+#define IMPL_STATIC_LINK_NOINSTANCE_NOARG_TYPED( \
+        Class, Member, ArgType, RetType) \
+    RetType Class::LinkStub##Member(void * instance, ArgType data) { \
+        return Member(static_cast<Class *>(instance), data); \
+    } \
+    RetType Class::Member( \
+        SAL_UNUSED_PARAMETER Class *, SAL_UNUSED_PARAMETER ArgType)
+
+#define LINK(Instance, Class, Member) ::tools::detail::makeLink( \
+    static_cast<Class *>(Instance), &Class::LinkStub##Member)
 
 #define EMPTYARG
 
-class TOOLS_DLLPUBLIC Link
-{
-    void*       pInst;
-    PSTUB       pFunc;
-
+template<typename Arg = void *, typename Ret = sal_IntPtr> class Link {
 public:
-                Link();
-                Link( void* pLinkHdl, PSTUB pMemFunc );
+    typedef Ret Stub(void *, Arg);
 
-    sal_IntPtr      Call( void* pCaller ) const;
+    Link(): function_(nullptr), instance_(nullptr) {}
 
-    bool            IsSet() const;
-    bool            operator !() const;
+    Link(void * instance, Stub * function):
+        function_(function), instance_(instance) {}
 
-    bool            operator==( const Link& rLink ) const;
-    bool            operator!=( const Link& rLink ) const
-                    { return !(Link::operator==( rLink )); }
-    bool            operator<( const Link& rLink ) const
-                    { return reinterpret_cast<sal_uIntPtr>(rLink.pFunc) < reinterpret_cast<sal_uIntPtr>(pFunc); }
+    Ret Call(Arg data) const
+    { return function_ == nullptr ? Ret() : (*function_)(instance_, data); }
+
+    bool IsSet() const { return function_ != nullptr; }
+
+    bool operator !() const { return !IsSet(); }
+
+    bool operator <(Link const & other) const {
+        return reinterpret_cast<sal_uIntPtr>(function_)
+            < reinterpret_cast<sal_uIntPtr>(other.function_);
+    };
+
+    bool operator ==(Link const & other) const
+    { return function_ == other.function_ && instance_ == other.instance_; };
+
+    bool operator !=(Link const & other) const { return !operator ==(other); };
+    void *GetInstance() const { return instance_; }
+
+private:
+    Stub * function_;
+    void * instance_;
 };
 
-inline Link::Link()
-{
-    pInst = 0;
-    pFunc = 0;
+namespace tools { namespace detail {
+
+template<typename Arg, typename Ret>
+Link<Arg, Ret> makeLink(void * instance, Ret (* function)(void *, Arg)) {
+    return Link<Arg, Ret>(instance, function);
 }
 
-inline Link::Link( void* pLinkHdl, PSTUB pMemFunc )
-{
-    pInst = pLinkHdl;
-    pFunc = pMemFunc;
-}
-
-inline sal_IntPtr Link::Call(void *pCaller) const
-{
-    return pFunc ? (*pFunc)(pInst, pCaller) : 0;
-}
-
-inline bool Link::IsSet() const
-{
-    if ( pFunc )
-        return true;
-    else
-        return false;
-}
-
-inline bool Link::operator !() const
-{
-    if ( !pFunc )
-        return true;
-    else
-        return false;
-}
+} }
 
 #endif
 

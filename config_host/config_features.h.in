@@ -43,6 +43,18 @@
 
 #define HAVE_FEATURE_X11 0
 
+/* AVMEDIA - Whether to have functionality to display and manipulate
+ * embedded AV media in documents
+ */
+
+#define HAVE_FEATURE_AVMEDIA 0
+
+/* DBCONNECTIVITY - Whether to have functionality to connect to
+ * databases.
+ */
+
+#define HAVE_FEATURE_DBCONNECTIVITY 0
+
 /* EXTENSIONS - Whether we have any extension mechanism at all
  *
  * Primarily intended for non-desktop platforms where supporting
@@ -52,7 +64,17 @@
 
 #define HAVE_FEATURE_EXTENSIONS 0
 
-/* MULTIUSER_ENVIRONMENT - Wheter running on a "normal" multi-user
+/* SCRIPTING - Whether we have any mechanism to execute user-provided scripts
+ *
+ * Primarily intended for the iOS App Store where the
+ * rules prohibit user-accessible scripting features.
+ * Sure, it would be nice to still be able to have internal features
+ * implemented in some scripting language. Later, if necessary.
+ */
+
+#define HAVE_FEATURE_SCRIPTING 0
+
+/* MULTIUSER_ENVIRONMENT - Whether running on a "normal" multi-user
  * desktop (or server) OS
  *
  * Non-MULTIUSER implies that the OS makes sure that only one
@@ -95,17 +117,6 @@
 
 #define HAVE_FEATURE_MACOSX_SANDBOX 0
 
-/* MACOSX_MACLIKE_APP_STRUCTURE - LibreOffice.app substructure style
- *
- * Whether the structure of the LibreOffice.app bundle is more
- * "Mac-like" and what it has been previously, for instance with all
- * dylibs in the "Frameworks" folder and all non-code data in a the
- * "Resources" folder. For now coupled to HAVE_FEATURE_MACOSX_SANDBOX
- * in configure.ac.
- */
-
-#define HAVE_FEATURE_MACOSX_MACLIKE_APP_STRUCTURE 0
-
 /* READONLY_INSTALLSET - whether to treat the installation as read-only
  *
  * Prevents attempts by LibreOffice to write into its installation. That means
@@ -119,5 +130,20 @@
  * Whether FreeType has FT_Face_GetCharVariantIndex or not.
  */
 #define HAVE_FT_FACE_GETCHARVARIANTINDEX 0
+
+/*
+ * Whether to use validation on files.
+ */
+#define HAVE_EXPORT_VALIDATION 0
+
+/*
+ * Whether we have glTF support.
+ */
+#define HAVE_FEATURE_GLTF 0
+
+/*
+ * Whether we have COLLADA support.
+ */
+#define HAVE_FEATURE_COLLADA 0
 
 #endif

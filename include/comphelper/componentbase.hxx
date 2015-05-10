@@ -23,14 +23,14 @@
 #include <comphelper/comphelperdllapi.h>
 #include <cppuhelper/interfacecontainer.hxx>
 
-//........................................................................
+
 namespace comphelper
 {
-//........................................................................
 
-    //====================================================================
+
+
     //= ComponentBase
-    //====================================================================
+
     class COMPHELPER_DLLPUBLIC ComponentBase
     {
     protected:
@@ -100,8 +100,8 @@ namespace comphelper
 
             The default implementation returns <NULL/>.
         */
-        virtual ::com::sun::star::uno::Reference< ::com::sun::star::uno::XInterface >
-                getComponent() const;
+        static ::com::sun::star::uno::Reference< ::com::sun::star::uno::XInterface >
+                getComponent();
 
     private:
         ::cppu::OBroadcastHelper&   m_rBHelper;
@@ -145,9 +145,9 @@ namespace comphelper
         ::osl::ResettableMutexGuard   m_aMutexGuard;
     };
 
-//........................................................................
+
 } // namespace ComponentBase
-//........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_COMPONENTBASE_HXX
 

@@ -20,84 +20,29 @@
 #ifndef INCLUDED_COMPHELPER_UNO3_HXX
 #define INCLUDED_COMPHELPER_UNO3_HXX
 
-#include <osl/interlck.h>
 #include <rtl/instance.hxx>
 #include <comphelper/types.hxx>
 #include <com/sun/star/uno/XAggregation.hpp>
 #include <comphelper/sequence.hxx>
 #include <cppuhelper/typeprovider.hxx>
 
-//.........................................................................
+
 namespace comphelper
 {
-//.........................................................................
-
-//=========================================================================
-
-    /// manipulate ref counts without calling acquire/release
-    inline oslInterlockedCount increment(oslInterlockedCount& _counter) { return osl_atomic_increment(&_counter); }
-    inline oslInterlockedCount decrement(oslInterlockedCount& _counter) { return osl_atomic_decrement(&_counter); }
-
-//=========================================================================
-
     /** used for declaring UNO3-Defaults, i.e. acquire/release
     */
     #define DECLARE_UNO3_DEFAULTS(classname, baseclass) \
-        virtual void    SAL_CALL acquire() throw() { baseclass::acquire(); }    \
-        virtual void    SAL_CALL release() throw() { baseclass::release(); }    \
-        void            SAL_CALL PUT_SEMICOLON_AT_THE_END()
+        virtual void    SAL_CALL acquire() throw() SAL_OVERRIDE { baseclass::acquire(); }    \
+        virtual void    SAL_CALL release() throw() SAL_OVERRIDE { baseclass::release(); }
 
     /** used for declaring UNO3-Defaults, i.e. acquire/release if you want to forward all queryInterfaces to the base class,
-        (e.g. if you overload queryAggregation)
+        (e.g. if you override queryAggregation)
     */
     #define DECLARE_UNO3_AGG_DEFAULTS(classname, baseclass) \
-        virtual void            SAL_CALL acquire() throw() { baseclass::acquire(); } \
-        virtual void            SAL_CALL release() throw() { baseclass::release(); }    \
-        virtual ::com::sun::star::uno::Any  SAL_CALL queryInterface(const ::com::sun::star::uno::Type& _rType) throw (::com::sun::star::uno::RuntimeException) \
-            { return baseclass::queryInterface(_rType); } \
-        void                    SAL_CALL PUT_SEMICOLON_AT_THE_END()
-
-    /** Use this macro to forward XComponent methods to base class
-
-        When using the ::cppu::WeakComponentImplHelper base classes to
-        implement a UNO interface, a problem occurs when the interface
-        itself already derives from XComponent (like e.g. awt::XWindow
-        or awt::XControl): ::cppu::WeakComponentImplHelper is then
-        still abstract. Using this macro in the most derived class
-        definition provides overrides for the XComponent methods,
-        forwarding them to the given baseclass.
-
-        @param classname
-        Name of the class this macro is issued within
-
-        @param baseclass
-        Name of the baseclass that should have the XInterface methods
-        forwarded to - that's usually the WeakComponentImplHelperN base
-
-        @param implhelper
-        Name of the baseclass that should have the XComponent methods
-        forwarded to - in the case of the WeakComponentImplHelper,
-        that would be ::cppu::WeakComponentImplHelperBase
-    */
-    #define DECLARE_UNO3_XCOMPONENT_DEFAULTS(classname, baseclass, implhelper) \
-        virtual void SAL_CALL acquire() throw() { baseclass::acquire(); }   \
-        virtual void SAL_CALL release() throw() { baseclass::release(); }   \
-        virtual void SAL_CALL dispose() throw (::com::sun::star::uno::RuntimeException) \
-        {                                                                               \
-            implhelper::dispose();                                                      \
-        }                                                                               \
-        virtual void SAL_CALL addEventListener(                                         \
-            ::com::sun::star::uno::Reference< ::com::sun::star::lang::XEventListener > const & xListener ) throw (::com::sun::star::uno::RuntimeException) \
-        {                                                                               \
-            implhelper::addEventListener(xListener);                                        \
-        }                                                                               \
-        virtual void SAL_CALL removeEventListener(                                      \
-            ::com::sun::star::uno::Reference< ::com::sun::star::lang::XEventListener > const & xListener ) throw (::com::sun::star::uno::RuntimeException) \
-        {                                                                               \
-            implhelper::removeEventListener(xListener);                                 \
-        }                                                                               \
-        void         SAL_CALL PUT_SEMICOLON_AT_THE_END()
-
+        virtual void            SAL_CALL acquire() throw() SAL_OVERRIDE { baseclass::acquire(); } \
+        virtual void            SAL_CALL release() throw() SAL_OVERRIDE { baseclass::release(); }    \
+        virtual ::com::sun::star::uno::Any  SAL_CALL queryInterface(const ::com::sun::star::uno::Type& _rType) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE \
+            { return baseclass::queryInterface(_rType); }
 
     /** Use this macro to forward XComponent methods to base class
 
@@ -122,36 +67,33 @@ namespace comphelper
         that would be ::cppu::WeakComponentImplHelperBase
     */
     #define DECLARE_UNO3_XCOMPONENT_AGG_DEFAULTS(classname, baseclass, implhelper) \
-        virtual void SAL_CALL acquire() throw() { baseclass::acquire(); }   \
-        virtual void SAL_CALL release() throw() { baseclass::release(); }   \
-        virtual ::com::sun::star::uno::Any  SAL_CALL queryInterface(const ::com::sun::star::uno::Type& _rType) throw (::com::sun::star::uno::RuntimeException) \
+        virtual void SAL_CALL acquire() throw() SAL_OVERRIDE { baseclass::acquire(); }   \
+        virtual void SAL_CALL release() throw() SAL_OVERRIDE { baseclass::release(); }   \
+        virtual ::com::sun::star::uno::Any  SAL_CALL queryInterface(const ::com::sun::star::uno::Type& _rType) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE \
             { return baseclass::queryInterface(_rType); }                               \
-        virtual void SAL_CALL dispose() throw (::com::sun::star::uno::RuntimeException) \
+        virtual void SAL_CALL dispose() throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE \
         {                                                                               \
             implhelper::dispose();                                                      \
         }                                                                               \
         virtual void SAL_CALL addEventListener(                                         \
-            ::com::sun::star::uno::Reference< ::com::sun::star::lang::XEventListener > const & xListener ) throw (::com::sun::star::uno::RuntimeException) \
+            ::com::sun::star::uno::Reference< ::com::sun::star::lang::XEventListener > const & xListener ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE \
         {                                                                               \
             implhelper::addEventListener(xListener);                                        \
         }                                                                               \
         virtual void SAL_CALL removeEventListener(                                      \
-            ::com::sun::star::uno::Reference< ::com::sun::star::lang::XEventListener > const & xListener ) throw (::com::sun::star::uno::RuntimeException) \
+            ::com::sun::star::uno::Reference< ::com::sun::star::lang::XEventListener > const & xListener ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE \
         {                                                                               \
             implhelper::removeEventListener(xListener);                                 \
-        }                                                                               \
-        void         SAL_CALL PUT_SEMICOLON_AT_THE_END()
+        }
 
-
-    //=====================================================================
     //= deriving from multiple XInterface-derived classes
-    //=====================================================================
+
     //= forwarding/merging XInterface funtionality
-    //=====================================================================
+
     #define DECLARE_XINTERFACE( )   \
-        virtual ::com::sun::star::uno::Any SAL_CALL queryInterface( const ::com::sun::star::uno::Type& aType ) throw (::com::sun::star::uno::RuntimeException); \
-        virtual void SAL_CALL acquire() throw(); \
-        virtual void SAL_CALL release() throw();
+        virtual ::com::sun::star::uno::Any SAL_CALL queryInterface( const ::com::sun::star::uno::Type& aType ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE; \
+        virtual void SAL_CALL acquire() throw() SAL_OVERRIDE; \
+        virtual void SAL_CALL release() throw() SAL_OVERRIDE;
 
     #define IMPLEMENT_FORWARD_REFCOUNT( classname, refcountbase ) \
         void SAL_CALL classname::acquire() throw() { refcountbase::acquire(); } \
@@ -159,7 +101,7 @@ namespace comphelper
 
     #define IMPLEMENT_FORWARD_XINTERFACE2( classname, refcountbase, baseclass2 ) \
         IMPLEMENT_FORWARD_REFCOUNT( classname, refcountbase ) \
-        ::com::sun::star::uno::Any SAL_CALL classname::queryInterface( const ::com::sun::star::uno::Type& _rType ) throw (::com::sun::star::uno::RuntimeException) \
+        ::com::sun::star::uno::Any SAL_CALL classname::queryInterface( const ::com::sun::star::uno::Type& _rType ) throw (::com::sun::star::uno::RuntimeException, std::exception) \
         { \
             ::com::sun::star::uno::Any aReturn = refcountbase::queryInterface( _rType ); \
             if ( !aReturn.hasValue() ) \
@@ -169,7 +111,7 @@ namespace comphelper
 
     #define IMPLEMENT_FORWARD_XINTERFACE3( classname, refcountbase, baseclass2, baseclass3 ) \
         IMPLEMENT_FORWARD_REFCOUNT( classname, refcountbase ) \
-        ::com::sun::star::uno::Any SAL_CALL classname::queryInterface( const ::com::sun::star::uno::Type& _rType ) throw (::com::sun::star::uno::RuntimeException) \
+        ::com::sun::star::uno::Any SAL_CALL classname::queryInterface( const ::com::sun::star::uno::Type& _rType ) throw (::com::sun::star::uno::RuntimeException, std::exception) \
         { \
             ::com::sun::star::uno::Any aReturn = refcountbase::queryInterface( _rType ); \
             if ( !aReturn.hasValue() ) \
@@ -181,25 +123,21 @@ namespace comphelper
             return aReturn; \
         }
 
-    //=====================================================================
+
     //= forwarding/merging XTypeProvider funtionality
-    //=====================================================================
+
     #define DECLARE_XTYPEPROVIDER( )    \
-        virtual ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Type > SAL_CALL getTypes(  ) throw (::com::sun::star::uno::RuntimeException); \
-        virtual ::com::sun::star::uno::Sequence< sal_Int8 > SAL_CALL getImplementationId(  ) throw (::com::sun::star::uno::RuntimeException);
+        virtual ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Type > SAL_CALL getTypes(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE; \
+        virtual ::com::sun::star::uno::Sequence< sal_Int8 > SAL_CALL getImplementationId(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
     #define IMPLEMENT_GET_IMPLEMENTATION_ID( classname ) \
-        namespace \
+        ::com::sun::star::uno::Sequence< sal_Int8 > SAL_CALL classname::getImplementationId(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) \
         { \
-            class the##classname##ImplementationId : public rtl::Static< ::cppu::OImplementationId, the##classname##ImplementationId> {}; \
-        } \
-        ::com::sun::star::uno::Sequence< sal_Int8 > SAL_CALL classname::getImplementationId(  ) throw (::com::sun::star::uno::RuntimeException) \
-        { \
-            return the##classname##ImplementationId::get().getImplementationId(); \
+            return css::uno::Sequence<sal_Int8>(); \
         }
 
     #define IMPLEMENT_FORWARD_XTYPEPROVIDER2( classname, baseclass1, baseclass2 ) \
-        ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Type > SAL_CALL classname::getTypes(  ) throw (::com::sun::star::uno::RuntimeException) \
+        ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Type > SAL_CALL classname::getTypes(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) \
         { \
             return ::comphelper::concatSequences( \
                 baseclass1::getTypes(), \
@@ -210,7 +148,7 @@ namespace comphelper
         IMPLEMENT_GET_IMPLEMENTATION_ID( classname )
 
     #define IMPLEMENT_FORWARD_XTYPEPROVIDER3( classname, baseclass1, baseclass2, baseclass3 ) \
-        ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Type > SAL_CALL classname::getTypes(  ) throw (::com::sun::star::uno::RuntimeException) \
+        ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Type > SAL_CALL classname::getTypes(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) \
         { \
             return ::comphelper::concatSequences( \
                 baseclass1::getTypes(), \
@@ -221,7 +159,7 @@ namespace comphelper
         \
         IMPLEMENT_GET_IMPLEMENTATION_ID( classname )
 
-//=========================================================================
+
 
     /** ask for an iface of an aggregated object
         usage:<br/>
@@ -230,45 +168,20 @@ namespace comphelper
                 ....
     */
     template <class iface>
-    sal_Bool query_aggregation(const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XAggregation >& _rxAggregate, ::com::sun::star::uno::Reference<iface>& _rxOut)
+    bool query_aggregation(const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XAggregation >& _rxAggregate, ::com::sun::star::uno::Reference<iface>& _rxOut)
     {
         _rxOut = static_cast<iface*>(NULL);
         if (_rxAggregate.is())
         {
             ::com::sun::star::uno::Any aCheck = _rxAggregate->queryAggregation(
-                iface::static_type());
+                cppu::UnoType<iface>::get());
             if (aCheck.hasValue())
-                _rxOut = *(::com::sun::star::uno::Reference<iface>*)aCheck.getValue();
+                _rxOut = *static_cast<const ::com::sun::star::uno::Reference<iface>*>(aCheck.getValue());
         }
         return _rxOut.is();
     }
-
-    /** ask for an iface of an object
-        usage:<br/>
-            Reference<XFoo> xFoo;<br/>
-            if (query_interface(xAnything, xFoo))<br/>
-                ....
-    */
-    template <class iface>
-    sal_Bool query_interface(const InterfaceRef& _rxObject, ::com::sun::star::uno::Reference<iface>& _rxOut)
-    {
-        _rxOut = static_cast<iface*>(NULL);
-        if (_rxObject.is())
-        {
-            ::com::sun::star::uno::Any aCheck = _rxObject->queryInterface(
-                iface::static_type());
-            if(aCheck.hasValue())
-            {
-                _rxOut = *(::com::sun::star::uno::Reference<iface>*)aCheck.getValue();
-                return _rxOut.is();
-            }
-        }
-        return sal_False;
-    }
-
-//.........................................................................
 }   // namespace comphelper
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_UNO3_HXX
 

@@ -13,20 +13,7 @@
 
 # platform
 #  gb_UnpackedTarget_TARFILE_LOCATION
-
-gb_UnpackedTarget_STRIP_COMPONENTS_TAR_DEFAULT := 1
-gb_UnpackedTarget_STRIP_COMPONENTS_ZIP_DEFAULT := 0
-
-# gb_UnpackedTarget__get_strip_components target strip-components?
-define gb_UnpackedTarget__get_strip_components
-$(strip $(if $(2),\
-	$(2),\
-	$(if $(filter zip,$(suffix $(1))),\
-		$(gb_UnpackedTarget_STRIP_COMPONENTS_ZIP_DEFAULT),\
-		$(gb_UnpackedTarget_STRIP_COMPONENTS_TAR_DEFAULT) \
-	) \
-))
-endef
+#   NOTE: only for commands; targets should use TARFILE_LOCATION directly
 
 define gb_UnpackedTarget__command_untar
 $(GNUTAR) \
@@ -64,6 +51,9 @@ $(dir $(call gb_UnpackedTarget_get_target,%)).dir :
 $(call gb_UnpackedTarget_get_target,%).tar.bz2 :
 	$(call gb_UnpackedTarget__command,untar,$@,$*,-j)
 
+$(call gb_UnpackedTarget_get_target,%).tar.xz :
+	$(call gb_UnpackedTarget__command,untar,$@,$*,-J)
+
 $(call gb_UnpackedTarget_get_target,%).tar.gz :
 	$(call gb_UnpackedTarget__command,untar,$@,$*,-z)
 
@@ -87,9 +77,9 @@ $(call gb_UnpackedTarget_get_clean_target,%) :
 define gb_UnpackedTarget_UnpackedTarget
 $(call gb_UnpackedTarget_get_target,$(1)) : UNPACKED_DIR := $(2)
 $(call gb_UnpackedTarget_get_target,$(1)) : UNPACKED_TARBALL := $(gb_UnpackedTarget_TARFILE_LOCATION)/$(1)
-$(call gb_UnpackedTarget_get_target,$(1)) : UNPACKED_STRIP_COMPONENTS := $(call gb_UnpackedTarget__get_strip_components,$(1),$(3))
+$(call gb_UnpackedTarget_get_target,$(1)) : UNPACKED_STRIP_COMPONENTS := $(if $(strip $(3)),$(strip $(3)),1)
 
-$(call gb_UnpackedTarget_get_target,$(1)) : $(gb_UnpackedTarget_TARFILE_LOCATION)/$(1)
+$(call gb_UnpackedTarget_get_target,$(1)) : $(TARFILE_LOCATION)/$(1)
 $(call gb_UnpackedTarget_get_target,$(1)) :| $(dir $(call gb_UnpackedTarget_get_target,$(1))).dir
 
 endef
@@ -205,7 +195,6 @@ $(call gb_UnpackedTarball_get_preparation_target,$(1)) : $(gb_Module_CURRENTMAKE
 $(call gb_UnpackedTarball_get_preparation_target,$(1)) :| $(dir $(call gb_UnpackedTarball_get_target,$(1))).dir
 $(call gb_UnpackedTarball_get_target,$(1)) : $(call gb_UnpackedTarball_get_preparation_target,$(1))
 $(call gb_UnpackedTarball_get_target,$(1)) :| $(dir $(call gb_UnpackedTarball_get_target,$(1))).dir
-$(warning $(call gb_UnpackedTarball_get_final_target,$(1)) :)
 $(call gb_UnpackedTarball_get_final_target,$(1)) : $(call gb_UnpackedTarball_get_target,$(1))
 
 private gb_UnpackedTarball_PATTERN_RULES_$(1) :=
@@ -214,7 +203,6 @@ endef
 
 # Define a new unpacked tarball
 define gb_UnpackedTarball_UnpackedTarball
-$(warning calling )
 $(call gb_UnpackedTarball_UnpackedTarball_internal,$(1))
 
 $$(eval $$(call gb_Module_register_target,$(call gb_UnpackedTarball_get_final_target,$(1)),$(call gb_UnpackedTarball_get_clean_target,$(1))))
@@ -244,8 +232,8 @@ $(call gb_UnpackedTarget_get_target,$(2)) : $(call gb_UnpackedTarball_get_prepar
 $(if $(findstring in,$(5)),
 $(call gb_UnpackedTarball_get_target,$(1)) : UNPACKED_IS_BIN_TARBALL := YES
 $(call gb_ExternalProject_get_state_target,$(1),%) : UNPACKED_IS_BIN_TARBALL := YES)
-$(if $(findstring out,$(5)),$(call gb_Module_get_target,$(4)) : $(gb_UnpackedTarget_TARFILE_LOCATION)/$(6)
-$(gb_UnpackedTarget_TARFILE_LOCATION)/$(6) : $(call gb_Module_get_nonl10n_target,$(4))
+$(if $(findstring out,$(5)),$(call gb_Module_get_target,$(4)) : $(TARFILE_LOCATION)/$(6)
+$(TARFILE_LOCATION)/$(6) : $(call gb_Module_get_nonl10n_target,$(4))
 	$$(call gb_Output_announce,$(6),$(true),PKB,3)
 	if test ! -f "$$@" ; then cd $(call gb_UnpackedTarball_get_dir,) && $(GNUTAR) -czf "$$@" $(1)/ || $(GNUTAR) -czf "$$@" $(1)/ ; else touch "$$@" ; fi)
 
@@ -255,7 +243,7 @@ endef
 #
 # gb_UnpackedTarball_set_tarball unpacked tarball-name
 define gb_UnpackedTarball_set_tarball
-$(if $(findstring YES,$(USE_LIBRARY_BIN_TAR)),
+$(if $(USE_LIBRARY_BIN_TAR),
 $(if $(4),
 $(if $(shell "$(SRCDIR)/solenv/bin/bin_library_info.sh" -l "$(gb_UnpackedTarget_TARFILE_LOCATION)" -o "$(4)" -b "$(BUILDDIR)" -s "$(SRCDIR)" -t "$(2)" -m verify -p "$(OS)_$(CPUNAME)"),
 $(call gb_UnpackedTarball_set_tarball_internal,$(1),$(shell "$(SRCDIR)/solenv/bin/bin_library_info.sh" -l "$(gb_UnpackedTarget_TARFILE_LOCATION)" -o "$(4)" -b "$(BUILDDIR)" -s "$(SRCDIR)" -t "$(2)" -m verify -p "$(OS)_$(CPUNAME)"),$(3),$(4),in),\
@@ -414,7 +402,7 @@ endef
 %.rebuild :
 	if [ -f $(call gb_UnpackedTarball_get_target,$*) ] ; then \
 		touch $(call gb_UnpackedTarball_get_target,$*) ; \
-		make ;\
+		$(MAKE) ;\
 	fi
 
 %.genpatch :
@@ -426,7 +414,7 @@ endef
 		    echo "Patch $$patch_file generated" ; \
 		); \
 	else \
-		echo "Error: No pristine tarball avaialable for $*" 1>&2 ; \
+		echo "Error: No pristine tarball available for $*" 1>&2 ; \
 	fi
 
 

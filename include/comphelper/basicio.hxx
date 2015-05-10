@@ -24,46 +24,44 @@
 #include <com/sun/star/awt/FontDescriptor.hpp>
 #include <comphelper/comphelperdllapi.h>
 
-//.........................................................................
+
 namespace comphelper
 {
-//.........................................................................
 
-namespace stario    = ::com::sun::star::io;
-namespace staruno   = ::com::sun::star::uno;
-namespace starawt   = ::com::sun::star::awt;
-
-// sal_Bool
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectInputStream>& operator >> (const staruno::Reference<stario::XObjectInputStream>& _rxInStream, sal_Bool& _rVal);
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectOutputStream>& operator << (const staruno::Reference<stario::XObjectOutputStream>& _rxOutStream, sal_Bool _bVal);
+// bool
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectInputStream>& operator >> (const css::uno::Reference<css::io::XObjectInputStream>& _rxInStream, bool& _rVal);
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectOutputStream>& operator << (const css::uno::Reference<css::io::XObjectOutputStream>& _rxOutStream, bool _bVal);
+void operator <<(
+    css::uno::Reference<css::io::XObjectOutputStream> const &, sal_Bool)
+    SAL_DELETED_FUNCTION;
 
 // OUString
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectInputStream>& operator >> (const staruno::Reference<stario::XObjectInputStream>& _rxInStream, OUString& _rStr);
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectOutputStream>& operator << (const staruno::Reference<stario::XObjectOutputStream>& _rxOutStream, const OUString& _rStr);
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectInputStream>& operator >> (const css::uno::Reference<css::io::XObjectInputStream>& _rxInStream, OUString& _rStr);
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectOutputStream>& operator << (const css::uno::Reference<css::io::XObjectOutputStream>& _rxOutStream, const OUString& _rStr);
 
 // sal_Int16
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectInputStream>& operator >> (const staruno::Reference<stario::XObjectInputStream>& _rxInStream, sal_Int16& _rValue);
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectOutputStream>& operator << (const staruno::Reference<stario::XObjectOutputStream>& _rxOutStream, sal_Int16 _nValue);
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectInputStream>& operator >> (const css::uno::Reference<css::io::XObjectInputStream>& _rxInStream, sal_Int16& _rValue);
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectOutputStream>& operator << (const css::uno::Reference<css::io::XObjectOutputStream>& _rxOutStream, sal_Int16 _nValue);
 
 // sal_uInt16
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectInputStream>& operator >> (const staruno::Reference<stario::XObjectInputStream>& _rxInStream, sal_uInt16& _rValue);
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectOutputStream>& operator << (const staruno::Reference<stario::XObjectOutputStream>& _rxOutStream, sal_uInt16 _nValue);
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectInputStream>& operator >> (const css::uno::Reference<css::io::XObjectInputStream>& _rxInStream, sal_uInt16& _rValue);
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectOutputStream>& operator << (const css::uno::Reference<css::io::XObjectOutputStream>& _rxOutStream, sal_uInt16 _nValue);
 
 // sal_uInt32
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectInputStream>& operator >> (const staruno::Reference<stario::XObjectInputStream>& _rxInStream, sal_uInt32& _rValue);
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectOutputStream>& operator << (const staruno::Reference<stario::XObjectOutputStream>& _rxOutStream, sal_uInt32 _nValue);
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectInputStream>& operator >> (const css::uno::Reference<css::io::XObjectInputStream>& _rxInStream, sal_uInt32& _rValue);
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectOutputStream>& operator << (const css::uno::Reference<css::io::XObjectOutputStream>& _rxOutStream, sal_uInt32 _nValue);
 
 // sal_Int16
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectInputStream>& operator >> (const staruno::Reference<stario::XObjectInputStream>& _rxInStream, sal_Int32& _rValue);
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectOutputStream>& operator << (const staruno::Reference<stario::XObjectOutputStream>& _rxOutStream, sal_Int32 _nValue);
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectInputStream>& operator >> (const css::uno::Reference<css::io::XObjectInputStream>& _rxInStream, sal_Int32& _rValue);
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectOutputStream>& operator << (const css::uno::Reference<css::io::XObjectOutputStream>& _rxOutStream, sal_Int32 _nValue);
 
 // FontDescriptor
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectInputStream>& operator >> (const staruno::Reference<stario::XObjectInputStream>& InStream, starawt::FontDescriptor& rVal);
-COMPHELPER_DLLPUBLIC const staruno::Reference<stario::XObjectOutputStream>& operator << (const staruno::Reference<stario::XObjectOutputStream>& OutStream, const starawt::FontDescriptor& rVal);
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectInputStream>& operator >> (const css::uno::Reference<css::io::XObjectInputStream>& InStream, css::awt::FontDescriptor& rVal);
+COMPHELPER_DLLPUBLIC const css::uno::Reference<css::io::XObjectOutputStream>& operator << (const css::uno::Reference<css::io::XObjectOutputStream>& OutStream, const css::awt::FontDescriptor& rVal);
 
 // sequences
 template <class ELEMENT>
-const staruno::Reference<stario::XObjectInputStream>& operator >> (const staruno::Reference<stario::XObjectInputStream>& _rxInStream, staruno::Sequence<ELEMENT>& _rSeq)
+const css::uno::Reference<css::io::XObjectInputStream>& operator >> (const css::uno::Reference<css::io::XObjectInputStream>& _rxInStream, css::uno::Sequence<ELEMENT>& _rSeq)
 {
     sal_Int32 nLen = _rxInStream->readLong();
     _rSeq.realloc(nLen);
@@ -77,7 +75,7 @@ const staruno::Reference<stario::XObjectInputStream>& operator >> (const staruno
 }
 
 template <class ELEMENT>
-const staruno::Reference<stario::XObjectOutputStream>& operator << (const staruno::Reference<stario::XObjectOutputStream>& _rxOutStream, const staruno::Sequence<ELEMENT>& _rSeq)
+const css::uno::Reference<css::io::XObjectOutputStream>& operator << (const css::uno::Reference<css::io::XObjectOutputStream>& _rxOutStream, const css::uno::Sequence<ELEMENT>& _rSeq)
 {
     sal_Int32 nLen = _rSeq.getLength();
     _rxOutStream->writeLong(nLen);
@@ -90,9 +88,9 @@ const staruno::Reference<stario::XObjectOutputStream>& operator << (const starun
     return _rxOutStream;
 }
 
-//.........................................................................
+
 }   // namespace comphelper
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_BASICIO_HXX
 

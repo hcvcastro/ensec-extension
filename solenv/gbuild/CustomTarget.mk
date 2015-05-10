@@ -55,8 +55,7 @@ ifneq ($(WITH_LANG),)
 # $(call gb_CustomTarget_ulfex__command,ulftarget,ulfsource,pofiles)
 define gb_CustomTarget_ulfex__command
 $(call gb_Output_announce,$(1),$(true),ULF,1)
-MERGEINPUT=`$(gb_MKTEMP)` && \
-echo $(3) > $${MERGEINPUT} && \
+MERGEINPUT=$(call var2file,$(shell $(gb_MKTEMP)),100,$(3)) && \
 $(call gb_Helper_abbreviate_dirs,\
 	$(call gb_Executable_get_command,ulfex) -i $(2) -o $(1) -m $${MERGEINPUT} -l all) && \
 rm -rf $${MERGEINPUT}
@@ -74,6 +73,56 @@ endif
 define gb_CustomTarget_ulfex_rule
 $(1) : $(2) $(if $(WITH_LANG),$(call gb_Executable_get_runtime_dependencies,ulfex)) | $(dir $(1)).dir
 	$$(call gb_CustomTarget_ulfex__command,$$@,$(subst %,$$*,$(strip $(2))),$(strip $(3)))
+
+endef
+
+#$(call gb_CustomTarget_token_hash,oox/generated,tokenhash.inc,tokenhash.gperf)
+define gb_CustomTarget_token_hash
+$(call gb_CustomTarget_get_target,$(1)) : $(call gb_CustomTarget_get_workdir,$(1))/$(2)
+$(call gb_CustomTarget_get_workdir,$(1))/$(2) : $(call gb_CustomTarget_get_workdir,$(1))/misc/$(3)
+	$$(call gb_Output_announce,$$(subst $(WORKDIR)/,,$$@),build,GPF,1)
+	$(GPERF) --compare-strncmp --switch=2 --readonly-tables $$< \
+		| sed -e 's/char\*)0/(char\*)0, 0/g' | grep -v '^#line' > $$@
+
+endef
+
+#$(call gb_CustomTarget_generate_tokens,oox/generated,oox,oox/source/token,
+#namespaces,namespace,namespaces.txt,namespaces-strict,namespaces.pl)
+define gb_CustomTarget_generate_tokens
+$(call gb_CustomTarget_get_workdir,$(1))/misc/$(5)ids.inc \
+$(call gb_CustomTarget_get_workdir,$(1))/$(5)names.inc \
+$(if $(6),$(call gb_CustomTarget_get_workdir,$(1))/misc/$(6)) \
+$(if $(7),$(call gb_CustomTarget_get_workdir,$(1))/$(7)names.inc) : \
+	$(call gb_CustomTarget_get_workdir,$(1))/$(2)/token/$(4).hxx
+	touch $$@
+
+$(call gb_CustomTarget_get_workdir,$(1))/$(2)/token/$(4).hxx : \
+	$(if $(8),$(SRCDIR)/$(3)/$(8),$(SRCDIR)/solenv/bin/generate-tokens.pl) \
+	$(SRCDIR)/$(3)/$(4).txt \
+	$(SRCDIR)/$(3)/$(4).hxx.head \
+	$(SRCDIR)/$(3)/$(4).hxx.tail
+	$$(call gb_Output_announce,$$(subst $(WORKDIR)/,,$$@),build,PRL,1)
+	mkdir -p $(call gb_CustomTarget_get_workdir,$(1))/misc \
+	    	$(call gb_CustomTarget_get_workdir,$(1)) \
+		$(call gb_CustomTarget_get_workdir,$(1))/$(2)/token
+	perl $(if $(8),$(SRCDIR)/$(3)/$(8),$(SRCDIR)/solenv/bin/generate-tokens.pl) \
+	    	$(SRCDIR)/$(3)/$(4).txt \
+		$(call gb_CustomTarget_get_workdir,$(1))/misc/$(5)ids.inc \
+		$(call gb_CustomTarget_get_workdir,$(1))/$(5)names.inc \
+		$(if $(6), $(call gb_CustomTarget_get_workdir,$(1))/misc/$(6)) \
+		$(if $(7), $(SRCDIR)/$(3)/$(7).txt \
+			$(call gb_CustomTarget_get_workdir,$(1))/$(7)names.inc) \
+	&& cat $(SRCDIR)/$(3)/$(4).hxx.head \
+		$(call gb_CustomTarget_get_workdir,$(1))/misc/$(5)ids.inc \
+		$(SRCDIR)/$(3)/$(4).hxx.tail \
+		> $(call gb_CustomTarget_get_workdir,$(1))/$(2)/token/$(4).hxx \
+	&& touch $$@
+
+$(call gb_CustomTarget_get_target,$(1)) : \
+    $(call gb_CustomTarget_get_workdir,$(1))/$(5)names.inc \
+    $(if $(7),$(call gb_CustomTarget_get_workdir,$(1))/$(7)names.inc) \
+    $(call gb_CustomTarget_get_workdir,$(1))/$(2)/token/$(4).hxx \
+    $(if $(6),$(call gb_CustomTarget_get_workdir,$(1))/misc/$(6)) \
 
 endef
 

@@ -21,45 +21,35 @@
 #define INCLUDED_COMPHELPER_PROPERTYINFOHASH_HXX
 
 #include <rtl/ustring.hxx>
-#include <comphelper/TypeGeneration.hxx>
-#include <boost/unordered_map.hpp>
+#include <com/sun/star/uno/Type.hxx>
+#include <unordered_map>
+
 namespace comphelper
 {
     struct PropertyInfo
     {
-        const sal_Char* mpName;
-        sal_uInt16 mnNameLen;
+        OUString maName;
         sal_Int32 mnHandle;
-        CppuTypes meCppuType;
+        css::uno::Type maType;
         sal_Int16 mnAttributes;
         sal_uInt8 mnMemberId;
     };
     struct PropertyData
     {
         sal_uInt8 mnMapId;
-        PropertyInfo *mpInfo;
-        PropertyData ( sal_uInt8 nMapId, PropertyInfo *pInfo )
+        PropertyInfo const *mpInfo;
+        PropertyData ( sal_uInt8 nMapId, PropertyInfo const *pInfo )
         : mnMapId ( nMapId )
         , mpInfo ( pInfo ) {}
     };
-    struct eqFunc
-    {
-        sal_Bool operator()( const OUString &r1,
-                             const OUString &r2) const
-        {
-            return r1 == r2;
-        }
-    };
 }
 
-typedef boost::unordered_map < OUString,
-                        ::comphelper::PropertyInfo*,
-                        OUStringHash,
-                        ::comphelper::eqFunc > PropertyInfoHash;
-typedef boost::unordered_map < OUString,
+typedef std::unordered_map < OUString,
+                        ::comphelper::PropertyInfo const *,
+                        OUStringHash > PropertyInfoHash;
+typedef std::unordered_map < OUString,
                         ::comphelper::PropertyData*,
-                        OUStringHash,
-                        ::comphelper::eqFunc > PropertyDataHash;
+                        OUStringHash > PropertyDataHash;
 #endif
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

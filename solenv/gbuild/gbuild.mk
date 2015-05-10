@@ -26,7 +26,6 @@ GBUILDDIR:=$(SRCDIR)/solenv/gbuild
 # LIBXML_CFLAGS
 # OS
 # SOLARINC
-# SOLARLIB
 # UPD
 
 # PTHREAD_CFLAGS (Linux)
@@ -53,7 +52,15 @@ MAKEFLAGS += r
 ifdef gb_SHELL
 SHELL := $(gb_SHELL)
 else
+ifeq ($(OS_FOR_BUILD),WNT)
+ifeq ($(GNUMAKE_WIN_NATIVE),TRUE)
+SHELL := $(shell cygpath -m /bin/sh)
+else
 SHELL := /bin/sh
+endif
+else
+SHELL := /bin/sh
+endif
 endif
 
 true := T
@@ -70,6 +77,8 @@ endef
 COMMA :=,
 
 CLOSE_PAREN :=)
+
+gb_VERBOSE := $(verbose)$(VERBOSE)
 
 include $(GBUILDDIR)/Helper.mk
 
@@ -126,10 +135,11 @@ ifeq ($(HARDLINKDELIVER),TRUE)
 gb_Deliver_HARDLINK := $(true)
 endif
 
+# note: ENABLE_CRASHDUMP turns on gb_SYMBOL
 ifeq ($(or $(ENABLE_SYMBOLS),$(enable_symbols)),FALSE)
 gb_SYMBOL := $(false)
 else
-ifneq ($(strip $(ENABLE_SYMBOLS)$(enable_symbols)),)
+ifneq ($(strip $(ENABLE_SYMBOLS)$(enable_symbols)$(ENABLE_CRASHDUMP)),)
 gb_SYMBOL := $(true)
 endif
 endif
@@ -199,17 +209,9 @@ gb_CPUDEFS += -D$(CPUNAME)
 gb_GLOBALDEFS := \
 	-D_REENTRANT \
 	-DOSL_DEBUG_LEVEL=$(gb_DEBUGLEVEL) \
-	-DSUPD=$(UPD) \
 	$(gb_OSDEFS) \
 	$(gb_COMPILERDEFS) \
 	$(gb_CPUDEFS) \
-
-# This is used to detect whether LibreOffice is being built (as opposed to building
-# 3rd-party code). Used for tag deprecation for API we want to
-# ensure is not used at all externally while we clean
-# out our internal usage, for code in sal/ that should be used only internally, etc.
-gb_GLOBALDEFS += \
-	-DLIBO_INTERNAL_ONLY \
 
 ifeq ($(gb_ENABLE_DBGUTIL),$(true))
 gb_GLOBALDEFS += -DDBG_UTIL
@@ -232,6 +234,12 @@ gb_GLOBALDEFS += -DNDEBUG \
 
 endif
 
+ifeq ($(ENABLE_SAL_LOG),TRUE)
+gb_GLOBALDEFS += -DSAL_LOG_INFO \
+				 -DSAL_LOG_WARN \
+
+endif
+
 else
 gb_GLOBALDEFS += -DSAL_LOG_INFO \
 				 -DSAL_LOG_WARN \
@@ -249,16 +257,19 @@ endif
 
 gb_GLOBALDEFS += \
 	$(call gb_Helper_define_if_set,\
-		DISABLE_DBCONNECTIVITY \
 		DISABLE_DYNLOADING \
 		DISABLE_EXPORT \
-		DISABLE_SCRIPTING \
 		ENABLE_LTO \
 	)
 
 gb_GLOBALDEFS := $(sort $(gb_GLOBALDEFS))
 
-gb_USER_INSTALLATION = $(call gb_Helper_make_url,$(TESTINSTALLDIR)/)
+# This is used to detect whether LibreOffice is being built (as opposed to building
+# 3rd-party code). Used for tag deprecation for API we want to
+# ensure is not used at all externally while we clean
+# out our internal usage, for code in sal/ that should be used only internally, etc.
+gb_DEFS_INTERNAL := \
+	-DLIBO_INTERNAL_ONLY \
 
 include $(GBUILDDIR)/Deliver.mk
 
@@ -270,7 +281,7 @@ $(eval $(call gb_Deliver_init))
 # It is important to include them in the right order as that is
 # -- at least in part -- defining precedence. This is not an issue in the
 # WORKDIR as there are no nameing collisions there, but INSTDIR is a mess
-# and precedence is important there. This is also platform dependant.
+# and precedence is important there. This is also platform dependent.
 #
 # This is less of an issue with GNU Make versions > 3.82 which matches for
 # shortest stem instead of first match. However, upon intoduction this version

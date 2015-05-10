@@ -7,13 +7,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-gb_Pagein_UREPATH := ../ure-link/lib/
-
 gb_Pagein__is_library = $(filter $(1),$(gb_Library_KNOWNLIBS))
 
-gb_Pagein__get_libdir = $(if $(filter URELIB,$(call gb_Library_get_layer,$(1))),$(call gb_Pagein_UREPATH))
-
-gb_Pagein__make_library_path = $(call gb_Pagein__get_libdir,$(1))$(call gb_Library_get_runtime_filename,$(1))
+gb_Pagein__make_library_path = $(call gb_Library_get_runtime_filename,$(1))
 
 gb_Pagein__make_path = \
 $(if $(call gb_Pagein__is_library,$(1)),$(call gb_Pagein__make_library_path,$(1)),$(1))
@@ -51,7 +47,7 @@ $(call gb_Helper_install_final, \
 endef
 
 define gb_Pagein_add_object
-$(call gb_Pagein_get_target,$(1)) : OBJECTS += $(filter-out $(gb_URELIBS) $(gb_MERGEDLIBS),$(2))
+$(call gb_Pagein_get_target,$(1)) : OBJECTS += $(filter-out $(gb_MERGEDLIBS),$(2))
 
 endef
 

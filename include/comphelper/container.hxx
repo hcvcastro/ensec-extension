@@ -24,14 +24,14 @@
 #include <com/sun/star/uno/Reference.hxx>
 #include <comphelper/comphelperdllapi.h>
 
-//.........................................................................
+
 namespace comphelper
 {
-//.........................................................................
 
-//========================================================================
+
+
 //= IndexAccessIterator
-//========================================================================
+
 /** an iterator that iterates through all elements, starting from an XIndexAccess (pre-order)
 */
 class COMPHELPER_DLLPUBLIC IndexAccessIterator
@@ -60,19 +60,19 @@ public:
     virtual void Invalidate() { m_xCurrentObject = NULL; }
 
 protected:
-    virtual sal_Bool ShouldHandleElement(const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XInterface>& /*rElement*/) { return sal_True; }
+    virtual bool ShouldHandleElement(const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XInterface>& /*rElement*/) { return true; }
 
         // This can be used to exclude certain elements; elements for which
         // this function returns sal_True will be simply skipped.
         // If this element is returned from Next(), then one can get
         // here get a little more information on the element.
         // That's why this method is not const.
-    virtual sal_Bool ShouldStepInto(const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XInterface>& /*xContainer*/) const { return sal_True; }
+    virtual bool ShouldStepInto(const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XInterface>& /*xContainer*/) const { return true; }
 };
 
-//.........................................................................
+
 }   // namespace comphelper
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_CONTAINER_HXX
 

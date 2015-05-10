@@ -26,19 +26,19 @@
 
 #include <map>
 
-//=========================================================================
-//= property helper classes
-//=========================================================================
 
-//.........................................................................
+//= property helper classes
+
+
+
 namespace comphelper
 {
-//.........................................................................
 
-//==================================================================
+
+
 //= OPropertyAccessor
 //= internal helper class for OPropertyArrayAggregationHelper
-//==================================================================
+
 namespace internal
 {
     struct OPropertyAccessor
@@ -61,19 +61,19 @@ namespace internal
     typedef PropertyAccessorMap::const_iterator     ConstPropertyAccessorMapIterator;
 }
 
-//==================================================================
+
 /**
  * used as callback for a OPropertyArrayAggregationHelper
  */
 class IPropertyInfoService
 {
 public:
-    /** get the prefered handle for the given property
+    /** get the preferred handle for the given property
         @param      _rName      the property name
-        @return                 the handle the property should be refered by, or -1 if there are no
+        @return                 the handle the property should be referred by, or -1 if there are no
                                 preferences for the given property
     */
-    virtual sal_Int32           getPreferedPropertyId(const OUString& _rName) = 0;
+    virtual sal_Int32           getPreferredPropertyId(const OUString& _rName) = 0;
 
 protected:
     ~IPropertyInfoService() {}
@@ -85,7 +85,7 @@ protected:
  */
 
 #define DEFAULT_AGGREGATE_PROPERTY_ID   10000
-//------------------------------------------------------------------
+
 class COMPHELPER_DLLPUBLIC OPropertyArrayAggregationHelper: public ::cppu::IPropertyArrayHelper
 {
     friend class OPropertySetAggregationHelper;
@@ -107,11 +107,11 @@ public:
                                 aggregate properties get depend from the following two parameters.
         @param  _pInfoService
                                 If not NULL, the object pointed to is used to calc handles which should be used
-                                for refering the aggregate's properties from outside.
+                                for referring the aggregate's properties from outside.
                                 If one of the properties returned from the info service conflict with other handles
                                 alread present (e.g. through _rProperties), the property is handled as if -1 was returned.
-                                If NULL (or, for a special property, a call to getPreferedPropertyId returns -1),
-                                the aggregate property(ies) get a new handle which they can be refered by from outside.
+                                If NULL (or, for a special property, a call to getPreferredPropertyId returns -1),
+                                the aggregate property(ies) get a new handle which they can be referred by from outside.
         @param  _nFirstAggregateId
                                 if the object is about to create new handles for the aggregate properties, it uses
                                 id's ascending from this given id.
@@ -126,35 +126,35 @@ public:
 
     /// inherited from IPropertyArrayHelper
     virtual sal_Bool SAL_CALL fillPropertyMembersByHandle( OUString* _pPropName, sal_Int16* _pAttributes,
-                                            sal_Int32 _nHandle) ;
+                                            sal_Int32 _nHandle) SAL_OVERRIDE ;
 
     /// inherited from IPropertyArrayHelper
-    virtual ::com::sun::star::uno::Sequence< ::com::sun::star::beans::Property> SAL_CALL getProperties();
+    virtual ::com::sun::star::uno::Sequence< ::com::sun::star::beans::Property> SAL_CALL getProperties() SAL_OVERRIDE;
     /// inherited from IPropertyArrayHelper
     virtual ::com::sun::star::beans::Property SAL_CALL getPropertyByName(const OUString& _rPropertyName)
-                                throw(::com::sun::star::beans::UnknownPropertyException);
+                                throw(::com::sun::star::beans::UnknownPropertyException) SAL_OVERRIDE;
 
     /// inherited from IPropertyArrayHelper
-    virtual sal_Bool  SAL_CALL hasPropertyByName(const OUString& _rPropertyName) ;
+    virtual sal_Bool  SAL_CALL hasPropertyByName(const OUString& _rPropertyName) SAL_OVERRIDE ;
     /// inherited from IPropertyArrayHelper
-    virtual sal_Int32 SAL_CALL getHandleByName(const OUString & _rPropertyName);
+    virtual sal_Int32 SAL_CALL getHandleByName(const OUString & _rPropertyName) SAL_OVERRIDE;
     /// inherited from IPropertyArrayHelper
-    virtual sal_Int32 SAL_CALL fillHandles( /*out*/sal_Int32* _pHandles, const ::com::sun::star::uno::Sequence< OUString >& _rPropNames );
+    virtual sal_Int32 SAL_CALL fillHandles( /*out*/sal_Int32* _pHandles, const ::com::sun::star::uno::Sequence< OUString >& _rPropNames ) SAL_OVERRIDE;
 
     /** returns information about a property of the aggregate.
         @param  _pPropName          points to a string to receive the property name. No name is returned if this is NULL.
-        @param  _pOriginalHandle    points to a sal_Int32 to receive the original property hande. No original handle is returned
+        @param  _pOriginalHandle    points to a sal_Int32 to receive the original property handle. No original handle is returned
                                     if this is NULL.
         @param  _nHandle            the handle of the property as got by, for instance, fillHandles
 
         @return sal_True, if _nHandle marks an aggregate property, otherwise sal_False
     */
-    virtual bool SAL_CALL fillAggregatePropertyInfoByHandle(OUString* _pPropName, sal_Int32* _pOriginalHandle,
+    bool fillAggregatePropertyInfoByHandle(OUString* _pPropName, sal_Int32* _pOriginalHandle,
                                                    sal_Int32 _nHandle) const;
 
     /** returns information about a property given by handle
     */
-    sal_Bool getPropertyByHandle( sal_Int32 _nHandle, ::com::sun::star::beans::Property& _rProperty ) const;
+    bool getPropertyByHandle( sal_Int32 _nHandle, ::com::sun::star::beans::Property& _rProperty ) const;
 
 
     enum PropertyOrigin
@@ -181,7 +181,7 @@ protected:
     const ::com::sun::star::beans::Property* findPropertyByName(const OUString& _rName) const;
 };
 
-//==================================================================
+
 namespace internal
 {
     class PropertyForwarder;
@@ -206,60 +206,60 @@ protected:
     ::com::sun::star::uno::Reference< ::com::sun::star::beans::XFastPropertySet>    m_xAggregateFastSet;
 
     internal::PropertyForwarder*    m_pForwarder;
-    sal_Bool                        m_bListening : 1;
+    bool                        m_bListening : 1;
 
 public:
     OPropertySetAggregationHelper( ::cppu::OBroadcastHelper& rBHelper );
 
-    virtual ::com::sun::star::uno::Any SAL_CALL queryInterface(const ::com::sun::star::uno::Type& aType) throw(::com::sun::star::uno::RuntimeException);
+    virtual ::com::sun::star::uno::Any SAL_CALL queryInterface(const ::com::sun::star::uno::Type& aType) throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
 // XEventListener
-    virtual void SAL_CALL disposing(const ::com::sun::star::lang::EventObject& Source) throw (::com::sun::star::uno::RuntimeException);
+    virtual void SAL_CALL disposing(const ::com::sun::star::lang::EventObject& Source) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
 // XFastPropertySet
-    virtual void SAL_CALL setFastPropertyValue(sal_Int32 nHandle, const ::com::sun::star::uno::Any& aValue) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::beans::PropertyVetoException, ::com::sun::star::lang::IllegalArgumentException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException);
-    virtual ::com::sun::star::uno::Any SAL_CALL getFastPropertyValue(sal_Int32 nHandle) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException);
+    virtual void SAL_CALL setFastPropertyValue(sal_Int32 nHandle, const ::com::sun::star::uno::Any& aValue) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::beans::PropertyVetoException, ::com::sun::star::lang::IllegalArgumentException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual ::com::sun::star::uno::Any SAL_CALL getFastPropertyValue(sal_Int32 nHandle) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
 // XPropertySet
-    virtual void SAL_CALL           addPropertyChangeListener(const OUString& aPropertyName, const ::com::sun::star::uno::Reference< ::com::sun::star::beans::XPropertyChangeListener >& xListener) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException);
-    virtual void SAL_CALL           addVetoableChangeListener(const OUString& PropertyName, const ::com::sun::star::uno::Reference< ::com::sun::star::beans::XVetoableChangeListener >& aListener) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException);
+    virtual void SAL_CALL           addPropertyChangeListener(const OUString& aPropertyName, const ::com::sun::star::uno::Reference< ::com::sun::star::beans::XPropertyChangeListener >& xListener) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual void SAL_CALL           addVetoableChangeListener(const OUString& PropertyName, const ::com::sun::star::uno::Reference< ::com::sun::star::beans::XVetoableChangeListener >& aListener) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
 // XPropertiesChangeListener
-    virtual void SAL_CALL propertiesChange(const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyChangeEvent >& evt) throw(::com::sun::star::uno::RuntimeException);
+    virtual void SAL_CALL propertiesChange(const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyChangeEvent >& evt) throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
 // XVetoableChangeListener
-    virtual void SAL_CALL vetoableChange(const ::com::sun::star::beans::PropertyChangeEvent& aEvent) throw(::com::sun::star::beans::PropertyVetoException, ::com::sun::star::uno::RuntimeException);
+    virtual void SAL_CALL vetoableChange(const ::com::sun::star::beans::PropertyChangeEvent& aEvent) throw(::com::sun::star::beans::PropertyVetoException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
 // XMultiPropertySet
-    virtual void SAL_CALL   setPropertyValues(const ::com::sun::star::uno::Sequence< OUString >& PropertyNames, const ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Any >& Values) throw(::com::sun::star::beans::PropertyVetoException, ::com::sun::star::lang::IllegalArgumentException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException);
-    virtual void SAL_CALL   addPropertiesChangeListener(const ::com::sun::star::uno::Sequence< OUString >& aPropertyNames, const ::com::sun::star::uno::Reference< ::com::sun::star::beans::XPropertiesChangeListener >& xListener) throw(::com::sun::star::uno::RuntimeException);
+    virtual void SAL_CALL   setPropertyValues(const ::com::sun::star::uno::Sequence< OUString >& PropertyNames, const ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Any >& Values) throw(::com::sun::star::beans::PropertyVetoException, ::com::sun::star::lang::IllegalArgumentException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual void SAL_CALL   addPropertiesChangeListener(const ::com::sun::star::uno::Sequence< OUString >& aPropertyNames, const ::com::sun::star::uno::Reference< ::com::sun::star::beans::XPropertiesChangeListener >& xListener) throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
 // XPropertyState
-    virtual ::com::sun::star::beans::PropertyState SAL_CALL getPropertyState(const OUString& PropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException);
-    virtual void SAL_CALL                                   setPropertyToDefault(const OUString& PropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException);
-    virtual ::com::sun::star::uno::Any SAL_CALL             getPropertyDefault(const OUString& aPropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException);
+    virtual ::com::sun::star::beans::PropertyState SAL_CALL getPropertyState(const OUString& PropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual void SAL_CALL                                   setPropertyToDefault(const OUString& PropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual ::com::sun::star::uno::Any SAL_CALL             getPropertyDefault(const OUString& aPropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
 // OPropertySetHelper
     /** still waiting to be overwritten ...
         you <B>must<B/> use an OPropertyArrayAggregationHelper here, as the implementation strongly relies on this.
     */
-    virtual ::cppu::IPropertyArrayHelper& SAL_CALL getInfoHelper() = 0;
+    virtual ::cppu::IPropertyArrayHelper& SAL_CALL getInfoHelper() SAL_OVERRIDE = 0;
 
     /** only implemented for "forwarded" properties, every other property must be handled
         in the derivee, and will assert if passed herein
     */
-    virtual sal_Bool SAL_CALL convertFastPropertyValue( ::com::sun::star::uno::Any& _rConvertedValue, ::com::sun::star::uno::Any& _rOldValue, sal_Int32 _nHandle, const ::com::sun::star::uno::Any& _rValue ) throw(::com::sun::star::lang::IllegalArgumentException);
+    virtual sal_Bool SAL_CALL convertFastPropertyValue( ::com::sun::star::uno::Any& _rConvertedValue, ::com::sun::star::uno::Any& _rOldValue, sal_Int32 _nHandle, const ::com::sun::star::uno::Any& _rValue ) throw(::com::sun::star::lang::IllegalArgumentException) SAL_OVERRIDE;
 
     /** only implemented for "forwarded" properties, every other property must be handled
         in the derivee, and will assert if passed herein
     */
-    virtual void SAL_CALL setFastPropertyValue_NoBroadcast( sal_Int32 _nHandle, const ::com::sun::star::uno::Any& _rValue ) throw ( ::com::sun::star::uno::Exception );
+    virtual void SAL_CALL setFastPropertyValue_NoBroadcast( sal_Int32 _nHandle, const ::com::sun::star::uno::Any& _rValue ) throw ( ::com::sun::star::uno::Exception, std::exception ) SAL_OVERRIDE;
 
 protected:
-    ~OPropertySetAggregationHelper();
+    virtual ~OPropertySetAggregationHelper();
 
-    virtual void SAL_CALL getFastPropertyValue(::com::sun::star::uno::Any& rValue, sal_Int32 nHandle) const;
-    virtual void SAL_CALL disposing();
+    virtual void SAL_CALL getFastPropertyValue(::com::sun::star::uno::Any& rValue, sal_Int32 nHandle) const SAL_OVERRIDE;
+    void disposing();
 
     sal_Int32       getOriginalHandle( sal_Int32 _nHandle ) const;
     OUString getPropertyName( sal_Int32 _nHandle ) const;
@@ -301,7 +301,7 @@ protected:
         @see declareForwardedProperty
         @see forwardedPropertyValue
     */
-    virtual void SAL_CALL forwardingPropertyValue( sal_Int32 _nHandle );
+    virtual void forwardingPropertyValue( sal_Int32 _nHandle );
 
     /** called immediately after a property value which is overwritten in this instance
         has been forwarded to the aggregate
@@ -309,16 +309,16 @@ protected:
         @see declareForwardedProperty
         @see forwardingPropertyValue
     */
-    virtual void SAL_CALL forwardedPropertyValue( sal_Int32 _nHandle, bool _bSuccess );
+    virtual void forwardedPropertyValue( sal_Int32 _nHandle );
 
     /// must be called before aggregation, if aggregation is used
     void setAggregation(const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XInterface >&) throw( ::com::sun::star::lang::IllegalArgumentException );
     void startListening();
 };
 
-//.........................................................................
+
 }   // namespace comphelper
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_PROPAGG_HXX
 

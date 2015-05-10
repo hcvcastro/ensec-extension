@@ -30,7 +30,7 @@ Check for unused classes where the compiler cannot decide (e.g. because of
 non-trivial or extern ctors) if a variable is unused if only its ctor/dtor
 are called and nothing else. For example std::vector is a class where
 the ctor may call further functions, but an unused std::string variable
-does nothing. On the other hand, std::auto_ptr instances are used
+does nothing. On the other hand, std::lock_guard instances are used
 for their dtors and so are not unused even if not otherwise accessed.
 
 Classes which are safe to be warned about need to be marked using
@@ -38,8 +38,8 @@ SAL_WARN_UNUSED (see e.g. OUString). For external classes such as std::vector
 that cannot be edited there is a manual list below.
 */
 
-UnusedVariableCheck::UnusedVariableCheck( CompilerInstance& compiler )
-    : Plugin( compiler )
+UnusedVariableCheck::UnusedVariableCheck( const InstantiationData& data )
+    : Plugin( data )
     {
     }
 
@@ -47,6 +47,30 @@ void UnusedVariableCheck::run()
     {
     TraverseDecl( compiler.getASTContext().getTranslationUnitDecl());
     }
+
+bool BaseCheckNotDialogSubclass(const CXXRecordDecl *BaseDefinition, void *) {
+    if (BaseDefinition && BaseDefinition->getQualifiedNameAsString().compare("Dialog") == 0) {
+        return false;
+    }
+    return true;
+}
+
+bool isDerivedFromDialog(const CXXRecordDecl *decl) {
+    if (!decl)
+        return false;
+    if (decl->getQualifiedNameAsString() == "Dialog")
+        return true;
+    if (!decl->hasDefinition()) {
+        return false;
+    }
+    if (// not sure what hasAnyDependentBases() does,
+        // but it avoids classes we don't want, e.g. WeakAggComponentImplHelper1
+        !decl->hasAnyDependentBases() &&
+        !decl->forallBases(BaseCheckNotDialogSubclass, nullptr, true)) {
+        return true;
+    }
+    return false;
+}
 
 bool UnusedVariableCheck::VisitVarDecl( const VarDecl* var )
     {
@@ -83,6 +107,9 @@ bool UnusedVariableCheck::VisitVarDecl( const VarDecl* var )
                 || n == "std::list" || n == "std::__debug::list"
                 || n == "std::vector" || n == "std::__debug::vector" )
                 warn_unused = true;
+            // check if this field is derived from Dialog
+            if (!warn_unused && isDerivedFromDialog(type))
+                  warn_unused = true;
             }
         if( warn_unused )
             {

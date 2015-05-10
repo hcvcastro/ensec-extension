@@ -310,7 +310,7 @@ typedef unsigned short LanguageType;
 #define LANGUAGE_NORWEGIAN_NYNORSK          0x0814
 #define LANGUAGE_NORWEGIAN_NYNORSK_LSO      0x7814
 #define LANGUAGE_OCCITAN_FRANCE             0x0482  /* obsoletes LANGUAGE_USER_OCCITAN 0x0625 */
-#define LANGUAGE_ORIYA                      0x0448
+#define LANGUAGE_ODIA                       0x0448
 #define LANGUAGE_OROMO                      0x0472
 #define LANGUAGE_PAPIAMENTU                 0x0479
 #define LANGUAGE_PASHTO                     0x0463
@@ -693,6 +693,16 @@ typedef unsigned short LanguageType;
 #define LANGUAGE_USER_TIBETAN_BHUTAN        0x8451  /* makeLangID( 0x21, getPrimaryLanguage( LANGUAGE_TIBETAN)) */
 #define LANGUAGE_USER_FRENCH_BURKINA_FASO   0x800C  /* makeLangID( 0x20, getPrimaryLanguage( LANGUAGE_FRENCH)) */
 #define LANGUAGE_USER_PUINAVE               0x068E
+#define LANGUAGE_USER_MANINKAKAN_EASTERN_LATIN  0x068F
+#define LANGUAGE_USER_AVAR                  0x0690
+#define LANGUAGE_USER_CREE_PLAINS_LATIN     0x0691
+#define LANGUAGE_USER_CREE_PLAINS_SYLLABICS 0x8291  /* makeLangID( 0x20, getPrimaryLanguage( LANGUAGE_USER_CREE_PLAINS_LATIN)) */
+#define LANGUAGE_USER_LENGO                 0x0692
+#define LANGUAGE_USER_FRENCH_BENIN          0x840C  /* makeLangID( 0x21, getPrimaryLanguage( LANGUAGE_FRENCH)) */
+#define LANGUAGE_USER_FRENCH_NIGER          0x880C  /* makeLangID( 0x22, getPrimaryLanguage( LANGUAGE_FRENCH)) */
+#define LANGUAGE_USER_FRENCH_TOGO           0x8C0C  /* makeLangID( 0x23, getPrimaryLanguage( LANGUAGE_FRENCH)) */
+#define LANGUAGE_USER_KVEN_FINNISH          0x0693
+#define LANGUAGE_USER_CHURCH_SLAVIC         0x0694
 
 
 /* Primary language ID range for on-the-fly assignment. */

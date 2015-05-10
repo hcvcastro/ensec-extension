@@ -13,11 +13,11 @@ $(eval $(call gb_Library_Library,ensec-component))
 
 #$(eval $(call gb_Library_add_cxxflags,ensec-component,-DRTL_DISABLE_FAST_STRING))
 
-#$(eval $(call gb_Library_use_externals,ensec-component,\
+$(eval $(call gb_Library_use_externals,ensec-component,\
 	boost_headers \
-	mysqlcppconn \
 ))
 
+#	mysqlcppconn \
 
 $(eval $(call gb_Library_use_custom_headers,ensec-component,sdkapi/sdkapi))
 

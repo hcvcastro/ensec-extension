@@ -25,9 +25,9 @@
 
 namespace comphelper {
 
-/** this class provides a basic helper for classes suporting the XServiceInfo Interface.
+/** this class provides a basic helper for classes supporting the XServiceInfo Interface.
  *
- *  you can overload the <code>getSupprotedServiceNames</code> to implement a XServiceInfo.
+ *  you can override the <code>getSupprotedServiceNames</code> to implement a XServiceInfo.
  *  you can use the static helper methods to combine your services with that of parent
  *  or aggregatet classes.
  */
@@ -35,8 +35,8 @@ class COMPHELPER_DLLPUBLIC ServiceInfoHelper : public ::com::sun::star::lang::XS
 {
 public:
     // XServiceInfo
-    virtual OUString SAL_CALL getImplementationName() throw(::com::sun::star::uno::RuntimeException);
-    virtual ::com::sun::star::uno::Sequence< OUString > SAL_CALL getSupportedServiceNames() throw(::com::sun::star::uno::RuntimeException);
+    virtual OUString SAL_CALL getImplementationName() throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual ::com::sun::star::uno::Sequence< OUString > SAL_CALL getSupportedServiceNames() throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
     // helper
     static void addToSequence( ::com::sun::star::uno::Sequence< OUString >& rSeq, sal_uInt16 nServices, /* sal_Char* */... ) throw();

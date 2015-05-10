@@ -58,11 +58,11 @@ class COMPHELPER_DLLPUBLIC OFOPXMLHelper : public cppu::WeakImplHelper1 < com::s
     OFOPXMLHelper( sal_uInt16 nFormat ); // must not be created directly
     ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Sequence< ::com::sun::star::beans::StringPair > > GetParsingResult();
 
-    static COMPHELPER_DLLPRIVATE ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Sequence< ::com::sun::star::beans::StringPair > > SAL_CALL ReadSequence_Impl( const ::com::sun::star::uno::Reference< ::com::sun::star::io::XInputStream >& xInStream, const OUString& aStringID, sal_uInt16 nFormat, const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XComponentContext > xContext )
+    static COMPHELPER_DLLPRIVATE ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Sequence< ::com::sun::star::beans::StringPair > > SAL_CALL ReadSequence_Impl( const ::com::sun::star::uno::Reference< ::com::sun::star::io::XInputStream >& xInStream, const OUString& aStringID, sal_uInt16 nFormat, const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XComponentContext >& rContext )
     throw( ::com::sun::star::uno::Exception );
 
 public:
-    ~OFOPXMLHelper();
+    virtual ~OFOPXMLHelper();
 
     // returns sequence of elements, where each element is described by sequence of tags,
     // where each tag is described by StringPair ( First - name, Second - value )
@@ -72,8 +72,8 @@ public:
     SAL_CALL
     ReadRelationsInfoSequence(
         const ::com::sun::star::uno::Reference< ::com::sun::star::io::XInputStream >& xInStream,
-        const OUString aStreamName,
-        const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XComponentContext > xContext )
+        const OUString & aStreamName,
+        const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XComponentContext >& rContext )
             throw( ::com::sun::star::uno::Exception );
 
     // returns sequence containing two entries of type sequence<StringPair>
@@ -86,7 +86,7 @@ public:
     SAL_CALL
     ReadContentTypeSequence(
         const ::com::sun::star::uno::Reference< ::com::sun::star::io::XInputStream >& xInStream,
-        const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XComponentContext > xContext )
+        const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XComponentContext >& rContext )
             throw( ::com::sun::star::uno::Exception );
 
     // writes sequence of elements, where each element is described by sequence of tags,
@@ -96,7 +96,7 @@ public:
     void SAL_CALL WriteRelationsInfoSequence(
         const ::com::sun::star::uno::Reference< ::com::sun::star::io::XOutputStream >& xOutStream,
         const ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Sequence< ::com::sun::star::beans::StringPair > >& aSequence,
-        const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XComponentContext > xContext )
+        const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XComponentContext >& rContext )
             throw( ::com::sun::star::uno::Exception );
 
     // writes two entries of type sequence<StringPair>
@@ -109,18 +109,18 @@ public:
         const ::com::sun::star::uno::Reference< ::com::sun::star::io::XOutputStream >& xOutStream,
         const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::StringPair >& aDefaultsSequence,
         const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::StringPair >& aOverridesSequence,
-        const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XComponentContext > xContext )
+        const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XComponentContext >& rContext )
             throw( ::com::sun::star::uno::Exception );
 
     // XDocumentHandler
-    virtual void SAL_CALL startDocument() throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException);
-    virtual void SAL_CALL endDocument() throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException);
-    virtual void SAL_CALL startElement( const OUString& aName, const ::com::sun::star::uno::Reference< ::com::sun::star::xml::sax::XAttributeList >& xAttribs ) throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException);
-    virtual void SAL_CALL endElement( const OUString& aName ) throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException);
-    virtual void SAL_CALL characters( const OUString& aChars ) throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException);
-    virtual void SAL_CALL ignorableWhitespace( const OUString& aWhitespaces ) throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException);
-    virtual void SAL_CALL processingInstruction( const OUString& aTarget, const OUString& aData ) throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException);
-    virtual void SAL_CALL setDocumentLocator( const ::com::sun::star::uno::Reference< ::com::sun::star::xml::sax::XLocator >& xLocator ) throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException);
+    virtual void SAL_CALL startDocument() throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual void SAL_CALL endDocument() throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual void SAL_CALL startElement( const OUString& aName, const ::com::sun::star::uno::Reference< ::com::sun::star::xml::sax::XAttributeList >& xAttribs ) throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual void SAL_CALL endElement( const OUString& aName ) throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual void SAL_CALL characters( const OUString& aChars ) throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual void SAL_CALL ignorableWhitespace( const OUString& aWhitespaces ) throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual void SAL_CALL processingInstruction( const OUString& aTarget, const OUString& aData ) throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual void SAL_CALL setDocumentLocator( const ::com::sun::star::uno::Reference< ::com::sun::star::xml::sax::XLocator >& xLocator ) throw (::com::sun::star::xml::sax::SAXException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 };
 
 } // namespace comphelper

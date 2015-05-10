@@ -17,22 +17,22 @@
  *   the License at http://www.apache.org/licenses/LICENSE-2.0 .
  */
 
-#ifndef COMPHELPER_ACCESSIBLE_EVENT_NOTIFIER
-#define COMPHELPER_ACCESSIBLE_EVENT_NOTIFIER
+#ifndef INCLUDED_COMPHELPER_ACCESSIBLEEVENTNOTIFIER_HXX
+#define INCLUDED_COMPHELPER_ACCESSIBLEEVENTNOTIFIER_HXX
 
 #include <com/sun/star/accessibility/AccessibleEventObject.hpp>
 #include <com/sun/star/accessibility/XAccessibleEventListener.hpp>
 
 #include <comphelper/comphelperdllapi.h>
 
-//.........................................................................
+
 namespace comphelper
 {
-//.........................................................................
 
-    //=====================================================================
+
+
     //= AccessibleEventNotifier
-    //=====================================================================
+
     class COMPHELPER_DLLPUBLIC AccessibleEventNotifier
     {
     // typedefs
@@ -44,8 +44,8 @@ namespace comphelper
         ~AccessibleEventNotifier( );    // never implemented
 
     private:
-        COMPHELPER_DLLPRIVATE AccessibleEventNotifier( const AccessibleEventNotifier& );                // never implemented!
-        COMPHELPER_DLLPRIVATE AccessibleEventNotifier& operator=( const AccessibleEventNotifier& ); // never implemented!
+        AccessibleEventNotifier( const AccessibleEventNotifier& ) SAL_DELETED_FUNCTION;
+        AccessibleEventNotifier& operator=( const AccessibleEventNotifier& ) SAL_DELETED_FUNCTION;
 
     public:
         /** registers a client of this class, means a broadcaster of AccessibleEvents
@@ -83,7 +83,7 @@ namespace comphelper
         static  void        revokeClientNotifyDisposing(
                         const TClientId _nClient,
                         const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XInterface >& _rxEventSource
-                    ) SAL_THROW( ( ) );
+                    );
 
         /** registers a listener for the given client
 
@@ -95,7 +95,7 @@ namespace comphelper
         static sal_Int32 addEventListener(
                         const TClientId _nClient,
                         const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleEventListener >& _rxListener
-                    ) SAL_THROW( ( ) );
+                    );
 
         /** revokes a listener for the given client
 
@@ -107,7 +107,7 @@ namespace comphelper
         static sal_Int32 removeEventListener(
                         const TClientId _nClient,
                         const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleEventListener >& _rxListener
-                    ) SAL_THROW( ( ) );
+                    );
 
         /** adds an event, which is to be braodcasted, to the queue
 
@@ -117,15 +117,13 @@ namespace comphelper
         static void addEvent(
                         const TClientId _nClient,
                         const ::com::sun::star::accessibility::AccessibleEventObject& _rEvent
-                    ) SAL_THROW( ( ) );
+                    );
 
     };
 
-//.........................................................................
+
 }   // namespace comphelper
-//.........................................................................
 
-#endif // COMPHELPER_ACCESSIBLE_EVENT_NOTIFIER
-
+#endif // INCLUDED_COMPHELPER_ACCESSIBLEEVENTNOTIFIER_HXX
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

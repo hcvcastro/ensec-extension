@@ -25,15 +25,11 @@
 #include <com/sun/star/uno/Type.hxx>
 #include <comphelper/comphelperdllapi.h>
 
-//.........................................................................
+
 namespace comphelper
 {
-//.........................................................................
 
-//==========================================================================
-//= OPropertyContainer
-//==========================================================================
-typedef ::cppu::OPropertySetHelper OPropertyContainer_Base;
+
 /** a OPropertySetHelper implementation which is just a simple container for properties represented
     by class members, usually in a derived class.
     <BR>
@@ -42,7 +38,7 @@ typedef ::cppu::OPropertySetHelper OPropertyContainer_Base;
     values which already have the correct type, it's unable to convert, for instance, a long to a short.
 */
 class COMPHELPER_DLLPUBLIC OPropertyContainer
-            :public OPropertyContainer_Base
+            :public cppu::OPropertySetHelper
             ,public OPropertyContainerHelper
 {
 public:
@@ -53,7 +49,7 @@ protected:
     OPropertyContainer(::cppu::OBroadcastHelper& _rBHelper);
 
     /// for scripting : the types of the interfaces supported by this class
-    virtual ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Type > SAL_CALL getTypes() throw (::com::sun::star::uno::RuntimeException);
+    static ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Type > getBaseTypes() throw (::com::sun::star::uno::RuntimeException, std::exception);
 
 // OPropertySetHelper overridables
     virtual sal_Bool SAL_CALL convertFastPropertyValue(
@@ -61,28 +57,29 @@ protected:
                             ::com::sun::star::uno::Any & rOldValue,
                             sal_Int32 nHandle,
                             const ::com::sun::star::uno::Any& rValue )
-                                throw (::com::sun::star::lang::IllegalArgumentException);
+                                throw (::com::sun::star::lang::IllegalArgumentException) SAL_OVERRIDE;
 
     virtual void SAL_CALL   setFastPropertyValue_NoBroadcast(
                                 sal_Int32 nHandle,
                                 const ::com::sun::star::uno::Any& rValue
                             )
-                            throw (::com::sun::star::uno::Exception);
+                            throw (::com::sun::star::uno::Exception,
+                                   std::exception) SAL_OVERRIDE;
 
-    using OPropertyContainer_Base::getFastPropertyValue;
+    using OPropertySetHelper::getFastPropertyValue;
     virtual void SAL_CALL getFastPropertyValue(
                                 ::com::sun::star::uno::Any& rValue,
                                 sal_Int32 nHandle
-                                     ) const;
+                                     ) const SAL_OVERRIDE;
 
     // disambiguate a base class method (XFastPropertySet)
     virtual void SAL_CALL setFastPropertyValue( sal_Int32 nHandle, const ::com::sun::star::uno::Any& rValue )
-        throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::beans::PropertyVetoException, ::com::sun::star::lang::IllegalArgumentException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException);
+        throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::beans::PropertyVetoException, ::com::sun::star::lang::IllegalArgumentException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 };
 
-//.........................................................................
+
 }   // namespace comphelper
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_PROPERTYCONTAINER_HXX
 

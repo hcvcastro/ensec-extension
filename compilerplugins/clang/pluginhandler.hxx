@@ -14,6 +14,8 @@
 
 #include "plugin.hxx"
 
+#include <set>
+
 #include <clang/AST/ASTConsumer.h>
 #include <clang/Frontend/FrontendAction.h>
 
@@ -30,14 +32,19 @@ class PluginHandler
         PluginHandler( CompilerInstance& compiler, const vector< string >& args );
         virtual ~PluginHandler();
         virtual void HandleTranslationUnit( ASTContext& context ) override;
-        static void registerPlugin( Plugin* (*create)( CompilerInstance&, Rewriter& ), const char* optionName, bool isRewriter, bool isPPCallback );
+        static void registerPlugin( Plugin* (*create)( const Plugin::InstantiationData& ), const char* optionName, bool isPPCallback, bool byDefault );
+        DiagnosticBuilder report( DiagnosticsEngine::Level level, const char * plugin, StringRef message,
+            CompilerInstance& compiler, SourceLocation loc = SourceLocation());
+        bool addRemoval( SourceLocation loc );
     private:
         void handleOption( const string& option );
-        void createPlugin( const string& name );
+        void createPlugins( set< string > rewriters );
         DiagnosticBuilder report( DiagnosticsEngine::Level level, StringRef message, SourceLocation loc = SourceLocation());
         CompilerInstance& compiler;
         Rewriter rewriter;
+        set< SourceLocation > removals;
         string scope;
+        string warningsOnly;
     };
 
 /**
@@ -47,7 +54,12 @@ class LibreOfficeAction
     : public PluginASTAction
     {
     public:
+#if (__clang_major__ == 3 && __clang_minor__ >= 6) || __clang_major__ > 3
+        virtual std::unique_ptr<ASTConsumer> CreateASTConsumer( CompilerInstance& Compiler, StringRef InFile );
+#else
         virtual ASTConsumer* CreateASTConsumer( CompilerInstance& Compiler, StringRef InFile );
+#endif
+
         virtual bool ParseArgs( const CompilerInstance& CI, const vector< string >& args );
     private:
         vector< string > _args;

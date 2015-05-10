@@ -23,14 +23,15 @@ define gb_Gallery__make_env_args
 		$(call gb_Helper_make_url,$(call gb_ComponentTarget_get_target_for_build,$(item))))" \
 "-env:UNO_TYPES=$(foreach item,offapi udkapi,\
 	$(call gb_Helper_make_url,$(call gb_UnoApi_get_target,$(item))))" \
--env:URE_INTERNAL_LIB_DIR=$(call gb_Helper_make_url,$(INSTROOT)/$(LIBO_URE_LIB_FOLDER)) \
--env:LO_LIB_DIR=$(call gb_Helper_make_url,$(INSTROOT)/$(LIBO_LIB_FOLDER))
+-env:URE_INTERNAL_LIB_DIR=$(call gb_Helper_make_url,$(INSTROOT_FOR_BUILD)/$(LIBO_URE_LIB_FOLDER_FOR_BUILD)) \
+-env:LO_LIB_DIR=$(call gb_Helper_make_url,$(INSTROOT_FOR_BUILD)/$(LIBO_LIB_FOLDER_FOR_BUILD))
 endef
 
 define gb_Gallery__command
 $(call gb_Output_announce,$(2),$(true),GAL,1)
 $(call gb_Helper_abbreviate_dirs,\
 	rm -f $(call gb_Gallery_get_workdir,$(2))/* && \
+	RESPONSEFILE=$(call var2file,$(shell $(call gb_MKTEMP)),100,$(GALLERY_FILES)) && \
 	$(call gb_Helper_print_on_error,\
 		$(if $(filter-out MACOSX WNT,$(OS_FOR_BUILD)),$(if $(ENABLE_HEADLESS),, \
 			SAL_USE_VCLPLUGIN=svp \
@@ -41,9 +42,10 @@ $(call gb_Helper_abbreviate_dirs,\
 			--destdir $(GALLERY_BASEDIR) \
 			--name "$(GALLERY_NAME)" \
 			--path $(call gb_Gallery_get_workdir,$(2)) \
-			$(GALLERY_FILES),\
+			--filenames $(call gb_Helper_make_url,$$RESPONSEFILE),\
 		$@.log \
 	) && \
+	rm $$RESPONSEFILE && \
 	touch $@ \
 )
 endef

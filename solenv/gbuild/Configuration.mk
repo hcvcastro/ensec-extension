@@ -85,6 +85,7 @@ $(call gb_Helper_abbreviate_dirs,\
 	$(gb_Configuration_XSLTCOMMAND) --nonet \
 		-o $(1) \
 		--stringparam LIBO_SHARE_FOLDER $(LIBO_SHARE_FOLDER) \
+		--stringparam LIBO_SHARE_HELP_FOLDER $(LIBO_SHARE_HELP_FOLDER) \
 		$(gb_XcsTarget_XSLT_SchemaTrim) \
 		$(3))
 endef
@@ -122,6 +123,7 @@ $(call gb_Helper_abbreviate_dirs,\
 		--stringparam xcs $(call gb_XcsTarget_for_XcuTarget,$(XCUFILE)) \
 		$(gb_Configuration__stringparam_schemaRoot) \
 		--stringparam LIBO_SHARE_FOLDER $(LIBO_SHARE_FOLDER) \
+		--stringparam LIBO_SHARE_HELP_FOLDER $(LIBO_SHARE_HELP_FOLDER) \
 		--path $(SRCDIR)/officecfg/registry \
 		$(gb_XcuTarget_XSLT_AllLang) \
 		$(3))
@@ -158,6 +160,7 @@ $(call gb_Helper_abbreviate_dirs,\
 		$(gb_Configuration__stringparam_schemaRoot) \
 		--stringparam module $(notdir $(subst -,/,$(basename $(notdir $(2))))) \
 		--stringparam LIBO_SHARE_FOLDER $(LIBO_SHARE_FOLDER) \
+		--stringparam LIBO_SHARE_HELP_FOLDER $(LIBO_SHARE_HELP_FOLDER) \
 		$(gb_XcuTarget_XSLT_AllLang) \
 		$(3))
 endef
@@ -208,8 +211,7 @@ gb_XcuMergeTarget_CFGEXCOMMAND := $(call gb_Executable_get_command,cfgex)
 
 define gb_XcuMergeTarget__command
 $(call gb_Output_announce,$(2),$(true),XCX,1)
-MERGEINPUT=`$(gb_MKTEMP)` && \
-echo $(POFILES) > $${MERGEINPUT} && \
+MERGEINPUT=$(call var2file,$(shell $(gb_MKTEMP)),100,$(POFILES)) && \
 $(call gb_Helper_abbreviate_dirs,\
 	mkdir -p $(dir $(1)) && \
 	$(gb_XcuMergeTarget_CFGEXCOMMAND) \
@@ -255,6 +257,7 @@ $(call gb_Helper_abbreviate_dirs,\
 		$(gb_Configuration__stringparam_schemaRoot) \
 		--stringparam locale $(word 2,$(subst /, ,$(2))) \
 		--stringparam LIBO_SHARE_FOLDER $(LIBO_SHARE_FOLDER) \
+		--stringparam LIBO_SHARE_HELP_FOLDER $(LIBO_SHARE_HELP_FOLDER) \
 		--path $(SRCDIR)/officecfg/registry \
 		$(gb_XcuTarget_XSLT_AllLang) \
 		$(3))

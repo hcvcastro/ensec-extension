@@ -26,7 +26,7 @@ ifeq ($(CXX),)
 $(error You must set CXX in the environment. See README.cross for example.)
 endif
 
-gb_COMPILERDEFAULTOPTFLAGS := -O3
+gb_COMPILEROPTFLAGS := -Oz
 
 include $(GBUILDDIR)/platform/com_GCC_defs.mk
 
@@ -47,29 +47,19 @@ gb_CFLAGS := \
 	-Wshadow \
 	-fno-strict-aliasing \
 
-# For -Wno-non-virtual-dtor see <http://markmail.org/message/664jsoqe6n6smy3b>
-# "Re: [dev] warnings01: -Wnon-virtual-dtor" message to dev@openoffice.org from
-# Feb 1, 2006:
 gb_CXXFLAGS := \
 	$(gb_CXXFLAGS_COMMON) \
 	-Wno-ctor-dtor-privacy \
-	-Wno-non-virtual-dtor \
 	-fno-strict-aliasing \
 	-fsigned-char \
 	$(CXXFLAGS_CXX11) \
 
-# these are to get gcc to switch to Objective-C++ or Objective-C mode
-gb_OBJC_OBJCXX_COMMON_FLAGS := -fobjc-abi-version=2 -fobjc-legacy-dispatch -D__IPHONE_OS_VERSION_MIN_REQUIRED=40300
-
-gb_OBJCXXFLAGS := -x objective-c++ $(gb_OBJC_OBJCXX_COMMON_FLAGS)
-
-gb_OBJCFLAGS := -x objective-c $(gb_OBJC_OBJCXX_COMMON_FLAGS)
+# These are to get the compiler to switch to Objective-C++ or Objective-C mode
+gb_OBJCXXFLAGS := -x objective-c++
+gb_OBJCFLAGS := -x objective-c
 
 gb_COMPILERDEFS += \
 		-DBOOST_DETAIL_NO_CONTAINER_FWD
-
-gb_LinkTarget_LDFLAGS := $(SOLARLIB) \
-#man ld says: obsolete	-Wl,-multiply_defined,suppress \
 
 gb_DEBUG_CFLAGS := -g -fno-inline
 
@@ -81,10 +71,10 @@ gb_LinkTarget_OBJCXXFLAGS := $(gb_CXXFLAGS) $(gb_OBJCXXFLAGS)
 gb_LinkTarget_OBJCFLAGS := $(gb_CFLAGS) $(gb_OBJCFLAGS)
 
 ifeq ($(gb_SYMBOL),$(true))
-gb_LinkTarget_CFLAGS += $(gb_DEBUG_CFLAGS)
-gb_LinkTarget_CXXFLAGS += $(gb_DEBUG_CFLAGS)
-gb_LinkTarget_OBJCXXFLAGS += $(gb_DEBUG_CFLAGS)
-gb_LinkTarget_OBJCFLAGS += $(gb_DEBUG_CFLAGS)
+gb_LinkTarget_CFLAGS += -g
+gb_LinkTarget_CXXFLAGS += -g
+gb_LinkTarget_OBJCXXFLAGS += -g
+gb_LinkTarget_OBJCFLAGS += -g
 endif
 
 define gb_LinkTarget__get_liblinkflags
@@ -106,7 +96,7 @@ define gb_LinkTarget__command_dynamiclink
 		$(gb_Executable_TARGETTYPEFLAGS) \
 		$(subst \d,$$,$(RPATH)) \
 		$(T_LDFLAGS) \
-		-dead_strip -fobjc_link_runtime \
+		-dead_strip \
 		$(foreach object,$(COBJECTS),$(call gb_CObject_get_target,$(object))) \
 		$(foreach object,$(CXXOBJECTS),$(call gb_CxxObject_get_target,$(object))) \
 		$(foreach object,$(ASMOBJECTS),$(call gb_AsmObject_get_target,$(object))) \
@@ -117,28 +107,7 @@ define gb_LinkTarget__command_dynamiclink
 		$(foreach extraobjectlist,$(EXTRAOBJECTLISTS),`cat $(extraobjectlist)`) \
 		$(foreach lib,$(LINKED_STATIC_LIBS),$(call gb_StaticLibrary_get_target,$(lib))) \
 		$(call gb_LinkTarget__get_liblinkflags,$(LINKED_LIBS)) \
-		$(wildcard $(INSTDIR)/$(LIBO_LIB_FOLDER)/lib*.a) \
-		$(EBOOK_LIBS) \
-		$(FREEHAND_LIBS) \
-		$(HUNSPELL_LIBS) \
-		$(HYPHEN_LIB) \
-		$(MYTHES_LIBS) \
-		$(wildcard $(WORKDIR)/LinkTarget/StaticLibrary/lib*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/icu/source/lib/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/lcms2/src/.libs/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/libcdr/src/lib/.libs/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/libmspub/src/lib/.libs/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/libmwaw/src/lib/.libs/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/libodfgen/src/.libs/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/liborcus/src/*/.libs/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/libvisio/src/lib/.libs/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/libwp?/src/lib/.libs/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/openssl/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/raptor/src/.libs/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/rasqal/src/.libs/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/redland/src/.libs/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/xml2/.libs/*.a) \
-		$(wildcard $(WORKDIR)/UnpackedTarball/xslt/libxslt/.libs/*.a) \
+		$(shell $(SRCDIR)/bin/lo-all-static-libs) \
 		$(T_LIBS) \
 		-o $(1))
 endef
@@ -167,6 +136,8 @@ endef
 
 define gb_LinkTarget_use_system_darwin_frameworks
 $(call gb_LinkTarget_add_libs,$(1),$(foreach fw,$(2),-framework $(fw)))
+$(if $(call gb_LinkTarget__is_merged,$(1)),\
+  $(call gb_LinkTarget_add_libs,$(call gb_Library_get_linktarget,merged),$(foreach fw,$(2),-framework $(fw))))
 endef
 
 
@@ -210,6 +181,7 @@ endef
 
 gb_Library__set_soversion_script_platform =
 
+gb_Library_get_sdk_link_dir = $(WORKDIR)/LinkTarget/Library
 
 # Executable class
 

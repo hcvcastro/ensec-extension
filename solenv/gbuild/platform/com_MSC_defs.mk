@@ -40,15 +40,18 @@ ifneq ($(origin CXX),default)
 gb_CXX := $(CXX)
 endif
 
+# _SCL_SECURE_NO_WARNINGS avoids deprecation warnings for STL algorithms
+# like std::copy, std::transform (when MSVC_USE_DEBUG_RUNTIME is enabled)
+
 gb_COMPILERDEFS := \
 	-D_CRT_NON_CONFORMING_SWPRINTFS \
 	-D_CRT_NONSTDC_NO_DEPRECATE \
 	-D_CRT_SECURE_NO_DEPRECATE \
+	-D_SCL_SECURE_NO_WARNINGS \
 	-D_MT \
 	-D_DLL \
 	-DCPPU_ENV=$(gb_CPPU_ENV) \
-	-DM1500 \
-	$(if $(findstring 110_70,$(VCVER)_$(WINDOWS_SDK_VERSION)),-D_USING_V110_SDK71_) \
+	$(if $(findstring 120_70,$(VCVER)_$(WINDOWS_SDK_VERSION)),-D_USING_V110_SDK71_) \
 
 ifeq ($(CPUNAME),INTEL)
 gb_COMPILERDEFS += \
@@ -64,23 +67,24 @@ gb_RCFLAGS :=
 
 gb_AFLAGS := $(AFLAGS)
 
-# Do we really need to disable to many warnings? It seems to me that
-# many of these warnings are for custructs that we have been actively
+# Do we really need to disable this many warnings? It seems to me that
+# many of these warnings are for constructs that we have been actively
 # cleaning away from the code, to avoid warnings when building with
 # gcc or Clang and -Wall -Werror.
+
+# C4100: 'identifier' : unreferenced formal parameter
 
 # C4127: conditional expression is constant
 
 # C4189: 'identifier' : local variable is initialized but not referenced
+
+# C4201: nonstandard extension used : nameless struct/union
 
 # C4242: 'identifier' : conversion from 'type1' to 'type2', possible
 #   loss of data
 
 # C4244: nonstandard extension used : formal parameter 'identifier'
 #   was previously defined as a type
-
-# C4245: 'conversion' : conversion from 'type1' to 'type2',
-#   signed/unsigned mismatch
 
 # C4250: 'class1' : inherits 'class2::member' via dominance
 
@@ -103,6 +107,8 @@ gb_AFLAGS := $(AFLAGS)
 # C4373: '%$S': virtual function overrides '%$pS', previous versions
 #   of the compiler did not override when parameters only differed by
 #   const/volatile qualifiers.
+# [translation: ancient compilers that don't actually support C++ do
+#  stupid things]
 
 # C4481: nonstandard extension used: override specifier 'override'
 # (MSVC 2010 warns about this, even though it's C++11 keyword)
@@ -127,9 +133,6 @@ gb_AFLAGS := $(AFLAGS)
 # C4913: user defined binary operator ',' exists but no overload could
 #    convert all operands, default built-in binary operator ',' used
 
-# C4996: 'function': was declared deprecated
-#   Also generated for C++ library functions that "may be unsafe"
-
 gb_CFLAGS := \
 	-Gd \
 	-GR \
@@ -138,11 +141,11 @@ gb_CFLAGS := \
 	$(if $(MSVC_USE_DEBUG_RUNTIME),-MDd,-MD) \
 	-nologo \
 	-W4 \
+	$(if $(filter 0,$(gb_DEBUGLEVEL)),-wd4100) \
 	-wd4127 \
-	-wd4189 \
+	$(if $(filter 0,$(gb_DEBUGLEVEL)),-wd4189) \
 	-wd4242 \
 	-wd4244 \
-	-wd4245 \
 	-wd4251 \
 	-wd4355 \
 	-wd4505 \
@@ -151,7 +154,6 @@ gb_CFLAGS := \
 	-wd4706 \
 	-wd4800 \
 	-Zc:wchar_t- \
-	-Zm500 \
 
 gb_CXXFLAGS := \
 	-Gd \
@@ -162,10 +164,11 @@ gb_CXXFLAGS := \
 	$(if $(MSVC_USE_DEBUG_RUNTIME),-MDd,-MD) \
 	-nologo \
 	-W4 \
+	$(if $(filter 0,$(gb_DEBUGLEVEL)),-wd4100) \
 	-wd4127 \
-	-wd4189 \
+	$(if $(filter 0,$(gb_DEBUGLEVEL)),-wd4189) \
+	-wd4201 \
 	-wd4244 \
-	-wd4245 \
 	-wd4250 \
 	-wd4251 \
 	-wd4275 \
@@ -181,40 +184,25 @@ gb_CXXFLAGS := \
 	-wd4800 \
 	-wd4913 \
 	-Zc:wchar_t- \
-	-Zm500 \
 
-ifneq ($(MSVC_USE_DEBUG_RUNTIME),)
-gb_CXXFLAGS += \
-	-wd4996 \
-
-endif
 
 ifneq ($(ENABLE_LTO),)
 
 # Sigh, but there are cases of C4702 when using link-time code
-# generation and optimisation where I couldn't get
+# generation and optimization where I couldn't get
 # __pragma(warning(disable:4702)) to help. Especially, the
 # ImplInheritanceHelper2() {} in <cppuhelper/implbase2.hxx>
 # was reported as containing "unreachable code" when linking
 # the dbaccess dbu library. Let's try globally disabling C4702.
 
 # Might be fixed in VS2013 though?
-# VCVER=100 for VS2010 and VCVER=110 for VS2012
+# VCVER=110 for VS2012
 
-ifneq ($(filter 100 110,$(VCVER)),)
+ifneq ($(filter 110,$(VCVER)),)
 gb_CXXFLAGS += \
 	-wd4702 \
 
 endif
-
-endif
-
-# New warning(s) in Visual Studio 2010, let's try disabling these only
-# for that specific compiler version, in case a later one will not
-# need them disabled.
-ifeq ($(VCVER),100)
-
-# (none currently)
 
 endif
 
@@ -223,12 +211,18 @@ ifeq ($(CPUNAME),X86_64)
 gb_CXXFLAGS += \
 	-wd4267 \
 
+else
+
+gb_CXXFLAGS += \
+	-Zm500 \
+
+gb_CFLAGS += \
+	-Zm500 \
+
 endif
 
-ifneq ($(VCVER),100)
 # rc.exe does not support -nologo in 6.1.6723.1 that is in the Windows SDK 6.0A
 gb_RCFLAGS += -nologo
-endif
 
 # C4005: 'identifier' : macro redefinition
 
@@ -242,15 +236,10 @@ gb_PCHWARNINGS = \
 gb_STDLIBS := \
 	advapi32.lib \
 
-ifneq ($(EXTERNAL_WARNINGS_NOT_ERRORS),TRUE)
-gb_CFLAGS_WERROR := -WX
-gb_CXXFLAGS_WERROR := -WX
-endif
+gb_CFLAGS_WERROR := $(if $(ENABLE_WERROR),-WX)
 
-ifneq ($(MERGELIBS),)
-gb_CFLAGS += -DLIBO_MERGELIBS
-gb_CXXFLAGS += -DLIBO_MERGELIBS
-endif
+# there does not seem to be a way to force C++03 with MSVC
+gb_CXX03FLAGS :=
 
 gb_LinkTarget_EXCEPTIONFLAGS := \
 	-DEXCEPTIONS_ON \
@@ -264,12 +253,14 @@ gb_LinkTarget_LDFLAGS := \
 
 gb_DEBUG_CFLAGS := -Zi
 
-# this does not use CFLAGS so it is not overridable
-ifneq ($(ENABLE_CRASHDUMP),)
-gb_CFLAGS+=-Zi
-gb_CXXFLAGS+=-Zi
+ifeq ($(VCVER),120)
+# Use -FS with VS2013: "Force Synchronous PDB Writes. Forces writes to
+# the program database (PDB) file--created by /Zi or /ZI--to be
+# serialized through MSPDBSRV.EXE"
+gb_DEBUG_CFLAGS+=-FS
 endif
 
+# this does not use CFLAGS so it is not overridable
 ifeq ($(gb_SYMBOL),$(true))
 gb_CFLAGS+=$(gb_DEBUG_CFLAGS)
 gb_CXXFLAGS+=$(gb_DEBUG_CFLAGS)
@@ -293,7 +284,20 @@ gb_LTOFLAGS := $(if $(filter TRUE,$(ENABLE_LTO)),-GL)
 
 # Helper class
 
-# need windows path with backslashes here
-gb_Helper_set_ld_path := PATH="$(PATH);$(shell cygpath -w $(INSTDIR)/$(LIBO_URE_LIB_FOLDER));$(shell cygpath -w $(INSTDIR)/$(LIBO_BIN_FOLDER))"
+ifeq ($(GNUMAKE_WIN_NATIVE),TRUE)
+gb_Helper_set_ld_path := PATH="$(shell cygpath -w $(INSTDIR)/$(LIBO_URE_LIB_FOLDER));$(shell cygpath -w $(INSTDIR)/$(LIBO_BIN_FOLDER));$$PATH"
+
+define gb_Helper_prepend_ld_path
+PATH="$(shell cygpath -w $(INSTDIR)/$(LIBO_URE_LIB_FOLDER));$(shell cygpath -w $(INSTDIR)/$(LIBO_BIN_FOLDER));$(1);$$PATH"
+endef
+
+else
+gb_Helper_set_ld_path := PATH="$(shell cygpath -u $(INSTDIR)/$(LIBO_URE_LIB_FOLDER)):$(shell cygpath -u $(INSTDIR)/$(LIBO_BIN_FOLDER)):$$PATH"
+
+define gb_Helper_prepend_ld_path
+PATH="$(shell cygpath -u $(INSTDIR)/$(LIBO_URE_LIB_FOLDER)):$(shell cygpath -u $(INSTDIR)/$(LIBO_BIN_FOLDER)):$(1):$$PATH"
+endef
+
+endif
 
 # vim: set noet sw=4:

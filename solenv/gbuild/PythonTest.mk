@@ -9,12 +9,19 @@
 
 # PythonTest class
 
-ifeq ($(SYSTEM_PYTHON),NO)
+ifeq ($(SYSTEM_PYTHON),)
 gb_PythonTest_EXECUTABLE := $(gb_Python_INSTALLED_EXECUTABLE)
 gb_PythonTest_EXECUTABLE_GDB := $(gb_Python_INSTALLED_EXECUTABLE_GDB)
+ifeq ($(OS),MACOSX)
+gb_PythonTest_DEPS := $(call gb_GeneratedPackage_get_target,python3)
+else
+gb_PythonTest_DEPS := $(call gb_Package_get_target,python3)
+endif
+gb_PythonTest_DEPS += $(if $(filter-out WNT,$(OS)),$(call gb_Package_get_target,python_shell))
 else
 gb_PythonTest_EXECUTABLE := $(PYTHON_FOR_BUILD)
 gb_PythonTest_EXECUTABLE_GDB := $(PYTHON_FOR_BUILD)
+gb_PythonTest_DEPS :=
 endif
 
 gb_PythonTest_COMMAND := $(gb_PythonTest_EXECUTABLE) -m unittest
@@ -26,10 +33,8 @@ $(call gb_PythonTest_get_clean_target,%) :
 
 ifneq ($(DISABLE_PYTHON),TRUE)
 
-# pass a hard-coded 139 to the gdb postprocess script to match soffice.bin
-# signal exit values (assumption: non-0 exit value here means it crashed)
 .PHONY : $(call gb_PythonTest_get_target,%)
-$(call gb_PythonTest_get_target,%) :
+$(call gb_PythonTest_get_target,%) :| $(gb_PythonTest_DEPS)
 	$(call gb_Output_announce,$*,$(true),PYT,2)
 	$(call gb_Helper_abbreviate_dirs,\
 		rm -rf $(dir $(call gb_PythonTest_get_target,$*)) && \
@@ -51,10 +56,10 @@ $(call gb_PythonTest_get_target,%) :
 			$(MODULES) \
 		$(if $(gb_CppunitTest__interactive),, \
 			> $@.log 2>&1 \
-			|| (cat $@.log && $(call gb_UNIT_FAILED_MSG,Python,$*) \
-				$(if $(value gb_CppunitTest_postprocess), \
-					&& $(call gb_CppunitTest_postprocess,$(gb_PythonTest_EXECUTABLE_GDB),$@.core,139)) \
-				&& false))))
+			|| ($(if $(value gb_CppunitTest_postprocess), \
+					RET=$$?; \
+					$(call gb_CppunitTest_postprocess,$(gb_PythonTest_EXECUTABLE_GDB),$@.core,$$RET) >> $@.log 2>&1;) \
+				cat $@.log; $(SRCDIR)/solenv/bin/unittest-failed.sh Python $*))))
 
 # always use udkapi and URE services
 define gb_PythonTest_PythonTest

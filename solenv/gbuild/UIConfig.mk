@@ -28,8 +28,7 @@ $(call gb_UILocalizeTarget_get_workdir,%).ui :
 
 define gb_UILocalizeTarget__command
 $(call gb_Output_announce,$(2),$(true),UIX,1)
-MERGEINPUT=`$(gb_MKTEMP)` && \
-echo $(POFILES) > $${MERGEINPUT} && \
+MERGEINPUT=$(call var2file,$(shell $(gb_MKTEMP)),100,$(POFILES)) && \
 $(call gb_Helper_abbreviate_dirs,\
 	$(gb_UILocalizeTarget_COMMAND) \
 		-i $(UIConfig_FILE) \
@@ -184,9 +183,7 @@ $(call gb_UIConfig_get_target,%) : $(call gb_UIConfig_get_imagelist_target,%)
 	)
 
 $(call gb_UIConfig_get_imagelist_target,%) :
-	$(call gb_Helper_abbreviate_dirs,\
-		sort -u $(UI_IMAGELISTS) /dev/null > $@ \
-	)
+	$(call gb_UIConfig__command)
 
 .PHONY : $(call gb_UIConfig_get_clean_target,%)
 $(call gb_UIConfig_get_clean_target,%) :
@@ -227,9 +224,12 @@ $(call gb_Postprocess_register_target,AllUIConfigs,UIConfig,$(1))
 endef
 
 define gb_UIConfig__UIConfig_for_lang
+$(call gb_UIConfig_get_target,$(1)) : $(call gb_Zip_get_target,$(call gb_UIConfig_get_zipname_for_lang,$(1),$(2)))
+$(call gb_UIConfig_get_clean_target,$(1)) : $(call gb_Zip_get_clean_target,$(call gb_UIConfig_get_zipname_for_lang,$(1),$(2)))
 $(call gb_Zip_Zip_internal,$(call gb_UIConfig_get_zipname_for_lang,$(1),$(2)),$(gb_UILocalizeTarget_WORKDIR)/$(1))
 $(call gb_Zip_add_commandoptions,$(call gb_UIConfig_get_zipname_for_lang,$(1),$(2)),--suffixes .ui)
 $(call gb_Zip_get_target,$(call gb_UIConfig_get_zipname_for_lang,$(1),$(2))) : $(SRCDIR)/solenv/gbuild/UIConfig.mk
+$(call gb_Zip_set_install_name,$(call gb_UIConfig_get_zipname_for_lang,$(1),$(2)),$(INSTROOT)/$(gb_UIConfig_INSTDIR)/$(1)/ui/res/$(2).zip)
 
 endef
 
@@ -260,11 +260,8 @@ endef
 #
 # gb_UIConfig__add_uifile_for_lang target file lang
 define gb_UIConfig__add_uifile_for_lang
-$(call gb_UIConfig_get_target,$(1)) : $(call gb_Zip_get_target,$(call gb_UIConfig_get_zipname_for_lang,$(1),$(3)))
-$(call gb_UIConfig_get_clean_target,$(1)) : $(call gb_Zip_get_clean_target,$(call gb_UIConfig_get_zipname_for_lang,$(1),$(3)))
 $(call gb_Zip_add_file,$(call gb_UIConfig_get_zipname_for_lang,$(1),$(3)),$(notdir $(2))/$(3).ui)
 $(call gb_Zip_add_dependency,$(call gb_UIConfig_get_zipname_for_lang,$(1),$(3)),$(call gb_UILocalizeTarget_get_target,$(1)/$(notdir $(2))))
-$(call gb_Zip_set_install_name,$(call gb_UIConfig_get_zipname_for_lang,$(1),$(3)),$(INSTROOT)/$(gb_UIConfig_INSTDIR)/$(1)/ui/res/$(3).zip)
 
 endef
 

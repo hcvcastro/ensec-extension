@@ -20,6 +20,10 @@
 #ifndef INCLUDED_COMPHELPER_ACCESSIBLEWRAPPER_HXX
 #define INCLUDED_COMPHELPER_ACCESSIBLEWRAPPER_HXX
 
+#include <sal/config.h>
+
+#include <map>
+
 #include <comphelper/proxyaggregation.hxx>
 #include <com/sun/star/accessibility/XAccessible.hpp>
 #include <com/sun/star/accessibility/XAccessibleContext.hpp>
@@ -38,14 +42,14 @@
 #include <comphelper/stl_types.hxx>
 #include <comphelper/comphelperdllapi.h>
 
-//.............................................................................
+
 namespace comphelper
 {
-//.............................................................................
 
-    //=========================================================================
+
+
     //= OAccessibleWrapper
-    //=========================================================================
+
 
     class OAccessibleContextWrapper;
     class OWrappedAccessibleChildrenManager;
@@ -99,7 +103,7 @@ namespace comphelper
 
     protected:
         virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleContext > SAL_CALL
-                    getAccessibleContext(  ) throw (::com::sun::star::uno::RuntimeException);
+                    getAccessibleContext(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible >
                     getParent() const { return m_xParentAccessible; }
@@ -110,17 +114,16 @@ namespace comphelper
             );
 
     protected:
-        ~OAccessibleWrapper( );
+        virtual ~OAccessibleWrapper( );
 
     private:
-        COMPHELPER_DLLPRIVATE OAccessibleWrapper( );                                        // never implemented
-        COMPHELPER_DLLPRIVATE OAccessibleWrapper( const OAccessibleWrapper& );          // never implemented
-        COMPHELPER_DLLPRIVATE OAccessibleWrapper& operator=( const OAccessibleWrapper& );   // never implemented
+        OAccessibleWrapper( const OAccessibleWrapper& ) SAL_DELETED_FUNCTION;
+        OAccessibleWrapper& operator=( const OAccessibleWrapper& ) SAL_DELETED_FUNCTION;
     };
 
-    //=========================================================================
+
     //= OAccessibleContextWrapperHelper
-    //=========================================================================
+
 
     typedef ::cppu::ImplHelper1 <   ::com::sun::star::accessibility::XAccessibleEventListener
                                 >   OAccessibleContextWrapperHelper_Base;
@@ -191,29 +194,29 @@ namespace comphelper
 
     protected:
         // XInterface
-        ::com::sun::star::uno::Any SAL_CALL queryInterface( const ::com::sun::star::uno::Type& _rType ) throw (::com::sun::star::uno::RuntimeException);
+        ::com::sun::star::uno::Any SAL_CALL queryInterface( const ::com::sun::star::uno::Type& _rType ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         // XTypeProvider
         DECLARE_XTYPEPROVIDER( )
 
         // XAccessibleContext
-        virtual sal_Int32 SAL_CALL getAccessibleChildCount(  ) throw (::com::sun::star::uno::RuntimeException);
-        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible > SAL_CALL getAccessibleChild( sal_Int32 i ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::uno::RuntimeException);
-        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleRelationSet > SAL_CALL getAccessibleRelationSet(  ) throw (::com::sun::star::uno::RuntimeException);
+        sal_Int32 baseGetAccessibleChildCount(  ) throw (::com::sun::star::uno::RuntimeException, std::exception);
+        ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible > baseGetAccessibleChild( sal_Int32 i ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::uno::RuntimeException, std::exception);
+        ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleRelationSet > baseGetAccessibleRelationSet(  ) throw (::com::sun::star::uno::RuntimeException, std::exception);
 
         // XAccessibleEventListener
-        virtual void SAL_CALL notifyEvent( const ::com::sun::star::accessibility::AccessibleEventObject& aEvent ) throw (::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL notifyEvent( const ::com::sun::star::accessibility::AccessibleEventObject& aEvent ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         // XEventListener
-        virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& Source ) throw (::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& Source ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         // XComponent/OComponentProxyAggregationHelper
-        virtual void SAL_CALL dispose() throw( ::com::sun::star::uno::RuntimeException );
+        virtual void SAL_CALL dispose() throw( ::com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
 
         // own overridables
         /** notify an accessible event which has been translated (if necessary)
 
-            <p>Usually, you derive your clas from both OAccessibleContextWrapperHelper and XAccessibleEventBroadcaster,
+            <p>Usually, you derive your class from both OAccessibleContextWrapperHelper and XAccessibleEventBroadcaster,
             and simply call all your XAccessibleEventListener with the given event.</p>
 
             <p>The mutex of the BroadcastHelper passed to the instance's ctor is <em>not</em> locked when calling
@@ -222,17 +225,17 @@ namespace comphelper
         virtual void notifyTranslatedEvent( const ::com::sun::star::accessibility::AccessibleEventObject& _rEvent ) throw (::com::sun::star::uno::RuntimeException) = 0;
 
     protected:
-        ~OAccessibleContextWrapperHelper( );
+        virtual ~OAccessibleContextWrapperHelper( );
 
         OAccessibleContextWrapperHelper( );                                             // never implemented
         OAccessibleContextWrapperHelper( const OAccessibleContextWrapperHelper& );              // never implemented
         OAccessibleContextWrapperHelper& operator=( const OAccessibleContextWrapperHelper& );   // never implemented
     };
 
-    //=========================================================================
+
     //= OAccessibleContextWrapper
-    //=========================================================================
-    typedef ::cppu::PartialWeakComponentImplHelper2<    ::com::sun::star::accessibility::XAccessibleEventBroadcaster
+
+    typedef ::cppu::WeakComponentImplHelper2<    ::com::sun::star::accessibility::XAccessibleEventBroadcaster
                                             ,   ::com::sun::star::accessibility::XAccessibleContext
                                             >   OAccessibleContextWrapper_CBase;
 
@@ -275,47 +278,39 @@ namespace comphelper
         DECLARE_XTYPEPROVIDER( )
 
         // XAccessibleContext
-        virtual sal_Int32 SAL_CALL getAccessibleChildCount(  ) throw (::com::sun::star::uno::RuntimeException);
-        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible > SAL_CALL getAccessibleChild( sal_Int32 i ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::uno::RuntimeException);
-        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible > SAL_CALL getAccessibleParent(  ) throw (::com::sun::star::uno::RuntimeException);
-        virtual sal_Int32 SAL_CALL getAccessibleIndexInParent(  ) throw (::com::sun::star::uno::RuntimeException);
-        virtual sal_Int16 SAL_CALL getAccessibleRole(  ) throw (::com::sun::star::uno::RuntimeException);
-        virtual OUString SAL_CALL getAccessibleDescription(  ) throw (::com::sun::star::uno::RuntimeException);
-        virtual OUString SAL_CALL getAccessibleName(  ) throw (::com::sun::star::uno::RuntimeException);
-        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleRelationSet > SAL_CALL getAccessibleRelationSet(  ) throw (::com::sun::star::uno::RuntimeException);
-        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleStateSet > SAL_CALL getAccessibleStateSet(  ) throw (::com::sun::star::uno::RuntimeException);
-        virtual ::com::sun::star::lang::Locale SAL_CALL getLocale(  ) throw (::com::sun::star::accessibility::IllegalAccessibleComponentStateException, ::com::sun::star::uno::RuntimeException);
+        virtual sal_Int32 SAL_CALL getAccessibleChildCount(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible > SAL_CALL getAccessibleChild( sal_Int32 i ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible > SAL_CALL getAccessibleParent(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual sal_Int32 SAL_CALL getAccessibleIndexInParent(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual sal_Int16 SAL_CALL getAccessibleRole(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual OUString SAL_CALL getAccessibleDescription(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual OUString SAL_CALL getAccessibleName(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleRelationSet > SAL_CALL getAccessibleRelationSet(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleStateSet > SAL_CALL getAccessibleStateSet(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual ::com::sun::star::lang::Locale SAL_CALL getLocale(  ) throw (::com::sun::star::accessibility::IllegalAccessibleComponentStateException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         // XAccessibleEventBroadcaster
-        virtual void SAL_CALL addAccessibleEventListener( const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleEventListener >& xListener ) throw (::com::sun::star::uno::RuntimeException);
-        virtual void SAL_CALL removeAccessibleEventListener( const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleEventListener >& xListener ) throw (::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL addAccessibleEventListener( const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleEventListener >& xListener ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual void SAL_CALL removeAccessibleEventListener( const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleEventListener >& xListener ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         // OAccessibleContextWrapper
-        virtual void notifyTranslatedEvent( const ::com::sun::star::accessibility::AccessibleEventObject& _rEvent ) throw (::com::sun::star::uno::RuntimeException);
-
-        // XComponent
-        virtual void SAL_CALL dispose() throw( ::com::sun::star::uno::RuntimeException );
-        virtual void SAL_CALL addEventListener(const ::com::sun::star::uno::Reference< ::com::sun::star::lang::XEventListener > & xListener)throw (::com::sun::star::uno::RuntimeException)
-            { WeakComponentImplHelperBase::addEventListener(xListener); }
-        virtual void SAL_CALL removeEventListener(const ::com::sun::star::uno::Reference< ::com::sun::star::lang::XEventListener > & xListener)throw (::com::sun::star::uno::RuntimeException)
-            { WeakComponentImplHelperBase::removeEventListener(xListener); }
+        virtual void notifyTranslatedEvent( const ::com::sun::star::accessibility::AccessibleEventObject& _rEvent ) throw (::com::sun::star::uno::RuntimeException) SAL_OVERRIDE;
 
         // OComponentHelper
         using OAccessibleContextWrapperHelper::disposing;
-        virtual void SAL_CALL disposing()  throw (::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL disposing()  throw (::com::sun::star::uno::RuntimeException) SAL_OVERRIDE;
 
     protected:
         virtual ~OAccessibleContextWrapper();
 
     private:
-        COMPHELPER_DLLPRIVATE OAccessibleContextWrapper();                                              // never implemented
-        COMPHELPER_DLLPRIVATE OAccessibleContextWrapper( const OAccessibleContextWrapper& );                // never implemented
-        COMPHELPER_DLLPRIVATE OAccessibleContextWrapper& operator=( const OAccessibleContextWrapper& ); // never implemented
+        OAccessibleContextWrapper( const OAccessibleContextWrapper& ) SAL_DELETED_FUNCTION;
+        OAccessibleContextWrapper& operator=( const OAccessibleContextWrapper& ) SAL_DELETED_FUNCTION;
     };
 
-    //=========================================================================
+
     //= OWrappedAccessibleChildrenManager
-    //=========================================================================
+
 
     typedef ::std::map  <   ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible >
                         ,   ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible >
@@ -335,7 +330,7 @@ namespace comphelper
         ::com::sun::star::uno::WeakReference< ::com::sun::star::accessibility::XAccessible >
                                 m_aOwningAccessible;    // the XAccessible which belongs to the XAccessibleContext which we work for
         AccessibleMap           m_aChildrenMap;         // for caching children
-        sal_Bool                m_bTransientChildren;   // are we prohibited to cache our children?
+        bool                m_bTransientChildren;   // are we prohibited to cache our children?
 
     public:
         /// ctor
@@ -346,7 +341,7 @@ namespace comphelper
         /** specifies if the children are to be consideren transient (i.e.: not cached)
             <p>to be called only once per lifetime</p>
         */
-        void    setTransientChildren( sal_Bool _bSet = sal_True );
+        void    setTransientChildren( bool _bSet = true );
 
         /** sets the XAccessible which belongs to the XAccessibleContext which we work for
             <p>to be called only once per lifetime</p>
@@ -357,7 +352,7 @@ namespace comphelper
         ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible >
                 getAccessibleWrapperFor(
                     const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible >& _rxKey,
-                    sal_Bool _bCreate = sal_True
+                    bool _bCreate = true
                 );
 
         /// erases the given key from the map (if it is present there)
@@ -387,23 +382,22 @@ namespace comphelper
 
     protected:
         // XEventListener
-        virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& Source ) throw (::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& Source ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
     protected:
         void    implTranslateChildEventValue( const ::com::sun::star::uno::Any& _rInValue, ::com::sun::star::uno::Any& _rOutValue );
 
     protected:
-        ~OWrappedAccessibleChildrenManager( );
+        virtual ~OWrappedAccessibleChildrenManager( );
 
     private:
-        COMPHELPER_DLLPRIVATE OWrappedAccessibleChildrenManager( );                                                     // never implemented
-        COMPHELPER_DLLPRIVATE OWrappedAccessibleChildrenManager( const OWrappedAccessibleChildrenManager& );                // never implemented
-        COMPHELPER_DLLPRIVATE OWrappedAccessibleChildrenManager& operator=( const OWrappedAccessibleChildrenManager& ); // never implemented
+        OWrappedAccessibleChildrenManager( const OWrappedAccessibleChildrenManager& ) SAL_DELETED_FUNCTION;
+        OWrappedAccessibleChildrenManager& operator=( const OWrappedAccessibleChildrenManager& ) SAL_DELETED_FUNCTION;
     };
 
-//.............................................................................
+
 }   // namespace accessibility
-//.............................................................................
+
 
 #endif // INCLUDED_COMPHELPER_ACCESSIBLEWRAPPER_HXX
 

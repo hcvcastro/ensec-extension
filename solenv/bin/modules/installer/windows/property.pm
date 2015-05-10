@@ -53,13 +53,6 @@ sub get_arpcomments_for_property_table
 
     $comment = $comment . " ($languagestring)";
 
-    my $localminor = "";
-    $localminor = $installer::globals::minor;
-
-    my $buildidstring = "(" . $installer::globals::build . $localminor . "(Build:" . $installer::globals::buildid . "))";
-
-    $comment = $comment . " " . $buildidstring;
-
     return $comment;
 }
 
@@ -425,6 +418,14 @@ sub update_property_table
     my $productname = get_productname_for_property_table($language, $allvariables);
     my $productversion = get_productversion_for_property_table();
     my $quickstarterlinkname = get_quickstarterlinkname_for_property_table($language, $allvariables);
+    my $windowsminversiontext = "Windows Vista";
+    my $windowsminversionnumber = "600";
+
+    if ( $allvariables->{'WINDOWSSDKVERSION'} eq '70' )
+    {
+       $windowsminversiontext = "Windows XP";
+       $windowsminversionnumber = "501";
+    }
 
     # Updating the values
 
@@ -438,6 +439,8 @@ sub update_property_table
         ${$propertyfile}[$i] =~ s/\bPRODUCTNAMETEMPLATE\b/$productname/;
         ${$propertyfile}[$i] =~ s/\bPRODUCTVERSIONTEMPLATE\b/$productversion/;
         ${$propertyfile}[$i] =~ s/\bQUICKSTARTERLINKNAMETEMPLATE\b/$quickstarterlinkname/;
+        ${$propertyfile}[$i] =~ s/\bWINDOWSMINVERSIONTEXTTEMPLATE\b/$windowsminversiontext/;
+        ${$propertyfile}[$i] =~ s/\bWINDOWSMINVERSIONNUMBERTEMPLATE\b/$windowsminversionnumber/;
         if ( ${$propertyfile}[$i] =~ m/\bARPNOMODIFY\b/ ) { $hasarpnomodify = 1; }
     }
 

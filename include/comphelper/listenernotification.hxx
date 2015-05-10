@@ -27,14 +27,14 @@
 
 #include <memory>
 
-//........................................................................
+
 namespace comphelper
 {
-//........................................................................
 
-    //====================================================================
+
+
     //= OListenerContainer
-    //====================================================================
+
     /** abstract base class which manages a listener container, including
         THB's listener notification pattern which cares for removing listeners
         which throw an DisposedException upon notification
@@ -75,22 +75,20 @@ namespace comphelper
         /** determines whether the listener container is currently empty
         */
         inline bool
-                empty() const SAL_THROW(());
+                empty() const;
 
         /** determines the number of elements in the container
         */
         inline size_t
-                size() const SAL_THROW(());
+                size() const;
 
         /** creates an iterator for looping through all registered listeners
         */
-        SAL_WNODEPRECATED_DECLARATIONS_PUSH
-        ::std::auto_ptr< ::cppu::OInterfaceIteratorHelper > createIterator()
+        ::std::unique_ptr< ::cppu::OInterfaceIteratorHelper > createIterator()
         {
-            ::std::auto_ptr< ::cppu::OInterfaceIteratorHelper > pIterator( new ::cppu::OInterfaceIteratorHelper( m_aListeners ) );
+            ::std::unique_ptr< ::cppu::OInterfaceIteratorHelper > pIterator( new ::cppu::OInterfaceIteratorHelper( m_aListeners ) );
             return pIterator;
         }
-        SAL_WNODEPRECATED_DECLARATIONS_POP
 
     protected:
                 OListenerContainer( ::osl::Mutex& _rMutex );
@@ -110,7 +108,7 @@ namespace comphelper
 
             @see implNotify
         */
-        bool    impl_notify( const ::com::sun::star::lang::EventObject& _rEvent ) SAL_THROW(( ::com::sun::star::uno::Exception ));
+        bool    impl_notify( const ::com::sun::star::lang::EventObject& _rEvent );
 
     protected:
         /** call a single listener
@@ -138,23 +136,23 @@ namespace comphelper
         virtual bool    implNotify(
                             const ::com::sun::star::uno::Reference< ::com::sun::star::lang::XEventListener >& _rxListener,
                             const ::com::sun::star::lang::EventObject& _rEvent
-                        )   SAL_THROW( ( ::com::sun::star::uno::Exception ) ) = 0;
+                        ) = 0;
     };
 
-    //====================================================================
-    inline bool OListenerContainer::empty() const SAL_THROW(())
+
+    inline bool OListenerContainer::empty() const
     {
         return ( m_aListeners.getLength() == 0 );
     }
 
-    inline size_t OListenerContainer::size() const SAL_THROW(())
+    inline size_t OListenerContainer::size() const
     {
         return m_aListeners.getLength();
     }
 
-    //====================================================================
+
     //= OSimpleListenerContainer
-    //====================================================================
+
     /** helper class for simple notification of the form LISTENER::METHOD( EVENT )
 
         This class is not threadsafe!
@@ -200,18 +198,24 @@ namespace comphelper
         using OListenerContainer::createIterator;
 
         /// typed notification
-        inline bool    notify( const EventClass& _rEvent, NotificationMethod _pNotify ) SAL_THROW(( ::com::sun::star::uno::Exception ));
+        inline bool    notify( const EventClass& _rEvent, NotificationMethod _pNotify );
 
     protected:
-        inline virtual bool    implNotify(
+        virtual bool    implNotify(
                             const ::com::sun::star::uno::Reference< ::com::sun::star::lang::XEventListener >& _rxListener,
                             const ::com::sun::star::lang::EventObject& _rEvent
-                        )   SAL_THROW( ( ::com::sun::star::uno::Exception ) );
+                        ) SAL_OVERRIDE
+        {
+            const EventClass& rTypedEvent( static_cast< const EventClass& >( _rEvent ) );
+            ListenerClass* pTypedListener( static_cast< ListenerClass* >( _rxListener.get() ) );
+            (pTypedListener->*m_pNotificationMethod)( rTypedEvent );
+            return true;
+        }
     };
 
-    //--------------------------------------------------------------------
+
     template< class LISTENER, class EVENT >
-    inline bool OSimpleListenerContainer< LISTENER, EVENT >::notify( const EventClass& _rEvent, NotificationMethod _pNotify ) SAL_THROW(( ::com::sun::star::uno::Exception ))
+    inline bool OSimpleListenerContainer< LISTENER, EVENT >::notify( const EventClass& _rEvent, NotificationMethod _pNotify )
     {
         m_pNotificationMethod = _pNotify;
         bool bRet = OListenerContainer::impl_notify( _rEvent );
@@ -219,21 +223,8 @@ namespace comphelper
         return bRet;
     }
 
-    //--------------------------------------------------------------------
-    template< class LISTENER, class EVENT >
-    inline bool OSimpleListenerContainer< LISTENER, EVENT >::implNotify(
-            const ::com::sun::star::uno::Reference< ::com::sun::star::lang::XEventListener >& _rxListener,
-            const ::com::sun::star::lang::EventObject& _rEvent )   SAL_THROW( ( ::com::sun::star::uno::Exception ) )
-    {
-        const EventClass& rTypedEvent( static_cast< const EventClass& >( _rEvent ) );
-        ListenerClass* pTypedListener( static_cast< ListenerClass* >( _rxListener.get() ) );
-        (pTypedListener->*m_pNotificationMethod)( rTypedEvent );
-        return true;
-    }
-
-    //====================================================================
     //= OListenerContainerBase
-    //====================================================================
+
     /** is a specialization of OListenerContainer which saves you some additional type casts,
         by making the required listener and event types template arguments.
     */
@@ -267,31 +258,25 @@ namespace comphelper
         using OListenerContainer::impl_notify;
 
     protected:
-        inline virtual bool    implNotify(
+        virtual bool    implNotify(
                             const ::com::sun::star::uno::Reference< ::com::sun::star::lang::XEventListener >& _rxListener,
                             const ::com::sun::star::lang::EventObject& _rEvent
-                        )   SAL_THROW( ( ::com::sun::star::uno::Exception ) );
+                        ) SAL_OVERRIDE
+        {
+            return implTypedNotify(
+                ::com::sun::star::uno::Reference< ListenerClass >( static_cast< ListenerClass* >( _rxListener.get() ) ),
+                static_cast< const EventClass& >( _rEvent )
+            );
+        }
 
         virtual bool    implTypedNotify(
                             const ::com::sun::star::uno::Reference< ListenerClass >& _rxListener,
                             const EventClass& _rEvent
-                        )   SAL_THROW( ( ::com::sun::star::uno::Exception ) ) = 0;
+                        ) = 0;
     };
 
-    template< class LISTENER, class EVENT >
-    inline bool OListenerContainerBase< LISTENER, EVENT >::implNotify(
-            const ::com::sun::star::uno::Reference< ::com::sun::star::lang::XEventListener >& _rxListener,
-            const ::com::sun::star::lang::EventObject& _rEvent )   SAL_THROW( ( ::com::sun::star::uno::Exception ) )
-    {
-        return implTypedNotify(
-                    ::com::sun::star::uno::Reference< ListenerClass >( static_cast< ListenerClass* >( _rxListener.get() ) ),
-                    static_cast< const EventClass& >( _rEvent )
-        );
-    }
-
-//........................................................................
 } // namespace comphelper
-//........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_LISTENERNOTIFICATION_HXX
 

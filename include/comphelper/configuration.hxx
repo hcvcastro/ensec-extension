@@ -12,14 +12,13 @@
 
 #include <sal/config.h>
 
-#include <boost/noncopyable.hpp>
 #include <boost/optional.hpp>
-#include <boost/shared_ptr.hpp>
 #include <com/sun/star/uno/Any.hxx>
 #include <com/sun/star/uno/Reference.hxx>
 #include <comphelper/comphelperdllapi.h>
 #include <comphelper/processfactory.hxx>
 #include <sal/types.h>
+#include <memory>
 
 namespace com { namespace sun { namespace star {
     namespace configuration { class XReadWriteAccess; }
@@ -43,9 +42,9 @@ namespace detail { class ConfigurationWrapper; }
 ///
 /// This is the only class from this header file that client code should use
 /// directly.
-class COMPHELPER_DLLPUBLIC ConfigurationChanges: private boost::noncopyable {
+class COMPHELPER_DLLPUBLIC ConfigurationChanges {
 public:
-    static boost::shared_ptr< ConfigurationChanges > create(
+    static std::shared_ptr<ConfigurationChanges> create(
         com::sun::star::uno::Reference< com::sun::star::uno::XComponentContext >
             const & context = comphelper::getProcessComponentContext());
 
@@ -54,6 +53,9 @@ public:
     void commit() const;
 
 private:
+    ConfigurationChanges(const ConfigurationChanges&) SAL_DELETED_FUNCTION;
+    ConfigurationChanges& operator=(const ConfigurationChanges&) SAL_DELETED_FUNCTION;
+
     SAL_DLLPRIVATE ConfigurationChanges(
         com::sun::star::uno::Reference< com::sun::star::uno::XComponentContext >
             const & context);
@@ -79,7 +81,7 @@ private:
 namespace detail {
 
 /// @internal
-class COMPHELPER_DLLPUBLIC ConfigurationWrapper: private boost::noncopyable {
+class COMPHELPER_DLLPUBLIC ConfigurationWrapper {
 public:
     static ConfigurationWrapper const & get(
         com::sun::star::uno::Reference< com::sun::star::uno::XComponentContext >
@@ -91,51 +93,58 @@ public:
 
     SAL_DLLPRIVATE ~ConfigurationWrapper();
 
+    bool isReadOnly(OUString const & path) const;
+
     com::sun::star::uno::Any getPropertyValue(OUString const & path) const;
 
-    void setPropertyValue(
-        boost::shared_ptr< ConfigurationChanges > const & batch,
-        OUString const & path, com::sun::star::uno::Any const & value)
-        const;
+    static void setPropertyValue(
+        std::shared_ptr< ConfigurationChanges > const & batch,
+        OUString const & path, com::sun::star::uno::Any const & value);
 
     com::sun::star::uno::Any getLocalizedPropertyValue(
         OUString const & path) const;
 
-    void setLocalizedPropertyValue(
-        boost::shared_ptr< ConfigurationChanges > const & batch,
-        OUString const & path, com::sun::star::uno::Any const & value)
-        const;
+    static void setLocalizedPropertyValue(
+        std::shared_ptr< ConfigurationChanges > const & batch,
+        OUString const & path, com::sun::star::uno::Any const & value);
 
     com::sun::star::uno::Reference<
         com::sun::star::container::XHierarchicalNameAccess >
     getGroupReadOnly(OUString const & path) const;
 
-    com::sun::star::uno::Reference<
+    static com::sun::star::uno::Reference<
         com::sun::star::container::XHierarchicalNameReplace >
     getGroupReadWrite(
-        boost::shared_ptr< ConfigurationChanges > const & batch,
-        OUString const & path) const;
+        std::shared_ptr< ConfigurationChanges > const & batch,
+        OUString const & path);
 
     com::sun::star::uno::Reference< com::sun::star::container::XNameAccess >
     getSetReadOnly(OUString const & path) const;
 
-    com::sun::star::uno::Reference< com::sun::star::container::XNameContainer >
+    static com::sun::star::uno::Reference< com::sun::star::container::XNameContainer >
     getSetReadWrite(
-        boost::shared_ptr< ConfigurationChanges > const & batch,
-        OUString const & path) const;
+        std::shared_ptr< ConfigurationChanges > const & batch,
+        OUString const & path);
 
-    boost::shared_ptr< ConfigurationChanges > createChanges() const;
+    std::shared_ptr< ConfigurationChanges > createChanges() const;
 
 private:
+    ConfigurationWrapper(const ConfigurationWrapper&) SAL_DELETED_FUNCTION;
+    ConfigurationWrapper& operator=(const ConfigurationWrapper&) SAL_DELETED_FUNCTION;
+
     com::sun::star::uno::Reference< com::sun::star::uno::XComponentContext >
         context_;
 
     com::sun::star::uno::Reference<
-        com::sun::star::container::XHierarchicalNameAccess > access_;
+        com::sun::star::configuration::XReadWriteAccess > access_;
+        // should really be an css.configuration.ReadOnlyAccess (with added
+        // css.beans.XHierarchicalPropertySetInfo), but then
+        // configmgr::Access::asProperty() would report all properties as
+        // READONLY, so isReadOnly() would not work
 };
 
 /// @internal
-template< typename T > struct Convert: private boost::noncopyable {
+template< typename T > struct Convert {
     static com::sun::star::uno::Any toAny(T const & value)
     { return com::sun::star::uno::makeAny(value); }
 
@@ -143,13 +152,15 @@ template< typename T > struct Convert: private boost::noncopyable {
     { return value.get< T >(); }
 
 private:
-    Convert(); // not defined
-    ~Convert(); // not defined
+    Convert(const Convert&) SAL_DELETED_FUNCTION;
+    Convert& operator=(const Convert&) SAL_DELETED_FUNCTION;
+
+    Convert() SAL_DELETED_FUNCTION;
+    ~Convert() SAL_DELETED_FUNCTION;
 };
 
 /// @internal
-template< typename T > struct Convert< boost::optional< T > >:
-    private boost::noncopyable
+template< typename T > struct Convert< boost::optional< T > >
 {
     static com::sun::star::uno::Any toAny(boost::optional< T > const & value) {
         return value
@@ -164,8 +175,11 @@ template< typename T > struct Convert< boost::optional< T > >:
     }
 
 private:
-    Convert(); // not defined
-    ~Convert(); // not defined
+    Convert(const Convert&) SAL_DELETED_FUNCTION;
+    Convert& operator=(const Convert&) SAL_DELETED_FUNCTION;
+
+    Convert() SAL_DELETED_FUNCTION;
+    ~Convert() SAL_DELETED_FUNCTION;
 };
 
 }
@@ -175,9 +189,17 @@ private:
 /// Automatically generated headers for the various configuration properties
 /// derive from this template and make available its member functions to access
 /// each given configuration property.
-template< typename T, typename U > struct ConfigurationProperty:
-    private boost::noncopyable
+template< typename T, typename U > struct ConfigurationProperty
 {
+    /// Get the read-only status of the given (non-localized) configuration
+    /// property.
+    static bool isReadOnly(
+        css::uno::Reference<css::uno::XComponentContext> const & context
+            = comphelper::getProcessComponentContext())
+    {
+        return detail::ConfigurationWrapper::get(context).isReadOnly(T::path());
+    }
+
     /// Get the value of the given (non-localized) configuration property.
     ///
     /// For nillable properties, U is of type boost::optional<U'>.
@@ -199,17 +221,18 @@ template< typename T, typename U > struct ConfigurationProperty:
     /// For nillable properties, U is of type boost::optional<U'>.
     static void set(
         U const & value,
-        boost::shared_ptr< ConfigurationChanges > const & batch,
-        com::sun::star::uno::Reference< com::sun::star::uno::XComponentContext >
-            const & context = comphelper::getProcessComponentContext())
+        std::shared_ptr< ConfigurationChanges > const & batch)
     {
-        detail::ConfigurationWrapper::get(context).setPropertyValue(
+        comphelper::detail::ConfigurationWrapper::setPropertyValue(
             batch, T::path(), detail::Convert< U >::toAny(value));
     }
 
 private:
-    ConfigurationProperty(); // not defined
-    ~ConfigurationProperty(); // not defined
+    ConfigurationProperty(const ConfigurationProperty&) SAL_DELETED_FUNCTION;
+    ConfigurationProperty& operator=(const ConfigurationProperty&) SAL_DELETED_FUNCTION;
+
+    ConfigurationProperty() SAL_DELETED_FUNCTION;
+    ~ConfigurationProperty() SAL_DELETED_FUNCTION;
 };
 
 /// A type-safe wrapper around a localized configuration property.
@@ -217,9 +240,16 @@ private:
 /// Automatically generated headers for the various localized configuration
 /// properties derive from this template and make available its member functions
 /// to access each given localized configuration property.
-template< typename T, typename U > struct ConfigurationLocalizedProperty:
-    private boost::noncopyable
+template< typename T, typename U > struct ConfigurationLocalizedProperty
 {
+    /// Get the read-only status of the given localized configuration property.
+    static bool isReadOnly(
+        css::uno::Reference<css::uno::XComponentContext> const & context
+            = comphelper::getProcessComponentContext())
+    {
+        return detail::ConfigurationWrapper::get(context).isReadOnly(T::path());
+    }
+
     /// Get the value of the given localized configuration property, for the
     /// locale currently set at the
     /// com.sun.star.configuration.theDefaultProvider.
@@ -245,17 +275,18 @@ template< typename T, typename U > struct ConfigurationLocalizedProperty:
     /// For nillable properties, U is of type boost::optional<U'>.
     static void set(
         U const & value,
-        boost::shared_ptr< ConfigurationChanges > const & batch,
-        com::sun::star::uno::Reference< com::sun::star::uno::XComponentContext >
-            const & context = comphelper::getProcessComponentContext())
+        std::shared_ptr< ConfigurationChanges > const & batch)
     {
-        detail::ConfigurationWrapper::get(context).setLocalizedPropertyValue(
+        comphelper::detail::ConfigurationWrapper::setLocalizedPropertyValue(
             batch, T::path(), detail::Convert< U >::toAny(value));
     }
 
 private:
-    ConfigurationLocalizedProperty(); // not defined
-    ~ConfigurationLocalizedProperty(); // not defined
+    ConfigurationLocalizedProperty(const ConfigurationLocalizedProperty&) SAL_DELETED_FUNCTION;
+    ConfigurationLocalizedProperty& operator=(const ConfigurationLocalizedProperty&) SAL_DELETED_FUNCTION;
+
+    ConfigurationLocalizedProperty() SAL_DELETED_FUNCTION;
+    ~ConfigurationLocalizedProperty() SAL_DELETED_FUNCTION;
 };
 
 /// A type-safe wrapper around a configuration group.
@@ -263,7 +294,7 @@ private:
 /// Automatically generated headers for the various configuration groups derive
 /// from this template and make available its member functions to access each
 /// given configuration group.
-template< typename T > struct ConfigurationGroup: private boost::noncopyable {
+template< typename T > struct ConfigurationGroup {
     /// Get read-only access to the given configuration group.
     static com::sun::star::uno::Reference<
         com::sun::star::container::XHierarchicalNameAccess >
@@ -278,17 +309,18 @@ template< typename T > struct ConfigurationGroup: private boost::noncopyable {
     /// modifications via the given changes batch.
     static com::sun::star::uno::Reference<
         com::sun::star::container::XHierarchicalNameReplace >
-    get(boost::shared_ptr< ConfigurationChanges > const & batch,
-        com::sun::star::uno::Reference< com::sun::star::uno::XComponentContext >
-            const & context = comphelper::getProcessComponentContext())
+    get(std::shared_ptr< ConfigurationChanges > const & batch)
     {
-        return detail::ConfigurationWrapper::get(context).getGroupReadWrite(
+        return comphelper::detail::ConfigurationWrapper::getGroupReadWrite(
             batch, T::path());
     }
 
 private:
-    ConfigurationGroup(); // not defined
-    ~ConfigurationGroup(); // not defined
+    ConfigurationGroup(const ConfigurationGroup&) SAL_DELETED_FUNCTION;
+    ConfigurationGroup& operator=(const ConfigurationGroup&) SAL_DELETED_FUNCTION;
+
+    ConfigurationGroup() SAL_DELETED_FUNCTION;
+    ~ConfigurationGroup() SAL_DELETED_FUNCTION;
 };
 
 /// A type-safe wrapper around a configuration set.
@@ -296,7 +328,7 @@ private:
 /// Automatically generated headers for the various configuration sets derive
 /// from this template and make available its member functions to access each
 /// given configuration set.
-template< typename T > struct ConfigurationSet: private boost::noncopyable {
+template< typename T > struct ConfigurationSet {
     /// Get read-only access to the given configuration set.
     static
     com::sun::star::uno::Reference< com::sun::star::container::XNameAccess >
@@ -311,17 +343,18 @@ template< typename T > struct ConfigurationSet: private boost::noncopyable {
     /// modifications via the given changes batch.
     static
     com::sun::star::uno::Reference< com::sun::star::container::XNameContainer >
-    get(boost::shared_ptr< ConfigurationChanges > const & batch,
-        com::sun::star::uno::Reference< com::sun::star::uno::XComponentContext >
-            const & context = comphelper::getProcessComponentContext())
+    get(std::shared_ptr< ConfigurationChanges > const & batch)
     {
-        return detail::ConfigurationWrapper::get(context).getSetReadWrite(
+        return comphelper::detail::ConfigurationWrapper::getSetReadWrite(
             batch, T::path());
     }
 
 private:
-    ConfigurationSet(); // not defined
-    ~ConfigurationSet(); // not defined
+    ConfigurationSet(const ConfigurationSet&) SAL_DELETED_FUNCTION;
+    ConfigurationSet& operator=(const ConfigurationSet&) SAL_DELETED_FUNCTION;
+
+    ConfigurationSet() SAL_DELETED_FUNCTION;
+    ~ConfigurationSet() SAL_DELETED_FUNCTION;
 };
 
 }

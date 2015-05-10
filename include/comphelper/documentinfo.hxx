@@ -24,27 +24,23 @@
 
 #include <com/sun/star/frame/XModel.hpp>
 
-//........................................................................
-namespace comphelper {
-//........................................................................
 
-    //====================================================================
+namespace comphelper {
+
+
+
     //= DocumentInfo
-    //====================================================================
-    class COMPHELPER_DLLPUBLIC DocumentInfo
+
+    namespace  DocumentInfo
     {
-    public:
         /** retrieves the UI title of the given document
         */
-        static OUString  getDocumentTitle( const ::com::sun::star::uno::Reference< ::com::sun::star::frame::XModel >& _rxDocument );
+        COMPHELPER_DLLPUBLIC OUString  getDocumentTitle( const ::com::sun::star::uno::Reference< ::com::sun::star::frame::XModel >& _rxDocument );
+    }
 
-    private:
-        DocumentInfo(); // never implemented
-    };
 
-//........................................................................
 }   // namespace comphelper
-//........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_DOCUMENTINFO_HXX
 

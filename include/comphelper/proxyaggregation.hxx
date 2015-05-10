@@ -17,8 +17,8 @@
  *   the License at http://www.apache.org/licenses/LICENSE-2.0 .
  */
 
-#ifndef COMPHELPER_PROXY_AGGREGATION
-#define COMPHELPER_PROXY_AGGREGATION
+#ifndef INCLUDED_COMPHELPER_PROXYAGGREGATION_HXX
+#define INCLUDED_COMPHELPER_PROXYAGGREGATION_HXX
 
 #include <com/sun/star/uno/XAggregation.hpp>
 #include <com/sun/star/lang/XMultiServiceFactory.hpp>
@@ -29,6 +29,10 @@
 #include <comphelper/broadcasthelper.hxx>
 #include <cppuhelper/compbase_ex.hxx>
 #include <comphelper/comphelperdllapi.h>
+
+namespace com { namespace sun { namespace star { namespace uno {
+    class XComponentContext;
+} } } }
 
 /* class hierarchy herein:
 
@@ -67,14 +71,14 @@
        - call baseAggregateProxyFor in your ctor
 */
 
-//.............................................................................
+
 namespace comphelper
 {
-//.............................................................................
 
-    //=========================================================================
+
+
     //= OProxyAggregation
-    //=========================================================================
+
     /** helper class for aggregating a proxy for a foreign object
     */
     class OProxyAggregation
@@ -106,14 +110,13 @@ namespace comphelper
         ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Type > SAL_CALL getTypes(  ) throw (::com::sun::star::uno::RuntimeException);
 
     private:
-        OProxyAggregation( );                                       // never implemented
-        OProxyAggregation( const OProxyAggregation& );              // never implemented
-        OProxyAggregation& operator=( const OProxyAggregation& );   // never implemented
+        OProxyAggregation( const OProxyAggregation& ) SAL_DELETED_FUNCTION;
+        OProxyAggregation& operator=( const OProxyAggregation& ) SAL_DELETED_FUNCTION;
     };
 
-    //=========================================================================
+
     //= OComponentProxyAggregationHelper
-    //=========================================================================
+
     /** a helper class for aggregating a proxy to an XComponent
 
         <p>The object couples the life time of itself and the component: if one of the both
@@ -141,7 +144,7 @@ namespace comphelper
         using OProxyAggregation::getComponentContext;
 
         // XInterface
-        ::com::sun::star::uno::Any SAL_CALL queryInterface( const ::com::sun::star::uno::Type& _rType ) throw (::com::sun::star::uno::RuntimeException);
+        ::com::sun::star::uno::Any SAL_CALL queryInterface( const ::com::sun::star::uno::Type& _rType ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         // XTypeProvider
         DECLARE_XTYPEPROVIDER( )
@@ -161,20 +164,19 @@ namespace comphelper
         );
 
         // XEventListener
-        virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& Source ) throw (::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& Source ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         // XComponent
-        virtual void SAL_CALL dispose() throw( ::com::sun::star::uno::RuntimeException );
+        virtual void SAL_CALL dispose() throw( ::com::sun::star::uno::RuntimeException, std::exception ) = 0;
 
     private:
-        COMPHELPER_DLLPRIVATE OComponentProxyAggregationHelper( );                                                  // never implemented
-        COMPHELPER_DLLPRIVATE OComponentProxyAggregationHelper( const OComponentProxyAggregationHelper& );          // never implemented
-        COMPHELPER_DLLPRIVATE OComponentProxyAggregationHelper& operator=( const OComponentProxyAggregationHelper& );   // never implemented
+        OComponentProxyAggregationHelper( const OComponentProxyAggregationHelper& ) SAL_DELETED_FUNCTION;
+        OComponentProxyAggregationHelper& operator=( const OComponentProxyAggregationHelper& ) SAL_DELETED_FUNCTION;
     };
 
-    //=========================================================================
+
     //= OComponentProxyAggregation
-    //=========================================================================
+
     class COMPHELPER_DLLPUBLIC OComponentProxyAggregation   :public OBaseMutex
                                         ,public cppu::WeakComponentImplHelperBase
                                         ,public OComponentProxyAggregationHelper
@@ -193,29 +195,28 @@ namespace comphelper
         DECLARE_XTYPEPROVIDER()
 
         // OComponentHelper
-        virtual void SAL_CALL disposing()  throw (::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL disposing()  throw (::com::sun::star::uno::RuntimeException) SAL_OVERRIDE;
 
         // XEventListener
-        virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& _rSource ) throw (::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& _rSource ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         // XComponent/OComponentProxyAggregationHelper
-        virtual void SAL_CALL dispose() throw( ::com::sun::star::uno::RuntimeException );
+        virtual void SAL_CALL dispose() throw( ::com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
 
     protected:
         // be called from within the dtor of derived classes
         void implEnsureDisposeInDtor( );
 
     private:
-        COMPHELPER_DLLPRIVATE OComponentProxyAggregation( );                                                // never implemented
-        COMPHELPER_DLLPRIVATE OComponentProxyAggregation( const OComponentProxyAggregation& );          // never implemented
-        COMPHELPER_DLLPRIVATE OComponentProxyAggregation& operator=( const OComponentProxyAggregation& );   // never implemented
+        OComponentProxyAggregation( const OComponentProxyAggregation& ) SAL_DELETED_FUNCTION;
+        OComponentProxyAggregation& operator=( const OComponentProxyAggregation& ) SAL_DELETED_FUNCTION;
     };
 
-//.............................................................................
+
 }   // namespace comphelper
-//.............................................................................
 
 
-#endif // COMPHELPER_PROXY_AGGREGATION
+
+#endif // INCLUDED_COMPHELPER_PROXYAGGREGATION_HXX
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

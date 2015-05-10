@@ -32,18 +32,18 @@
 #include <com/sun/star/lang/XTypeProvider.hpp>
 #include <comphelper/comphelperdllapi.h>
 
-//=========================================================================
-//= property helper classes
-//=========================================================================
 
-//.........................................................................
+//= property helper classes
+
+
+
 namespace comphelper
 {
-//.........................................................................
 
-    //==================================================================
+
+
     //= OPropertyStateHelper
-    //==================================================================
+
     /// helper class for implementing property states
     class COMPHELPER_DLLPUBLIC OPropertyStateHelper :public ::cppu::OPropertySetHelper2
                                                     ,public ::com::sun::star::beans::XPropertyState
@@ -53,17 +53,17 @@ namespace comphelper
         OPropertyStateHelper(::cppu::OBroadcastHelper& rBHlp,
                              ::cppu::IEventNotificationHook *i_pFireEvents);
 
-        virtual ::com::sun::star::uno::Any SAL_CALL queryInterface(const ::com::sun::star::uno::Type& aType) throw(::com::sun::star::uno::RuntimeException);
+        virtual ::com::sun::star::uno::Any SAL_CALL queryInterface(const ::com::sun::star::uno::Type& aType) throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
     // XPropertyState
         virtual ::com::sun::star::beans::PropertyState SAL_CALL
-            getPropertyState(const OUString& PropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException);
+            getPropertyState(const OUString& PropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
         virtual ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyState> SAL_CALL
-            getPropertyStates(const ::com::sun::star::uno::Sequence< OUString >& aPropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException);
+            getPropertyStates(const ::com::sun::star::uno::Sequence< OUString >& aPropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
         virtual void SAL_CALL
-            setPropertyToDefault(const OUString& PropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException);
+            setPropertyToDefault(const OUString& PropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
         virtual ::com::sun::star::uno::Any SAL_CALL
-            getPropertyDefault(const OUString& aPropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException);
+            getPropertyDefault(const OUString& aPropertyName) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
     // access via handle
         virtual ::com::sun::star::beans::PropertyState  getPropertyStateByHandle(sal_Int32 nHandle);
@@ -75,13 +75,12 @@ namespace comphelper
 
         void firePropertyChange(sal_Int32 nHandle, const ::com::sun::star::uno::Any& aNewValue, const ::com::sun::star::uno::Any& aOldValue);
 
-    protected:
-        virtual ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Type> SAL_CALL getTypes() throw(::com::sun::star::uno::RuntimeException);
+        static css::uno::Sequence<css::uno::Type> getTypes();
     };
 
-    //==================================================================
+
     //= OPropertyStateHelper
-    //==================================================================
+
     class COMPHELPER_DLLPUBLIC OStatefulPropertySet  :public ::cppu::OWeakObject
                                 ,public ::com::sun::star::lang::XTypeProvider
                                 ,public OMutexAndBroadcastHelper    // order matters: before OPropertyStateHelper/OPropertySetHelper
@@ -96,9 +95,9 @@ namespace comphelper
         DECLARE_XTYPEPROVIDER()
     };
 
-//.........................................................................
+
 }   // namespace comphelper
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_PROPSTATE_HXX
 

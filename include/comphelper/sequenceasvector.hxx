@@ -26,6 +26,10 @@
 
 #include <com/sun/star/beans/IllegalTypeException.hpp>
 
+/** This should not be used. Use the functions in
+ * comphelper/vectortosequence.hxx
+ * @deprecated
+ */
 
 namespace comphelper{
 
@@ -42,38 +46,38 @@ namespace comphelper{
 template< class TElementType >
 class SequenceAsVector : public ::std::vector< TElementType >
 {
-    //-------------------------------------------
+
     // types
 
     public:
 
-        //---------------------------------------
+
         /** @short  When inheriting from a template using typename is generally required when using
                     types from the base! */
         typedef typename ::std::vector< TElementType >::const_iterator const_iterator;
 
-        //---------------------------------------
+
         /** @short  When inheriting from a template using typename is generally required when using
                     types from the base! */
         typedef typename ::std::vector< TElementType >::iterator iterator;
 
-    //-------------------------------------------
+
     // interface
     public:
 
-        //---------------------------------------
+
         /** @short  default ctor, to create an empty list.
          */
         SequenceAsVector()
         {}
 
-        //---------------------------------------
+
         /** @short  default dtor
          */
         ~SequenceAsVector()
         {}
 
-        //---------------------------------------
+
         /** @short  creates a new vector with the given length.
 
             @param  nLength
@@ -84,7 +88,7 @@ class SequenceAsVector : public ::std::vector< TElementType >
         {
         }
 
-        //---------------------------------------
+
         /** @short  creates a new deque from the given uno sequence.
 
             @param  lSource
@@ -95,7 +99,7 @@ class SequenceAsVector : public ::std::vector< TElementType >
             (*this) << lSource;
         }
 
-        //---------------------------------------
+
         /** @short      creates a new instance from the given Any, which
                         of course must contain a valid sequence using the
                         right element type for every item.
@@ -117,7 +121,7 @@ class SequenceAsVector : public ::std::vector< TElementType >
             (*this) << aSource;
         }
 
-        //---------------------------------------
+
         /** @short  fill this instance from the given uno sequence.
 
             @param  lSource
@@ -134,7 +138,7 @@ class SequenceAsVector : public ::std::vector< TElementType >
                 this->push_back(pSource[i]);
         }
 
-        //---------------------------------------
+
         /** @short      fill this instance from the given Any, which
                         of course must contain a valid sequence using the
                         right element type for every item.
@@ -169,7 +173,7 @@ class SequenceAsVector : public ::std::vector< TElementType >
             (*this) << lSource;
         }
 
-        //---------------------------------------
+
         /** @short  converts this instance to an uno sequence.
 
             @param  lDestination
@@ -177,7 +181,7 @@ class SequenceAsVector : public ::std::vector< TElementType >
          */
         void operator>>(::com::sun::star::uno::Sequence< TElementType >& lDestination) const
         {
-            sal_Int32 c = (sal_Int32)this->size();
+            sal_Int32 c = static_cast<sal_Int32>(this->size());
             lDestination.realloc(c);
             TElementType* pDestination = lDestination.getArray();
 
@@ -191,7 +195,7 @@ class SequenceAsVector : public ::std::vector< TElementType >
             }
         }
 
-        //---------------------------------------
+
         /** @short  converts this instance to an uno any
                     which contains a suitable sequence
                     of items of this stl struct.
@@ -201,7 +205,7 @@ class SequenceAsVector : public ::std::vector< TElementType >
          */
         void operator>>(::com::sun::star::uno::Any& aDestination) const
         {
-            sal_Int32                                       c            = (sal_Int32)this->size();
+            sal_Int32                                       c            = static_cast<sal_Int32>(this->size());
             ::com::sun::star::uno::Sequence< TElementType > lDestination(c);
             TElementType*                                   pDestination = lDestination.getArray();
 
@@ -217,7 +221,7 @@ class SequenceAsVector : public ::std::vector< TElementType >
             aDestination <<= lDestination;
         }
 
-        //---------------------------------------
+
         /** @short      converts this deque to a suitable uno
                         sequence which contains all items.
 

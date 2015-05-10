@@ -22,7 +22,10 @@ gb_Side:=host
 endif
 
 ifeq (,$(BUILDDIR))
-BUILDDIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))../..
+gb_partial_build__makefile_dir=$(dir $(abspath $(firstword $(MAKEFILE_LIST))))
+BUILDDIR := $(if $(wildcard $(gb_partial_build__makefile_dir)../Module_external.mk), \
+  $(gb_partial_build__makefile_dir)../.., \
+  $(gb_partial_build__makefile_dir)..)
 endif
 
 ifeq ($(BUILD_TYPE),)
@@ -32,6 +35,6 @@ endif
 gb_PARTIAL_BUILD := T
 include $(SRCDIR)/solenv/gbuild/gbuild.mk
 
-$(eval $(call gb_Module_make_global_targets,$(wildcard $(module_directory)/Module*.mk)))
+$(eval $(call gb_Module_make_global_targets,$(wildcard $(module_directory)Module*.mk)))
 
 # vim: set noet sw=4 ts=4:

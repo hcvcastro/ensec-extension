@@ -22,7 +22,6 @@
 #include <com/sun/star/beans/XPropertySetInfo.hpp>
 #include <comphelper/PropertyInfoHash.hxx>
 #include <cppuhelper/implbase1.hxx>
-#include <comphelper/TypeGeneration.hxx>
 #include <comphelper/comphelperdllapi.h>
 
 namespace comphelper
@@ -31,27 +30,27 @@ namespace comphelper
         public ::cppu::WeakImplHelper1<
         ::com::sun::star::beans::XPropertySetInfo >
     {
-        friend class MasterPropertySet;
-    protected:
-        PropertyDataHash maMap;
-        com::sun::star::uno::Sequence < com::sun::star::beans::Property > maProperties;
     public:
-        MasterPropertySetInfo( PropertyInfo * pMap )
-            throw();
+        MasterPropertySetInfo( PropertyInfo const * pMap );
+
+    private:
         virtual ~MasterPropertySetInfo()
             throw();
-        void add( PropertyInfo* pMap, sal_Int32 nCount = -1, sal_uInt8 nMapId = 0 )
-            throw();
-        void add( PropertyInfoHash &rHash, sal_uInt8 nMapId )
-            throw();
+
+        void add( PropertyInfoHash &rHash, sal_uInt8 nMapId );
 
         // XPropertySetInfo
         virtual ::com::sun::star::uno::Sequence< ::com::sun::star::beans::Property > SAL_CALL getProperties()
-            throw(::com::sun::star::uno::RuntimeException);
+            throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
         virtual ::com::sun::star::beans::Property SAL_CALL getPropertyByName( const OUString& aName )
-            throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException);
+            throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
         virtual sal_Bool SAL_CALL hasPropertyByName( const OUString& Name )
-            throw(::com::sun::star::uno::RuntimeException);
+            throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+
+        PropertyDataHash maMap;
+        com::sun::star::uno::Sequence < com::sun::star::beans::Property > maProperties;
+
+        friend class MasterPropertySet;
     };
 }
 #endif

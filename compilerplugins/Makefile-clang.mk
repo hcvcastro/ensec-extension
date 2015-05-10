@@ -8,7 +8,10 @@
 
 # Make sure variables in this Makefile do not conflict with other variables (e.g. from gbuild).
 
-# You may occassionally want to override some of these
+CLANG_COMMA :=,
+
+# You may occasionally want to override some of these
+CLANGCXX=$(filter-out -m32 -m64 -fsanitize=%,$(CXX))
 
 # Compile flags ('make CLANGCXXFLAGS=-g' if you need to debug the plugin)
 CLANGCXXFLAGS=-O2 -Wall -Wextra -g
@@ -18,7 +21,7 @@ CLANGCXXFLAGS=-O2 -Wall -Wextra -g
 # Clang headers require these.
 CLANGDEFS=-D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -fno-rtti
 # All include locations needed.
-CLANGINCLUDES=-isystem $(CLANGDIR)/include -isystem $(CLANGDIR)/tools/clang/include -isystem $(CLANGBUILD)/include -isystem $(CLANGBUILD)/tools/clang/include
+CLANGINCLUDES=-isystem $(CLANGDIR)/include -isystem $(CLANGDIR)/tools/clang/include
 
 # Clang/LLVM libraries are intentionally not linked in, they are usually built as static libraries, which means the resulting
 # plugin would be big (even though the clang binary already includes it all) and it'd be necessary to explicitly specify
@@ -31,7 +34,7 @@ CLANGOUTDIR=$(BUILDDIR)/compilerplugins/obj
 
 QUIET=$(if $(VERBOSE)$(verbose),,@)
 
-ifneq ($(EXTERNAL_WARNINGS_NOT_ERRORS),TRUE)
+ifneq ($(ENABLE_WERROR),)
 CLANGWERROR := -Werror
 endif
 
@@ -73,7 +76,7 @@ CLANGOBJS=
 define clangbuildsrc
 $(3): $(2) $(SRCDIR)/compilerplugins/Makefile-clang.mk $(CLANGOUTDIR)/clang-timestamp
 	@echo [build CXX] $(subst $(SRCDIR)/,,$(2))
-	$(QUIET)$(CXX) $(CLANGCXXFLAGS) $(CLANGWERROR) $(CLANGDEFS) $(CLANGINCLUDES) -I$(BUILDDIR)/config_host $(2) -fPIC $(CXXFLAGS_CXX11) -c -o $(3) -MMD -MT $(3) -MP -MF $(CLANGOUTDIR)/$(1).d
+	$(QUIET)$(CLANGCXX) $(CLANGCXXFLAGS) $(CLANGWERROR) $(CLANGDEFS) $(CLANGINCLUDES) -I$(BUILDDIR)/config_host $(2) -fPIC $(CXXFLAGS_CXX11) -c -o $(3) -MMD -MT $(3) -MP -MF $(CLANGOUTDIR)/$(1).d
 
 -include $(CLANGOUTDIR)/$(1).d
 
@@ -85,10 +88,12 @@ $(foreach src, $(CLANGSRC), $(eval $(call clangbuildsrc,$(src),$(CLANGINDIR)/$(s
 
 $(CLANGOUTDIR)/plugin.so: $(CLANGOBJS)
 	@echo [build LNK] $(subst $(BUILDDIR)/,,$@)
-	$(QUIET)$(CXX) -shared $(CLANGOBJS) -o $@
+	$(QUIET)$(CLANGCXX) -shared $(CLANGOBJS) -o $@ \
+		$(if $(filter MACOSX,$(OS)),-Wl$(CLANG_COMMA)-flat_namespace \
+			-Wl$(CLANG_COMMA)-undefined -Wl$(CLANG_COMMA)suppress)
 
 # Clang most probably doesn't maintain binary compatibility, so rebuild when clang changes.
-$(CLANGOUTDIR)/clang-timestamp: $(CLANGBUILD)/bin/clang
+$(CLANGOUTDIR)/clang-timestamp: $(CLANGDIR)/bin/clang
 	$(QUIET)touch $@
 
 # vim: set noet sw=4 ts=4:

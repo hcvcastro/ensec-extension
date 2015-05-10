@@ -17,7 +17,7 @@
 #   the License at http://www.apache.org/licenses/LICENSE-2.0 .
 #
 
-# outdir target pattern	
+# outdir target pattern
 
 # thoese are hard-coded to URE for now since there are so few of them...
 gb_CliLibrary_get_target = $(INSTROOT)/$(LIBO_URE_LIB_FOLDER)/$(1)$(gb_CliLibrary_EXT)
@@ -28,7 +28,7 @@ gb_PackagePart_get_destinations = \
 	$(WORKDIR)/unittest \
 
 # kind of lame but with just 3 of these why bother with registration etc.
-gb_UnoApi_get_target = $(INSTROOT)/$(if $(filter udkapi,$(1)),$(LIBO_URE_SHARE_FOLDER)/misc/types,$(LIBO_ETC_FOLDER)/types/$(1)).rdb
+gb_UnoApi_get_target = $(INSTROOT)/$(if $(filter udkapi,$(1)),$(LIBO_URE_MISC_FOLDER)/types,$(LIBO_ETC_FOLDER)/types/$(1)).rdb
 
 # workdir target patterns
 
@@ -69,6 +69,7 @@ gb_ExternalProject_get_statedir = $(WORKDIR)/ExternalProject/$(1)
 gb_ExternalProject_get_preparation_target = $(WORKDIR)/ExternalProject/$(1).prepare
 gb_ExternalProject_get_state_target = $(WORKDIR)/ExternalProject/$(1)/$(2)
 gb_ExternalProject_get_target = $(WORKDIR)/ExternalProject/$(1).done
+gb_ExternalProject_get_target_for_build = $(WORKDIR_FOR_BUILD)/ExternalProject/$(1).done
 gb_Gallery_get_target = $(WORKDIR)/Gallery/$(1).done
 gb_Gallery_get_workdir = $(WORKDIR)/Gallery/$(1)
 gb_GeneratedPackage_get_target = $(WORKDIR)/GeneratedPackage/$(1).filelist
@@ -118,6 +119,7 @@ gb_Module_get_l10n_target = $(WORKDIR)/Module/l10n/$(1)
 gb_Module_get_check_target = $(WORKDIR)/Module/check/$(1)
 gb_Module_get_slowcheck_target = $(WORKDIR)/Module/slowcheck/$(1)
 gb_Module_get_subsequentcheck_target = $(WORKDIR)/Module/subsequentcheck/$(1)
+gb_Module_get_perfcheck_target = $(WORKDIR)/Module/perfcheck/$(1)
 gb_Module_get_target = $(WORKDIR)/Module/$(1)
 gb_ObjCxxObject_get_target = $(WORKDIR)/ObjCxxObject/$(1).o
 gb_ObjCObject_get_target = $(WORKDIR)/ObjCObject/$(1).o
@@ -132,6 +134,7 @@ gb_PrecompiledHeader_get_dep_target = $(WORKDIR)/Dep/PrecompiledHeader/$(gb_Prec
 gb_PrecompiledHeader_get_target = $(WORKDIR)/PrecompiledHeader/$(gb_PrecompiledHeader_DEBUGDIR)/$(1).hxx.gch
 gb_PrecompiledHeader_get_timestamp = $(WORKDIR)/PrecompiledHeader/$(gb_PrecompiledHeader_DEBUGDIR)/Timestamps/$(1)
 gb_PropertiesTranslateTarget_get_target = $(WORKDIR)/PropertiesTranslateTarget/$(1).properties
+gb_Pyuno_get_final_target = $(WORKDIR)/Pyuno/$(1).final
 gb_Pyuno_get_target = $(WORKDIR)/Pyuno/$(1).done
 gb_Rdb_get_target = $(WORKDIR)/Rdb/$(1).rdb
 gb_Rdb_get_target_for_build = $(WORKDIR_FOR_BUILD)/Rdb/$(1).rdb
@@ -206,7 +209,7 @@ $(WORKDIR)/LinkTarget/$(call gb_Library__get_workdir_linktargetname,$(1)).export
 endef
 
 define gb_Library_get_versionlink_target
-$(INSTDIR)/$(SDKDIRNAME)/lib/$(basename $(call gb_Library_get_filename,$(1)))
+$(call gb_Library_get_sdk_link_dir)/$(basename $(call gb_Library_get_filename,$(1)))
 endef
 
 define gb_Library_get_headers_target
@@ -332,6 +335,10 @@ define gb_Executable_get_filename
 $(patsubst $(1):%,%,$(filter $(1):%,$(gb_Executable_FILENAMES)))
 endef
 
+define gb_Executable_get_filename_for_build
+$(patsubst $(1):%,%,$(filter $(1):%,$(gb_Executable_FILENAMES_FOR_BUILD)))
+endef
+
 # Get dependencies needed for running the executable
 #
 # This is not strictly necessary, but it makes the use more similar to
@@ -360,7 +367,7 @@ endef
 ifneq ($(CROSS_COMPILING),)
 # Can we assume this is used only for executables registered for "NONE"?
 define gb_Executable_get_target_for_build
-$(call gb_Executable__get_dir_for_exe_for_build,$(1))/$(call gb_Executable_get_filename,$(1))
+$(call gb_Executable__get_dir_for_exe_for_build,$(1))/$(call gb_Executable_get_filename_for_build,$(1))
 endef
 else
 gb_Executable_get_target_for_build = $(gb_Executable_get_target)

@@ -25,20 +25,20 @@
 #include <cppuhelper/implbase1.hxx>
 #include <comphelper/comphelperdllapi.h>
 
-//=========================================================================
-//= selection helper classes
-//=========================================================================
 
-//.........................................................................
+//= selection helper classes
+
+
+
 namespace comphelper
 {
-//.........................................................................
+
 
     class OSelectionChangeMultiplexer;
 
-    //==================================================================
+
     //= OSelectionChangeListener
-    //==================================================================
+
     /// simple listener adapter for selections
     class COMPHELPER_DLLPUBLIC OSelectionChangeListener
     {
@@ -53,16 +53,17 @@ namespace comphelper
         virtual ~OSelectionChangeListener();
 
         virtual void _selectionChanged( const ::com::sun::star::lang::EventObject& aEvent ) throw (::com::sun::star::uno::RuntimeException) = 0;
-        virtual void _disposing(const ::com::sun::star::lang::EventObject& _rSource) throw( ::com::sun::star::uno::RuntimeException);
+        virtual void _disposing(const ::com::sun::star::lang::EventObject& _rSource)
+            throw (::com::sun::star::uno::RuntimeException, std::exception);
 
     protected:
         // pseudo-private. Making it private now could break compatibility
         void    setAdapter( OSelectionChangeMultiplexer* _pAdapter );
     };
 
-    //==================================================================
+
     //= OSelectionChangeMultiplexer
-    //==================================================================
+
     /// multiplexer for selection changes
     class COMPHELPER_DLLPUBLIC OSelectionChangeMultiplexer  :public cppu::WeakImplHelper1< ::com::sun::star::view::XSelectionChangeListener>
     {
@@ -70,21 +71,21 @@ namespace comphelper
          ::com::sun::star::uno::Reference< ::com::sun::star::view::XSelectionSupplier>  m_xSet;
         OSelectionChangeListener*                   m_pListener;
         sal_Int32                                   m_nLockCount;
-        sal_Bool                                    m_bListening        : 1;
-        sal_Bool                                    m_bAutoSetRelease   : 1;
+        bool                                    m_bListening        : 1;
+        bool                                    m_bAutoSetRelease   : 1;
 
-        OSelectionChangeMultiplexer(const OSelectionChangeMultiplexer&);
-        OSelectionChangeMultiplexer& operator=(const OSelectionChangeMultiplexer&);
+        OSelectionChangeMultiplexer(const OSelectionChangeMultiplexer&) SAL_DELETED_FUNCTION;
+        OSelectionChangeMultiplexer& operator=(const OSelectionChangeMultiplexer&) SAL_DELETED_FUNCTION;
     protected:
         virtual ~OSelectionChangeMultiplexer();
     public:
-        OSelectionChangeMultiplexer(OSelectionChangeListener* _pListener, const  ::com::sun::star::uno::Reference< ::com::sun::star::view::XSelectionSupplier>& _rxSet, sal_Bool _bAutoReleaseSet = sal_True);
+        OSelectionChangeMultiplexer(OSelectionChangeListener* _pListener, const  ::com::sun::star::uno::Reference< ::com::sun::star::view::XSelectionSupplier>& _rxSet, bool _bAutoReleaseSet = true);
 
     // XEventListener
-        virtual void SAL_CALL disposing( const  ::com::sun::star::lang::EventObject& Source ) throw( ::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL disposing( const  ::com::sun::star::lang::EventObject& Source ) throw( ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
     // XSelectionChangeListener
-        virtual void SAL_CALL selectionChanged( const ::com::sun::star::lang::EventObject& aEvent ) throw (::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL selectionChanged( const ::com::sun::star::lang::EventObject& aEvent ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         /// incremental lock
         void        lock();
@@ -96,9 +97,9 @@ namespace comphelper
         void dispose();
     };
 
-//.........................................................................
+
 }   // namespace comphelper
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_SELECTIONMULTIPLEX_HXX
 

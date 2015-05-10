@@ -31,21 +31,21 @@
 #include <algorithm>
 #include <vector>
 
-//........................................................................
+
 namespace comphelper
 {
-//........................................................................
 
-    // ====================================================================
+
+
     // = NamedValueCollection
-    // ====================================================================
+
     struct NamedValueCollection_Impl;
     /** a collection of named values, packed in various formats.
     */
     class COMPHELPER_DLLPUBLIC NamedValueCollection
     {
     private:
-        ::std::auto_ptr< NamedValueCollection_Impl >    m_pImpl;
+        ::std::unique_ptr< NamedValueCollection_Impl >    m_pImpl;
 
     public:
         NamedValueCollection();
@@ -358,9 +358,9 @@ namespace comphelper
         }
     };
 
-//........................................................................
+
 } // namespace comphelper
-//........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_NAMEDVALUECOLLECTION_HXX
 

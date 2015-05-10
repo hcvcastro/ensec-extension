@@ -39,7 +39,10 @@ BEGIN
     $build = "";
     $minor = "";
     $lastminor = "";
-    $compiler = "";
+    $os = "";
+    $cpuname = "";
+    $com = "";
+    $platformid = "";
     $pro = 0;
     $dounzip = 1;
     $languages_defined_in_productlist = 0;
@@ -79,7 +82,6 @@ BEGIN
     $templatefolder = "TemplateFolder";
     $templatefoldername = "Templates";
     $programmenufolder = "ProgramMenuFolder";
-    $systemfolder = "SystemFolder";
     $lcidlistname = $ENV{'SRCDIR'} . "/l10ntools/source/ulfconv/msi-encodinglist.txt";
     $msilanguage = "";  # hash reference for msi languages LCID
     $sofficeiconadded = 0;
@@ -170,6 +172,7 @@ BEGIN
     @binarytableonlyfiles = ();
     @allscpactions = ();
     $languagepackaddon = "LanguagePack";
+    $helppackaddon = "HelpPack";
     $ooodownloadfilename = "";
     $downloadfilename = "";
     $downloadfileextension = "";

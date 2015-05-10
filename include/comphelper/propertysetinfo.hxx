@@ -20,31 +20,27 @@
 #ifndef INCLUDED_COMPHELPER_PROPERTYSETINFO_HXX
 #define INCLUDED_COMPHELPER_PROPERTYSETINFO_HXX
 
+#include <sal/config.h>
+
+#include <map>
+
 #include <com/sun/star/beans/XPropertySetInfo.hpp>
 #include <cppuhelper/implbase1.hxx>
-#include <comphelper/stl_types.hxx>
 #include <comphelper/comphelperdllapi.h>
 
-//=========================================================================
-//= property helper classes
-//=========================================================================
-
-//... namespace comphelper .......................................................
 namespace comphelper
 {
-//.........................................................................
 
 struct PropertyMapEntry
 {
-    const sal_Char* mpName;
-    sal_uInt16 mnNameLen;
+    OUString maName;
     sal_Int32 mnHandle;
-    const com::sun::star::uno::Type* mpType;
+    com::sun::star::uno::Type maType;
     sal_Int16 mnAttributes;
     sal_uInt8 mnMemberId;
 };
 
-DECLARE_STL_USTRINGACCESS_MAP( PropertyMapEntry*, PropertyMap );
+typedef std::map<OUString, PropertyMapEntry const *> PropertyMap;
 
 class PropertyMapImpl;
 
@@ -57,30 +53,28 @@ private:
     PropertyMapImpl* mpMap;
 public:
     PropertySetInfo() throw();
-    PropertySetInfo( PropertyMapEntry* pMap ) throw();
+    PropertySetInfo( PropertyMapEntry const * pMap ) throw();
     virtual ~PropertySetInfo() throw();
 
     /** returns a stl map with all PropertyMapEntry pointer.<p>
         The key is the property name.
     */
-    const PropertyMap* getPropertyMap() const throw();
+    const PropertyMap& getPropertyMap() const throw();
 
     /** adds an array of PropertyMapEntry to this instance.<p>
         The end is marked with a PropertyMapEntry where mpName equals NULL</p>
     */
-    void add( PropertyMapEntry* pMap ) throw();
+    void add( PropertyMapEntry const * pMap ) throw();
 
     /** removes an already added PropertyMapEntry which string in mpName equals to aName */
     void remove( const OUString& aName ) throw();
 
-    virtual ::com::sun::star::uno::Sequence< ::com::sun::star::beans::Property > SAL_CALL getProperties() throw(::com::sun::star::uno::RuntimeException);
-    virtual ::com::sun::star::beans::Property SAL_CALL getPropertyByName( const OUString& aName ) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException);
-    virtual sal_Bool SAL_CALL hasPropertyByName( const OUString& Name ) throw(::com::sun::star::uno::RuntimeException);
+    virtual ::com::sun::star::uno::Sequence< ::com::sun::star::beans::Property > SAL_CALL getProperties() throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual ::com::sun::star::beans::Property SAL_CALL getPropertyByName( const OUString& aName ) throw(::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual sal_Bool SAL_CALL hasPropertyByName( const OUString& Name ) throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 };
 
-//.........................................................................
 }
-//... namespace comphelper .......................................................
 
 #endif // _UTL_PROPERTSETINFO_HXX_
 

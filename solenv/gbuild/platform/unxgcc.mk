@@ -43,33 +43,7 @@ gb_CXXFLAGS := \
 	-fPIC \
 	-Wshadow \
 	-Woverloaded-virtual \
-
-ifeq ($(COM_GCC_IS_CLANG),)
-gb_GccLess460 := $(shell expr $(GCC_VERSION) \< 406)
-
-# Only GCC 4.6 has a fix for <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=7302>
-# "-Wnon-virtual-dtor should't complain of protected dtor" and supports #pragma
-# GCC diagnostic push/pop required e.g. in cppuhelper/propertysetmixin.hxx to
-# silence warnings about a protected, non-virtual dtor in a class with virtual
-# members and friends:
-ifeq ($(gb_GccLess460),1)
-gb_CXXFLAGS += -Wno-non-virtual-dtor
-else
-gb_CXXFLAGS += -Wnon-virtual-dtor
-endif
-
-#At least SLED 10.2 gcc 4.3 overly agressively optimizes uno::Sequence into
-#junk, so only strict-alias on >= 4.6.0
-gb_StrictAliasingUnsafe := $(gb_GccLess460)
-
-ifeq ($(gb_StrictAliasingUnsafe),1)
-gb_CFLAGS += -fno-strict-aliasing
-gb_CXXFLAGS += -fno-strict-aliasing
-endif
-
-else # Clang
-gb_CXXFLAGS += -Wnon-virtual-dtor
-endif
+	$(CXXFLAGS_CXX11) \
 
 
 # enable debug STL
@@ -77,29 +51,6 @@ ifeq ($(gb_ENABLE_DBGUTIL),$(true))
 gb_COMPILERDEFS += \
 	-D_GLIBCXX_DEBUG \
 
-endif
-
-ifeq ($(HAVE_CXX11),TRUE)
-#Currently, as well as for its own merits, c++11/c++0x mode allows use to use
-#a template for SAL_N_ELEMENTS to detect at compiler time its misuse
-gb_CXXFLAGS += $(CXXFLAGS_CXX11)
-
-#We have so many std::auto_ptr uses that we need to be able to disable
-#warnings for those so that -Werror continues to be useful, seeing as moving
-#to unique_ptr isn't an option when we must support different compilers
-
-#When we are using 4.6.0 we can use gcc pragmas to selectively silence auto_ptr
-#warnings in isolation, but for <= 4.5.X we need to globally disable
-#deprecation
-ifeq ($(HAVE_GCC_PRAGMA_OPERATOR),)
-gb_CXXFLAGS += -Wno-deprecated-declarations
-endif
-endif
-
-ifeq ($(ENABLE_LTO),TRUE)
-ifneq ($(COM_GCC_IS_CLANG),TRUE)
-gb_LTOFLAGS += -fuse-linker-plugin $(gb_COMPILERDEFAULTOPTFLAGS)
-endif
 endif
 
 ifneq ($(strip $(SYSBASE)),)
@@ -112,7 +63,6 @@ endif
 gb_LinkTarget_LDFLAGS += \
 	-Wl,-rpath-link,$(SYSBASE)/lib:$(SYSBASE)/usr/lib \
 	-Wl,-z,combreloc \
-	$(SOLARLIB) \
 
 ifeq ($(HAVE_LD_HASH_STYLE),TRUE)
 gb_LinkTarget_LDFLAGS += \
@@ -148,9 +98,9 @@ endef
 
 gb_LinkTarget__RPATHS := \
 	URELIB:\dORIGIN \
-	UREBIN:\dORIGIN/../lib:\dORIGIN \
-	OOO:\dORIGIN:\dORIGIN/../ure-link/lib \
-	SDKBIN:\dORIGIN/../../ure-link/lib \
+	UREBIN:\dORIGIN \
+	OOO:\dORIGIN \
+	SDKBIN:\dORIGIN/../../program \
 	OXT: \
 	NONE:\dORIGIN/../Library \
 
@@ -165,11 +115,15 @@ endif
 # note that `cat $(extraobjectlist)` is needed to build with older gcc versions, e.g. 4.1.2 on SLED10
 # we want to use @$(extraobjectlist) in the long run
 # link with C compiler if there are no C++ files (pyuno_wrapper depends on this)
+# But always link with C++ compiler e.g. under -fsanitze=undefined, as sal uses
+# __ubsan_handle_dynamic_type_cache_miss_abort and __ubsan_vptr_type_cache from
+# libclang_rt.ubsan_cxx-x86_64.a, and oosplash links against sal but itself only
+# contains .c sources:
 define gb_LinkTarget__command_dynamiclink
 $(call gb_Helper_abbreviate_dirs,\
-	$(if $(CXXOBJECTS)$(GENCXXOBJECTS)$(EXTRAOBJECTLISTS),$(gb_CXX),$(gb_CC)) \
+	$(if $(CXXOBJECTS)$(GENCXXOBJECTS)$(EXTRAOBJECTLISTS)$(filter-out XTRUE,X$(ENABLE_RUNTIME_OPTIMIZATIONS)),$(gb_CXX),$(gb_CC)) \
 		$(if $(filter Library CppunitTest,$(TARGETTYPE)),$(gb_Library_TARGETTYPEFLAGS)) \
-		$(if $(filter-out $(foreach lib,frm scfilt wpftdraw,$(call gb_Library__get_workdir_linktargetname,$(lib))),$(2)),$(gb_LTOFLAGS)) \
+		$(gb_LTOFLAGS) \
 		$(if $(SOVERSIONSCRIPT),-Wl$(COMMA)--soname=$(notdir $(1)) \
 			-Wl$(COMMA)--version-script=$(SOVERSIONSCRIPT)) \
 		$(subst \d,$$,$(RPATH)) \
@@ -188,23 +142,21 @@ $(call gb_Helper_abbreviate_dirs,\
 		-Wl$(COMMA)--no-as-needed \
 		$(patsubst lib%.a,-l%,$(patsubst lib%.so,-l%,$(patsubst %.$(gb_Library_UDK_MAJORVER),%,$(foreach lib,$(LINKED_LIBS),$(call gb_Library_get_filename,$(lib)))))) \
 		-o $(1) \
-	$(if $(SOVERSIONSCRIPT),&& ln -sf ../../ure-link/lib/$(notdir $(1)) $(ILIBTARGET)))
+	$(if $(SOVERSIONSCRIPT),&& ln -sf ../../program/$(notdir $(1)) $(ILIBTARGET)))
 	$(if $(filter Library,$(TARGETTYPE)), $(call gb_Helper_abbreviate_dirs,\
-		readelf -d $(1) | grep SONAME > $(WORKDIR)/LinkTarget/$(2).exports.tmp; \
+		$(READELF) -d $(1) | grep SONAME > $(WORKDIR)/LinkTarget/$(2).exports.tmp; \
 		$(NM) --dynamic --extern-only --defined-only --format=posix $(1) \
 			| cut -d' ' -f1-2 \
 			>> $(WORKDIR)/LinkTarget/$(2).exports.tmp && \
-		if cmp -s $(WORKDIR)/LinkTarget/$(2).exports.tmp $(WORKDIR)/LinkTarget/$(2).exports; \
-			then rm $(WORKDIR)/LinkTarget/$(2).exports.tmp; \
-			else mv $(WORKDIR)/LinkTarget/$(2).exports.tmp $(WORKDIR)/LinkTarget/$(2).exports && \
-				touch -r $(1) $(WORKDIR)/LinkTarget/$(2).exports; \
-		fi))
+		$(call gb_Helper_replace_if_different_and_touch,$(WORKDIR)/LinkTarget/$(2).exports.tmp, \
+			$(WORKDIR)/LinkTarget/$(2).exports,$(1))))
 endef
 
 define gb_LinkTarget__command_staticlink
 $(call gb_Helper_abbreviate_dirs,\
 	rm -f $(1) && \
 	$(gb_AR) -rsu $(1) \
+		$(if $(LD_PLUGIN),--plugin $(LD_PLUGIN)) \
 		$(foreach object,$(COBJECTS),$(call gb_CObject_get_target,$(object))) \
 		$(foreach object,$(CXXOBJECTS),$(call gb_CxxObject_get_target,$(object))) \
 		$(foreach object,$(ASMOBJECTS),$(call gb_AsmObject_get_target,$(object))) \
@@ -257,7 +209,7 @@ gb_Library_LAYER := \
 	$(foreach lib,$(gb_Library_EXTENSIONLIBS),$(lib):OXT) \
 
 define gb_Library__get_rpath
-$(if $(1),$(strip -Wl,-z,origin '-Wl,-rpath,$(1)' -Wl,-rpath-link,$(INSTDIR)/ure/lib -Wl,-rpath-link,$(INSTDIR)/program))
+$(if $(1),$(strip -Wl,-z,origin '-Wl,-rpath,$(1)' -Wl,-rpath-link,$(INSTDIR)/program))
 endef
 
 define gb_Library_get_rpath
@@ -270,6 +222,8 @@ $(call gb_LinkTarget_get_target,$(2)) : RPATH := $(call gb_Library_get_rpath,$(1
 endef
 
 gb_Library__set_soversion_script_platform = $(gb_Library__set_soversion_script)
+
+gb_Library_get_sdk_link_dir = $(INSTDIR)/$(SDKDIRNAME)/lib
 
 gb_Library_get_sdk_link_lib = $(gb_Library_get_versionlink_target)
 
@@ -285,7 +239,7 @@ gb_Executable_LAYER := \
 
 
 define gb_Executable__get_rpath
-$(strip -Wl,-z,origin $(if $(1),'-Wl$(COMMA)-rpath$(COMMA)$(1)') -Wl,-rpath-link,$(INSTDIR)/ure/lib -Wl,-rpath-link,$(INSTDIR)/program)
+$(strip -Wl,-z,origin $(if $(1),'-Wl$(COMMA)-rpath$(COMMA)$(1)') -Wl,-rpath-link,$(INSTDIR)/program)
 endef
 
 define gb_Executable_get_rpath
@@ -345,14 +299,12 @@ gb_PythonTest_PRECOMMAND := $(gb_CppunitTest_CPPTESTPRECOMMAND)
 define gb_Module_DEBUGRUNCOMMAND
 OFFICESCRIPT=`mktemp` && \
 printf 'if [ -e $(INSTROOT)/program/ooenv ]; then . $(INSTROOT)/program/ooenv; fi\n' > $${OFFICESCRIPT} && \
-printf "emacs --eval \"(gdb \\\\\"gdb --annotate=3 --args $(INSTROOT)/$(LIBO_BIN_FOLDER)/soffice.bin" >> $${OFFICESCRIPT} && \
-printf " --calc --norestore --nologo \\\\\")\"" >> $${OFFICESCRIPT} && \
+printf "gdb $(INSTROOT)/$(LIBO_BIN_FOLDER)/soffice.bin" >> $${OFFICESCRIPT} && \
+printf " -ex \"set args --norestore --nologo '--accept=pipe,name=$(USER);urp;' \"" >> $${OFFICESCRIPT} && \
 $(SHELL) $${OFFICESCRIPT} && \
 rm $${OFFICESCRIPT}
 endef
 
-#printf "gdb $(INSTROOT)/$(LIBO_BIN_FOLDER)/soffice.bin" >> $${OFFICESCRIPT} && \
-#printf " -ex \"set args --norestore --nologo '--accept=pipe,name=$(USER);urp;' -env:UserInstallation=$(gb_USER_INSTALLATION)\"" >> $${OFFICESCRIPT} 
 # InstallModuleTarget class
 
 define gb_InstallModuleTarget_InstallModuleTarget_platform

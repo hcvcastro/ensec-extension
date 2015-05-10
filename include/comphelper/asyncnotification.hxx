@@ -22,49 +22,40 @@
 
 #include <sal/config.h>
 
-#include <boost/scoped_ptr.hpp>
 #include <comphelper/comphelperdllapi.h>
 #include <rtl/ref.hxx>
 #include <sal/types.h>
 #include <salhelper/thread.hxx>
+#include <salhelper/simplereferenceobject.hxx>
+#include <memory>
 
-//........................................................................
 namespace comphelper
 {
-//........................................................................
-
-    //====================================================================
     //= AnyEvent
-    //====================================================================
+
     /** the very basic instance to hold a description of an event
     */
-    class COMPHELPER_DLLPUBLIC AnyEvent : ::rtl::IReference
+    class COMPHELPER_DLLPUBLIC AnyEvent : public salhelper::SimpleReferenceObject
     {
-    private:
-        oslInterlockedCount m_refCount;
-
     public:
         AnyEvent();
-
-        virtual oslInterlockedCount SAL_CALL acquire();
-        virtual oslInterlockedCount SAL_CALL release();
 
     protected:
         virtual ~AnyEvent();
 
     private:
-        AnyEvent( AnyEvent& ); // not defined
-        void operator=( AnyEvent& ); // not defined
+        AnyEvent( AnyEvent& ) SAL_DELETED_FUNCTION;
+        void operator=( AnyEvent& ) SAL_DELETED_FUNCTION;
     };
 
-    //====================================================================
+
     //= typedefs
-    //====================================================================
+
     typedef ::rtl::Reference< AnyEvent >    AnyEventRef;
 
-    //====================================================================
+
     //= IEventProcessor
-    //====================================================================
+
     /** an event processor
 
         @see AsyncEventNotifier
@@ -76,16 +67,16 @@ namespace comphelper
         */
         virtual void processEvent( const AnyEvent& _rEvent ) = 0;
 
-        virtual void SAL_CALL acquire() = 0;
-        virtual void SAL_CALL release() = 0;
+        virtual void SAL_CALL acquire() throw () = 0;
+        virtual void SAL_CALL release() throw () = 0;
 
     protected:
         ~IEventProcessor() {}
     };
 
-    //====================================================================
+
     //= AsyncEventNotifier
-    //====================================================================
+
     struct EventNotifierImpl;
 
     /** a helper class for notifying events asynchronously
@@ -109,12 +100,12 @@ namespace comphelper
         friend struct EventNotifierImpl;
 
     private:
-        boost::scoped_ptr< EventNotifierImpl >        m_pImpl;
+        std::unique_ptr<EventNotifierImpl>        m_xImpl;
 
         SAL_DLLPRIVATE virtual ~AsyncEventNotifier();
 
         // Thread
-        SAL_DLLPRIVATE virtual void execute();
+        SAL_DLLPRIVATE virtual void execute() SAL_OVERRIDE;
 
     public:
         /** constructs a notifier thread
@@ -132,7 +123,7 @@ namespace comphelper
             itself, it will return immediately, and the thread will be terminated as soon as
             the current notification is finished.
         */
-        virtual void SAL_CALL terminate();
+        virtual void SAL_CALL terminate() SAL_OVERRIDE;
 
         /** adds an event to the queue, together with the instance which is responsible for
             processing it
@@ -152,9 +143,9 @@ namespace comphelper
         void removeEventsForProcessor( const ::rtl::Reference< IEventProcessor >& _xProcessor );
     };
 
-    //====================================================================
+
     //= EventHolder
-    //====================================================================
+
     /** AnyEvent derivee holding an foreign event instance
     */
     template < typename EVENT_OBJECT >
@@ -175,9 +166,9 @@ namespace comphelper
         inline const EventObjectType& getEventObject() const { return m_aEvent; }
     };
 
-//........................................................................
+
 } // namespace comphelper
-//........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_ASYNCNOTIFICATION_HXX
 

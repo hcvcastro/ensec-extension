@@ -877,19 +877,14 @@ sub get_patchsequence
 
     my $packageversion = $allvariables->{'PACKAGEVERSION'};
 
-    if ( $packageversion =~ /^\s*(\d+)\.(\d+)\.(\d+)\s*$/ )
+    if ( $packageversion =~ /^\s*(\d+)\.(\d+)\.(\d+)\.(\d+)\s*$/ )
     {
         my $major = $1;
         my $minor = $2;
         my $micro = $3;
-        my $concat = 100 * $minor + $micro;
-        $packageversion = $major . "\." . $concat;
+        my $patch = $4;
+        $patchsequence = $major . "\." . $minor . "\." . $micro . "\." . $patch;
     }
-    my $vendornumber = 0;
-    if ( $allvariables->{'VENDORPATCHVERSION'} ) { $vendornumber = $allvariables->{'VENDORPATCHVERSION'}; }
-    $patchsequence = $packageversion . "\." . $installer::globals::buildid . "\." . $vendornumber;
-
-    if ( $allvariables->{'PATCHSEQUENCE'} ) { $patchsequence = $allvariables->{'PATCHSEQUENCE'}; }
 
     return $patchsequence;
 }
@@ -1194,12 +1189,14 @@ sub create_msp_patch
     # Sign .msp file
     if ( defined($ENV{'WINDOWS_BUILD_SIGNING'}) && ($ENV{'WINDOWS_BUILD_SIGNING'} eq 'TRUE') )
     {
+        my $localmspfilename = $mspfilename;
+        $localmspfilename =~ s/\\/\\\\/g;
         my $systemcall = "signtool.exe sign ";
         if ( defined($ENV{'PFXFILE'}) ) { $systemcall .= "-f $ENV{'PFXFILE'} "; }
         if ( defined($ENV{'PFXPASSWORD'}) ) { $systemcall .= "-p $ENV{'PFXPASSWORD'} "; }
         if ( defined($ENV{'TIMESTAMPURL'}) ) { $systemcall .= "-t $ENV{'TIMESTAMPURL'} "; } else { $systemcall .= "-t http://timestamp.globalsign.com/scripts/timestamp.dll "; }
         $systemcall .= "-d \"" . $allvariables->{'PRODUCTNAME'} . " " . $allvariables->{'PRODUCTVERSION'} . " Patch " . $allvariables->{'WINDOWSPATCHLEVEL'} . "\" ";
-        $systemcall .= $mspfilename;
+        $systemcall .= $localmspfilename;
         installer::logger::print_message( "... code signing and timestamping with signtool.exe ...\n" );
 
         my $returnvalue = system($systemcall);

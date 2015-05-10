@@ -7,8 +7,27 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+ctags=ctags
+if test "$1" = "-e"; then
+    ctags=etags
+fi
+
 omnicppoptions="--c++-kinds=+p --fields=+iaS --extra=+q"
-ctags -h "+.hdl.hrc" --langmap=c:+.hdl.hrc.src $omnicppoptions \
+
+$ctags -h "+.hdl.hrc" --langmap=c:+.hrc.src,c++:+.hdl $omnicppoptions \
       --languages=-HTML,Java,JavaScript \
-      -R --exclude=instdir --exclude=workdir \
-      --exclude=clone --totals=yes *
+      -R --exclude=instdir --exclude=instdir_for_build --exclude=workdir --exclude=workdir_for_build \
+      --exclude=clone --exclude=external --totals=yes ${SRCDIR:-*}
+
+if test -d workdir_for_build; then
+    w=workdir_for_build
+else
+    w=workdir
+fi
+
+$ctags -h "+.hdl.hrc" --langmap=c:+.hrc.src,c++:+.hdl $omnicppoptions \
+      --languages=-HTML,Java,JavaScript \
+      -R --append=yes --totals=yes \
+      $w/UnoApiHeadersTarget/udkapi/normal \
+      $w/UnoApiHeadersTarget/offapi/normal \
+      $w/CustomTarget/officecfg/registry

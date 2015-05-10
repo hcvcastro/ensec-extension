@@ -27,20 +27,20 @@
 #include <comphelper/broadcasthelper.hxx>
 #include <comphelper/comphelperdllapi.h>
 
-//.........................................................................
+
 namespace comphelper
 {
-//.........................................................................
 
-    //=====================================================================
+
+
     //= OWeakListenerAdapterBase
-    //=====================================================================
+
     /** (the base for) an adapter which allows to add as listener to a foreign component, without
         being held hard.
 
         <p>The idea is that this adapter is added as listener to a foreign component, which usually
         holds it's listener hard. The adapter itself knows the real listener as weak reference,
-        thus not affecting it's life time.</p>
+        thus not affecting its life time.</p>
     */
     class OWeakListenerAdapterBase : public OBaseMutex
     {
@@ -84,9 +84,9 @@ namespace comphelper
     };
 
 
-    //=====================================================================
+
     //= OWeakListenerAdapter
-    //=====================================================================
+
     template< class BROADCASTER, class LISTENER >
     /** yet another base for weak listener adapters, this time with some type safety
 
@@ -117,17 +117,17 @@ namespace comphelper
         }
 
         // XEventListener overridables
-        virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& Source ) throw (::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL disposing( const ::com::sun::star::lang::EventObject& Source ) throw (::com::sun::star::uno::RuntimeException) SAL_OVERRIDE;
 
     protected:
         // OComponentHelper overridables
         // to be overridden, again - the derived class should revoke the listener from the broadcaster
-        virtual void SAL_CALL disposing( ) = 0;
+        virtual void SAL_CALL disposing( ) SAL_OVERRIDE = 0;
     };
 
-    //=====================================================================
+
     //= OWeakEventListenerAdapter
-    //=====================================================================
+
     typedef OWeakListenerAdapter    <   ::com::sun::star::lang::XComponent
                                     ,   ::com::sun::star::lang::XEventListener
                                     >   OWeakEventListenerAdapter_Base;
@@ -146,13 +146,13 @@ namespace comphelper
 
     protected:
         using OWeakEventListenerAdapter_Base::disposing;
-        virtual void SAL_CALL disposing( );
+        virtual void SAL_CALL disposing( ) SAL_OVERRIDE;
     };
 
-    //=====================================================================
+
     //= OWeakListenerAdapter
-    //=====================================================================
-    //---------------------------------------------------------------------
+
+
     template< class BROADCASTER, class LISTENER >
     OWeakListenerAdapter< BROADCASTER, LISTENER >::OWeakListenerAdapter(
         const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XWeak >& _rxListener,
@@ -163,7 +163,7 @@ namespace comphelper
     {
     }
 
-    //---------------------------------------------------------------------
+
     template< class BROADCASTER, class LISTENER >
     void SAL_CALL OWeakListenerAdapter< BROADCASTER, LISTENER >::disposing( const ::com::sun::star::lang::EventObject& _rSource ) throw (::com::sun::star::uno::RuntimeException)
     {
@@ -172,9 +172,9 @@ namespace comphelper
             xListener->disposing( _rSource );
     }
 
-//.........................................................................
+
 }   // namespace comphelper
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_WEAKEVENTLISTENER_HXX
 

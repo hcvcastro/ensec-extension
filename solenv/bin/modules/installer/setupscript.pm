@@ -57,7 +57,7 @@ sub set_setupscript_name
         installer::exiter::exit_program("ERROR: Setup script not defined on command line (-l) and not in product list!", "set_setupscript_name");
     }
 
-    if ( $installer::globals::compiler =~ /wnt/ )
+    if ( $installer::globals::os eq 'WNT')
     {
         $scriptname .= ".inf";
     }
@@ -418,9 +418,10 @@ sub prepare_non_advertised_files
             if ( $folderitem->{'ComponentIDFile'} ) { $fileid = $folderitem->{'ComponentIDFile'}; }
             my $onefile = installer::worker::find_file_by_id($filesref, $fileid);
 
-            # Attention: If $onefile with "FileID" is not found, this is not always an error.
-            # FileID can also contain an executable file, for example msiexec.exe.
             if ( $onefile ne "" ) { $onefile->{'needs_user_registry_key'} = 1; }
+            else {
+                installer::exiter::exit_program("ERROR: Did not find FileID $fileid in file collection", "prepare_non_advertised_files");
+            }
         }
     }
 }

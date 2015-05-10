@@ -9,13 +9,12 @@
 
 #please make generic modifications to unxgcc.mk
 
-gb_COMPILERDEFAULTOPTFLAGS := -O -g
+gb_COMPILEROPTFLAGS := -O -g
 
 include $(GBUILDDIR)/platform/unxgcc.mk
 
 NB_ADD_LIBPATH := /usr/pkg/lib:/usr/X11R7/lib
 
-gb_Helper_set_ld_path := LD_LIBRARY_PATH=$${LD_LIBRARY_PATH:+$$LD_LIBRARY_PATH:}$(NB_ADD_LIBPATH)
 gb_CppunitTest_CPPTESTPRECOMMAND := LD_LIBRARY_PATH=$${LD_LIBRARY_PATH:+$$LD_LIBRARY_PATH:}$(WORKDIR)/UnpackedTarball/cppunit/src/cppunit/.libs:$(NB_ADD_LIBPATH)
 
 # vim: set noet sw=4:

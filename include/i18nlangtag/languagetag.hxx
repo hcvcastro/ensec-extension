@@ -16,7 +16,7 @@
 #include <i18nlangtag/i18nlangtagdllapi.h>
 #include <i18nlangtag/lang.h>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <vector>
 
 typedef struct _rtl_Locale rtl_Locale;  // as in rtl/locale.h
@@ -75,12 +75,6 @@ public:
 
     /** Init LanguageTag with LanguageType MS-LangID. */
     explicit LanguageTag( LanguageType nLanguage );
-
-    /** Default ctor, init LanguageTag with LanguageType LANGUAGE_DONTKNOW.
-
-        To be able to use LanguageTag in maps etc., avoid otherwise.
-     */
-    explicit LanguageTag();
 
     /** Init LanguageTag with either BCP 47 language tag (precedence if not
         empty), or a combination of language, script and country.
@@ -181,13 +175,6 @@ public:
      */
     OUString                        getCountry() const;
 
-    /** Get BCP 47 region tag, which may be an ISO 3166 country alpha code or
-        any other BCP 47 region tag.
-
-        Always resolves an empty tag to the system locale.
-     */
-    OUString                        getRegion() const;
-
     /** Get BCP 47 variant subtags, of the IANA Language Subtag Registry.
 
         If there are multiple variant subtags they are separated by '-'.
@@ -241,12 +228,14 @@ public:
     /** If this is a valid BCP 47 language tag.
 
         Always resolves an empty tag to the system locale.
+
+        @seealso    static bool isValidBcp47(const OUString&)
      */
     bool                            isValidBcp47() const;
 
     /** If this tag was contructed as an empty tag denoting the system locale.
       */
-    bool                            isSystemLocale() const;
+    bool                            isSystemLocale() const { return mbSystemLocale;}
 
 
     /** Reset with existing BCP 47 language tag string. See ctor. */
@@ -257,9 +246,6 @@ public:
 
     /** Reset with LanguageType MS-LangID. */
     LanguageTag &                   reset( LanguageType nLanguage );
-
-    /** Reset with rtl_Locale. */
-    LanguageTag &                   reset( const rtl_Locale & rLocale );
 
 
     /** Fall back to a known locale.
@@ -495,13 +481,33 @@ public:
      */
     static com::sun::star::lang::Locale convertToLocaleWithFallback( const OUString& rBcp47 );
 
+    /** If rString represents a valid BCP 47 language tag.
+
+        Never resolves an empty tag to the system locale, in fact an empty
+        string is invalid here. Does not create an instance to be registered
+        with a conversion to Locale or LanguageType.
+
+        @param  o_pCanonicalized
+                If given and rString is a valid BCP 47 language tag, the
+                canonicalized form is assigned, which may differ from the
+                original string even if that was a valid tag. If rString is not
+                a valid tag, nothing is assigned.
+
+        @param  bDisallowPrivate
+                If TRUE, valid tags according to BCP 47 but reserved for
+                private use, like 'x-...', are not allowed and FALSE is
+                returned in this case.
+     */
+    static bool         isValidBcp47( const OUString& rString, OUString* o_pCanonicalized = NULL,
+                                      bool bDisallowPrivate = false );
+
     /** If nLang is a generated on-the-fly LangID */
     static bool         isOnTheFlyID( LanguageType nLang );
 
     /** @ATTENTION: _ONLY_ to be called by the application's configuration! */
     static void setConfiguredSystemLanguage( LanguageType nLang );
 
-    typedef ::boost::shared_ptr< LanguageTagImpl > ImplPtr;
+    typedef std::shared_ptr< LanguageTagImpl > ImplPtr;
 
 private:
 
@@ -521,12 +527,10 @@ private:
     void                syncVarsFromRawImpl() const;
     void                syncVarsFromImpl() const;
 
-    void                convertLocaleToBcp47();
     void                convertLocaleToLang();
     void                convertBcp47ToLocale();
     void                convertBcp47ToLang();
     void                convertLangToLocale();
-    void                convertLangToBcp47();
 
     void                convertFromRtlLocale();
 

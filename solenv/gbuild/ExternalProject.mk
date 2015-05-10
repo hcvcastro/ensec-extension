@@ -74,6 +74,7 @@ $(call gb_ExternalProject_get_clean_target,%) :
 define gb_ExternalProject_ExternalProject
 $(call gb_ExternalProject_get_target,$(1)) : EXTERNAL_WORKDIR := $(call gb_UnpackedTarball_get_dir,$(1))
 
+$(call gb_ExternalProject_get_preparation_target,$(1)) : $(gb_Module_CURRENTMAKEFILE)
 $(call gb_ExternalProject_get_preparation_target,$(1)) :| $(dir $(call gb_ExternalProject_get_target,$(1))).dir
 $(call gb_UnpackedTarball_get_preparation_target,$(1)) : $(call gb_ExternalProject_get_preparation_target,$(1))
 $(call gb_ExternalProject_get_clean_target,$(1)) : $(call gb_UnpackedTarball_get_clean_target,$(1))
@@ -178,7 +179,7 @@ endef
 define gb_ExternalProject_use_libraries
 ifneq (,$$(filter-out $(gb_Library_KNOWNLIBS),$(2)))
 $$(eval $$(call gb_Output_info,currently known libraries are: $(sort $(gb_Library_KNOWNLIBS)),ALL))
-$$(eval $$(call gb_Output_error,Cannot link against library/libraries $$(filter-out $(gb_Library_KNOWNLIBS),$(2)). Libraries must be registered in Repository.mk))
+$$(eval $$(call gb_Output_error,Cannot link against library/libraries $$(filter-out $(gb_Library_KNOWNLIBS),$(2)). Libraries must be registered in Repository.mk or RepositoryExternal.mk))
 endif
 ifneq (,$$(filter $$(gb_MERGEDLIBS),$(2)))
 $$(eval $$(call gb_Output_error,Cannot link against library/libraries $$(filter $$(gb_MERGEDLIBS),$(2)) because they are merged.))
@@ -201,7 +202,7 @@ endef
 # Run a target command
 #
 # This provides a wrapper that changes to the right directory,
-# touches the 'target' if sucessful and also provides
+# touches the 'target' if successful and also provides
 # the ability to hide the output if there is no failure
 # gb_ExternalProject_run,run_target,command,optional_extra_sub_directory,optional_log_filename)
 # default log_filename is <run_target>.log
@@ -211,7 +212,9 @@ define gb_ExternalProject_run
 $(if $(findstring YES,$(UNPACKED_IS_BIN_TARBALL)),\
 	touch $@,
 $(call gb_Helper_print_on_error,cd $(EXTERNAL_WORKDIR)/$(3) && \
+	unset Platform && \
 	$(if $(WRAPPERS),export $(WRAPPERS) &&) \
+	$(if $(NMAKE),INCLUDE="$(gb_ExternalProject_INCLUDE)" LIB="$(ILIB)" MAKEFLAGS=) \
 	$(2) && touch $@,$(EXTERNAL_WORKDIR)/$(if $(3),$(3)/,)$(if $(4),$(4),$(1).log))
 )
 endef

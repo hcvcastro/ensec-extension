@@ -19,10 +19,6 @@
 #ifndef INCLUDED_COMPHELPER_SYNTAXHIGHLIGHT_HXX
 #define INCLUDED_COMPHELPER_SYNTAXHIGHLIGHT_HXX
 
-#include <vector>
-
-#include <boost/noncopyable.hpp>
-#include <boost/scoped_ptr.hpp>
 #include <rtl/ustring.hxx>
 
 #include <comphelper/comphelperdllapi.h>
@@ -30,6 +26,9 @@
 #ifdef UNX
 #include <sys/resource.h>
 #endif
+
+#include <vector>
+#include <memory>
 
 // Token-Typen TT_...
 enum TokenTypes
@@ -66,19 +65,21 @@ enum HighlighterLanguage
     HIGHLIGHT_SQL
 };
 
-class COMPHELPER_DLLPUBLIC SyntaxHighlighter: private boost::noncopyable
+class COMPHELPER_DLLPUBLIC SyntaxHighlighter
 {
     class Tokenizer;
 
     HighlighterLanguage eLanguage;
-    boost::scoped_ptr<Tokenizer> m_tokenizer;
+    std::unique_ptr<Tokenizer> m_tokenizer;
 
+    SyntaxHighlighter(const SyntaxHighlighter&) SAL_DELETED_FUNCTION;
+    SyntaxHighlighter& operator=(const SyntaxHighlighter&) SAL_DELETED_FUNCTION;
 public:
     SyntaxHighlighter(HighlighterLanguage language);
     ~SyntaxHighlighter();
 
     void getHighlightPortions( const OUString& rLine,
-                               std::vector<HighlightPortion>& pPortions );
+                               std::vector<HighlightPortion>& pPortions ) const;
 
     HighlighterLanguage GetLanguage();
 };

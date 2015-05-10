@@ -27,14 +27,14 @@
 #include <comphelper/broadcasthelper.hxx>
 #include <comphelper/comphelperdllapi.h>
 
-//.........................................................................
+
 namespace comphelper
 {
-//.........................................................................
 
-    //=====================================================================
+
+
     //= IMutex
-    //=====================================================================
+
 
     // This whole thingie here (own mutex classes and such) is a HACK. I hate the SolarMutex.
     // See below for more explanations ....
@@ -49,9 +49,9 @@ namespace comphelper
         virtual void release() = 0;
     };
 
-    //=====================================================================
+
     //= OMutexGuard
-    //=====================================================================
+
 
     class OMutexGuard
     {
@@ -71,9 +71,9 @@ namespace comphelper
         }
     };
 
-    //=====================================================================
+
     //= OAccessibleContextHelper
-    //=====================================================================
+
 
     class OContextHelper_Impl;
     typedef ::cppu::WeakAggComponentImplHelper2 <   ::com::sun::star::accessibility::XAccessibleContext,
@@ -90,7 +90,7 @@ namespace comphelper
         OContextHelper_Impl*    m_pImpl;
 
     protected:
-        ~OAccessibleContextHelper( );
+        virtual ~OAccessibleContextHelper( );
 
         /** ctor
 
@@ -126,7 +126,7 @@ namespace comphelper
             <p>If your derived implementation implements the XAccessible (and does not follow the proposed
             separation of XAccessible from XAccessibleContext), you may pass <code>this</code> here.</p>
 
-            <p>The object is hold weak, so it's life time is not affected.</p>
+            <p>The object is hold weak, so its life time is not affected.</p>
 
             <p>The object is needed for performance reasons: for <method>getAccessibleIndexInParent</method>,
             all children (which are XAccessible's theirself) of our parent have to be asked. If we know our
@@ -152,30 +152,30 @@ namespace comphelper
 
     public:
         // XAccessibleEventBroadcaster
-        virtual void SAL_CALL addAccessibleEventListener( const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleEventListener >& xListener ) throw (::com::sun::star::uno::RuntimeException);
-        virtual void SAL_CALL removeAccessibleEventListener( const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleEventListener >& xListener ) throw (::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL addAccessibleEventListener( const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleEventListener >& xListener ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual void SAL_CALL removeAccessibleEventListener( const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleEventListener >& xListener ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         // XAccessibleContext - still waiting to be overwritten
-        virtual sal_Int32 SAL_CALL getAccessibleChildCount(  ) throw (::com::sun::star::uno::RuntimeException) = 0;
-        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible > SAL_CALL getAccessibleChild( sal_Int32 i ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::uno::RuntimeException) = 0;
-        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible > SAL_CALL getAccessibleParent(  ) throw (::com::sun::star::uno::RuntimeException) = 0;
-        virtual sal_Int16 SAL_CALL getAccessibleRole(  ) throw (::com::sun::star::uno::RuntimeException) = 0;
-        virtual OUString SAL_CALL getAccessibleDescription(  ) throw (::com::sun::star::uno::RuntimeException) = 0;
-        virtual OUString SAL_CALL getAccessibleName(  ) throw (::com::sun::star::uno::RuntimeException) = 0;
-        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleRelationSet > SAL_CALL getAccessibleRelationSet(  ) throw (::com::sun::star::uno::RuntimeException) = 0;
-        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleStateSet > SAL_CALL getAccessibleStateSet(  ) throw (::com::sun::star::uno::RuntimeException) = 0;
+        virtual sal_Int32 SAL_CALL getAccessibleChildCount(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE = 0;
+        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible > SAL_CALL getAccessibleChild( sal_Int32 i ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE = 0;
+        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible > SAL_CALL getAccessibleParent(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE = 0;
+        virtual sal_Int16 SAL_CALL getAccessibleRole(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE = 0;
+        virtual OUString SAL_CALL getAccessibleDescription(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE = 0;
+        virtual OUString SAL_CALL getAccessibleName(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE = 0;
+        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleRelationSet > SAL_CALL getAccessibleRelationSet(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE = 0;
+        virtual ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleStateSet > SAL_CALL getAccessibleStateSet(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE = 0;
 
         // XAccessibleContext - default implementations
         /** default implementation for retrieving the index of this object within the parent
             <p>This basic implementation here returns the index <code>i</code> of the child for which
                 <code>&lt;parent&gt;.getAccessibleChild( i )</code> equals our creator.</p>
         */
-        virtual sal_Int32 SAL_CALL getAccessibleIndexInParent(  ) throw (::com::sun::star::uno::RuntimeException);
+        virtual sal_Int32 SAL_CALL getAccessibleIndexInParent(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
         /** default implementation for retrieving the locale
             <p>This basic implementation returns the locale of the parent context,
             as retrieved via getAccessibleParent()->getAccessibleContext.</p>
         */
-        virtual ::com::sun::star::lang::Locale SAL_CALL getLocale(  ) throw (::com::sun::star::accessibility::IllegalAccessibleComponentStateException, ::com::sun::star::uno::RuntimeException);
+        virtual ::com::sun::star::lang::Locale SAL_CALL getLocale(  ) throw (::com::sun::star::accessibility::IllegalAccessibleComponentStateException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
     public:
         // helper struct for granting selective access rights
@@ -189,27 +189,27 @@ namespace comphelper
         };
 
         // ensures that the object is alive
-        inline  void            ensureAlive( const OAccessControl& ) const SAL_THROW( ( ::com::sun::star::lang::DisposedException ) );
+        inline  void            ensureAlive( const OAccessControl& ) const;
         inline  IMutex*         getExternalLock( const OAccessControl& );
         inline  ::osl::Mutex&   GetMutex( const OAccessControl& );
 
     protected:
         // OComponentHelper
-        virtual void SAL_CALL disposing();
+        virtual void SAL_CALL disposing() SAL_OVERRIDE;
 
     protected:
         // helper
         /** notifies all AccessibleEventListeners of a certain event
 
-        @precond    not too be called with our mutex locked
+        @precond    not to be called with our mutex locked
         @param  _nEventId
-            the id of the even. See AccessibleEventType
+            the id of the event. See AccessibleEventType
         @param  _rOldValue
             the old value to be notified
         @param  _rNewValue
             the new value to be notified
         */
-        virtual void SAL_CALL   NotifyAccessibleEvent(
+        void NotifyAccessibleEvent(
                     const sal_Int16 _nEventId,
                     const ::com::sun::star::uno::Any& _rOldValue,
                     const ::com::sun::star::uno::Any& _rNewValue
@@ -217,9 +217,9 @@ namespace comphelper
 
         // life time control
         /// checks whether the object is alive (returns <TRUE/> then) or disposed
-        sal_Bool    isAlive() const;
-        /// checks for beeing alive. If the object is already disposed (i.e. not alive), an exception is thrown.
-        void        ensureAlive() const SAL_THROW( ( ::com::sun::star::lang::DisposedException ) );
+        bool    isAlive() const;
+        /// checks for being alive. If the object is already disposed (i.e. not alive), an exception is thrown.
+        void        ensureAlive() const;
 
         /** ensures that the object is disposed.
         @precond
@@ -230,7 +230,7 @@ namespace comphelper
         /** shortcut for retrieving the context of the parent (returned by getAccessibleParent)
         */
         ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleContext >
-                    implGetParentContext() SAL_THROW( ( ::com::sun::star::uno::RuntimeException ) );
+                    implGetParentContext();
 
         // access to the base class' broadcast helper/mutex
         ::cppu::OBroadcastHelper&       GetBroadcastHelper()        { return rBHelper; }
@@ -239,27 +239,27 @@ namespace comphelper
         IMutex*                         getExternalLock( );
     };
 
-    //---------------------------------------------------------------------
-    inline  void OAccessibleContextHelper::ensureAlive( const OAccessControl& ) const SAL_THROW( ( ::com::sun::star::lang::DisposedException ) )
+
+    inline  void OAccessibleContextHelper::ensureAlive( const OAccessControl& ) const
     {
         ensureAlive();
     }
 
-    //---------------------------------------------------------------------
+
     inline  IMutex* OAccessibleContextHelper::getExternalLock( const OAccessControl& )
     {
         return getExternalLock();
     }
 
-    //---------------------------------------------------------------------
+
     inline  ::osl::Mutex& OAccessibleContextHelper::GetMutex( const OAccessControl& )
     {
         return GetMutex();
     }
 
-    //=====================================================================
+
     //= OContextEntryGuard
-    //=====================================================================
+
     typedef ::osl::ClearableMutexGuard  OContextEntryGuard_Base;
     /** helper class for guarding the entry into OAccessibleContextHelper methods.
 
@@ -293,21 +293,21 @@ namespace comphelper
         inline ~OContextEntryGuard();
     };
 
-    //.....................................................................
+
     inline OContextEntryGuard::OContextEntryGuard( OAccessibleContextHelper* _pContext  )
         :OContextEntryGuard_Base( _pContext->GetMutex( OAccessibleContextHelper::OAccessControl() ) )
     {
         _pContext->ensureAlive( OAccessibleContextHelper::OAccessControl() );
     }
 
-    //.....................................................................
+
     inline OContextEntryGuard::~OContextEntryGuard()
     {
     }
 
-    //=====================================================================
+
     //= OExternalLockGuard
-    //=====================================================================
+
     class OExternalLockGuard
             :public OMutexGuard
             ,public OContextEntryGuard
@@ -317,7 +317,7 @@ namespace comphelper
         inline ~OExternalLockGuard( );
     };
 
-    //.....................................................................
+
     inline OExternalLockGuard::OExternalLockGuard( OAccessibleContextHelper* _pContext )
         :OMutexGuard( _pContext->getExternalLock( OAccessibleContextHelper::OAccessControl() ) )
         ,OContextEntryGuard( _pContext )
@@ -330,14 +330,14 @@ namespace comphelper
         clear();
     }
 
-    //.....................................................................
+
     inline OExternalLockGuard::~OExternalLockGuard( )
     {
     }
 
-//.........................................................................
+
 }   // namespace comphelper
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_ACCESSIBLECONTEXTHELPER_HXX
 

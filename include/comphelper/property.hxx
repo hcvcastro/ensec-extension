@@ -28,48 +28,32 @@
 #include <comphelper/comphelperdllapi.h>
 #include <cppu/unotype.hxx>
 
-//=========================================================================
-//= property helper classes
-//=========================================================================
-
-//... namespace comphelper .......................................................
 namespace comphelper
 {
-//.........................................................................
 
-    namespace starbeans = ::com::sun::star::beans;
-    namespace staruno   = ::com::sun::star::uno;
-
-/** compare two properties by name
-*/
-    //--------------------------------------------------------------------------
     // comparing two property instances
     struct PropertyCompareByName : public ::std::binary_function< ::com::sun::star::beans::Property, ::com::sun::star::beans::Property, bool >
     {
         bool operator() (const ::com::sun::star::beans::Property& x, const ::com::sun::star::beans::Property& y) const
         {
-            return x.Name.compareTo(y.Name) < 0;// ? true : false;
+            return x.Name.compareTo(y.Name) < 0;
         }
     };
 
-    //--------------------------------------------------------------------------
-    /** compare two properties by name
-     */
     struct PropertyStringEqualFunctor : ::std::binary_function< ::com::sun::star::beans::Property, OUString, bool >
     {
-        // ................................................................
+
         inline bool operator()( const ::com::sun::star::beans::Property& lhs, const OUString& rhs ) const
         {
             return lhs.Name == rhs ;
         }
-        // ................................................................
+
         inline bool operator()( const OUString& lhs, const ::com::sun::star::beans::Property& rhs ) const
         {
             return lhs == rhs.Name ;
         }
     };
-    //--------------------------------------------------------------------------
-    // comparing two property instances
+
     struct PropertyEqualByName : public ::std::binary_function< ::com::sun::star::beans::Property, ::com::sun::star::beans::Property, bool >
     {
         bool operator() (const ::com::sun::star::beans::Property& x, const ::com::sun::star::beans::Property& y) const
@@ -78,34 +62,26 @@ namespace comphelper
         }
     };
 
-//------------------------------------------------------------------
 /// remove the property with the given name from the given sequence
-COMPHELPER_DLLPUBLIC void RemoveProperty(staruno::Sequence<starbeans::Property>& seqProps, const OUString& _rPropName);
+COMPHELPER_DLLPUBLIC void RemoveProperty(css::uno::Sequence<css::beans::Property>& seqProps, const OUString& _rPropName);
 
-//------------------------------------------------------------------
 /** within the given property sequence, modify attributes of a special property
     @param  _rProps         the sequence of properties to search in
     @param  _sPropName      the name of the property which's attributes should be modified
     @param  _nAddAttrib     the attributes which should be added
     @param  _nRemoveAttrib  the attributes which should be removed
 */
-COMPHELPER_DLLPUBLIC void ModifyPropertyAttributes(staruno::Sequence<starbeans::Property>& _rProps, const OUString& _sPropName, sal_Int16 _nAddAttrib, sal_Int16 _nRemoveAttrib);
+COMPHELPER_DLLPUBLIC void ModifyPropertyAttributes(css::uno::Sequence<css::beans::Property>& _rProps, const OUString& _sPropName, sal_Int16 _nAddAttrib, sal_Int16 _nRemoveAttrib);
 
-//------------------------------------------------------------------
 /** check if the given set has the given property.
 */
-COMPHELPER_DLLPUBLIC sal_Bool hasProperty(const OUString& _rName, const staruno::Reference<starbeans::XPropertySet>& _rxSet);
+COMPHELPER_DLLPUBLIC bool hasProperty(const OUString& _rName, const css::uno::Reference<css::beans::XPropertySet>& _rxSet);
 
-//------------------------------------------------------------------
 /** copy properties between property sets, in compliance with the property
     attributes of the target object
 */
-COMPHELPER_DLLPUBLIC void copyProperties(const staruno::Reference<starbeans::XPropertySet>& _rxSource,
-                    const staruno::Reference<starbeans::XPropertySet>& _rxDest);
-
-//==================================================================
-//= property conversion helpers
-//==================================================================
+COMPHELPER_DLLPUBLIC void copyProperties(const css::uno::Reference<css::beans::XPropertySet>& _rxSource,
+                    const css::uno::Reference<css::beans::XPropertySet>& _rxDest);
 
 /** helper for implementing ::cppu::OPropertySetHelper::convertFastPropertyValue
     @param          _rConvertedValue    the conversion result (if successful)
@@ -117,16 +93,16 @@ COMPHELPER_DLLPUBLIC void copyProperties(const staruno::Reference<starbeans::XPr
     @exception      InvalidArgumentException thrown if the value could not be converted to the requested type (which is the template argument)
 */
 template <typename T>
-sal_Bool tryPropertyValue(staruno::Any& /*out*/_rConvertedValue, staruno::Any& /*out*/_rOldValue, const staruno::Any& _rValueToSet, const T& _rCurrentValue)
+bool tryPropertyValue(css::uno::Any& /*out*/_rConvertedValue, css::uno::Any& /*out*/_rOldValue, const css::uno::Any& _rValueToSet, const T& _rCurrentValue)
 {
-    sal_Bool bModified(sal_False);
+    bool bModified(false);
     T aNewValue = T();
     ::cppu::convertPropertyValue(aNewValue, _rValueToSet);
     if (aNewValue != _rCurrentValue)
     {
         _rConvertedValue <<= aNewValue;
         _rOldValue <<= _rCurrentValue;
-        bModified = sal_True;
+        bModified = true;
     }
     return bModified;
 }
@@ -141,13 +117,13 @@ sal_Bool tryPropertyValue(staruno::Any& /*out*/_rConvertedValue, staruno::Any& /
     @exception      InvalidArgumentException thrown if the value could not be converted to the requested type (which is the template argument)
 */
 template <class ENUMTYPE>
-sal_Bool tryPropertyValueEnum(staruno::Any& /*out*/_rConvertedValue, staruno::Any& /*out*/_rOldValue, const staruno::Any& _rValueToSet, const ENUMTYPE& _rCurrentValue)
+bool tryPropertyValueEnum(css::uno::Any& /*out*/_rConvertedValue, css::uno::Any& /*out*/_rOldValue, const css::uno::Any& _rValueToSet, const ENUMTYPE& _rCurrentValue)
 {
     if (cppu::getTypeFavourUnsigned(&_rCurrentValue).getTypeClass()
-        != staruno::TypeClass_ENUM)
+        != css::uno::TypeClass_ENUM)
         return tryPropertyValue(_rConvertedValue, _rOldValue, _rValueToSet, _rCurrentValue);
 
-    sal_Bool bModified(sal_False);
+    bool bModified(false);
     ENUMTYPE aNewValue;
     ::cppu::any2enum(aNewValue, _rValueToSet);
         // will throw an exception if not convertible
@@ -156,7 +132,7 @@ sal_Bool tryPropertyValueEnum(staruno::Any& /*out*/_rConvertedValue, staruno::An
     {
         _rConvertedValue <<= aNewValue;
         _rOldValue <<= _rCurrentValue;
-        bModified = sal_True;
+        bModified = true;
     }
     return bModified;
 }
@@ -170,16 +146,16 @@ sal_Bool tryPropertyValueEnum(staruno::Any& /*out*/_rConvertedValue, staruno::An
                     sal_False, if the value could be converted and has not changed
     @exception      InvalidArgumentException thrown if the value could not be converted to a boolean type
 */
-inline sal_Bool tryPropertyValue(staruno::Any& /*out*/_rConvertedValue, staruno::Any& /*out*/_rOldValue, const staruno::Any& _rValueToSet, sal_Bool _bCurrentValue)
+inline bool tryPropertyValue(css::uno::Any& /*out*/_rConvertedValue, css::uno::Any& /*out*/_rOldValue, const css::uno::Any& _rValueToSet, bool _bCurrentValue)
 {
-    sal_Bool bModified(sal_False);
+    bool bModified(false);
     sal_Bool bNewValue(sal_False);
     ::cppu::convertPropertyValue(bNewValue, _rValueToSet);
-    if (bNewValue != _bCurrentValue)
+    if (bool(bNewValue) != _bCurrentValue)
     {
-        _rConvertedValue.setValue(&bNewValue, ::getBooleanCppuType());
-        _rOldValue.setValue(&_bCurrentValue, ::getBooleanCppuType());
-        bModified = sal_True;
+        _rConvertedValue.setValue(&bNewValue, cppu::UnoType<bool>::get());
+        _rOldValue.setValue(&_bCurrentValue, cppu::UnoType<bool>::get());
+        bModified = true;
     }
     return bModified;
 }
@@ -194,11 +170,9 @@ inline sal_Bool tryPropertyValue(staruno::Any& /*out*/_rConvertedValue, staruno:
                     sal_False, if the value could be converted and has not changed
     @exception      InvalidArgumentException thrown if the value could not be converted to the requested type (which is the template argument)
 */
-COMPHELPER_DLLPUBLIC sal_Bool tryPropertyValue(staruno::Any& _rConvertedValue, staruno::Any& _rOldValue, const staruno::Any& _rValueToSet, const staruno::Any& _rCurrentValue, const staruno::Type& _rExpectedType);
+COMPHELPER_DLLPUBLIC bool tryPropertyValue(css::uno::Any& _rConvertedValue, css::uno::Any& _rOldValue, const css::uno::Any& _rValueToSet, const css::uno::Any& _rCurrentValue, const css::uno::Type& _rExpectedType);
 
-//.........................................................................
 }
-//... namespace comphelper .......................................................
 
 #endif // INCLUDED_COMPHELPER_PROPERTY_HXX
 

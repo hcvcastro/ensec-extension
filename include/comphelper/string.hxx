@@ -96,7 +96,7 @@ inline OUStringBuffer& remove(OUStringBuffer &rIn,
     sal_Unicode c)
 {
     sal_Int32 index = 0;
-    while (1)
+    while (true)
     {
         if (index >= rIn.getLength())
             break;
@@ -168,38 +168,6 @@ COMPHELPER_DLLPUBLIC OString strip(const OString &rIn,
 COMPHELPER_DLLPUBLIC OUString strip(const OUString &rIn,
     sal_Unicode c);
 
-/** Returns a token in an OString
-
-    @deprecated  Use OString::getToken(nToken, cTok) instead.
-
-  @param    rIn         the input OString
-  @param    nToken      the number of the token to return
-  @param    cTok        the character which separate the tokens.
-  @return   the token   if token is negative or doesn't exist an empty token
-                        is returned
-*/
-inline OString getToken(const OString &rIn,
-    sal_Int32 nToken, sal_Char cTok) SAL_THROW(())
-{
-    return rIn.getToken(nToken, cTok);
-}
-
-/** Returns a token in an OUString
-
-    @deprecated  Use OUString::getToken(nToken, cTok) instead.
-
-  @param    rIn         the input OUString
-  @param    nToken      the number of the token to return
-  @param    cTok        the character which separate the tokens.
-  @return   the token   if token is negative or doesn't exist an empty token
-                        is returned
-*/
-inline OUString getToken(const OUString &rIn,
-    sal_Int32 nToken, sal_Unicode cTok) SAL_THROW(())
-{
-    return rIn.getToken(nToken, cTok);
-}
-
 /** Returns number of tokens in an OUString
 
   @param    rIn     the input OString
@@ -253,14 +221,14 @@ namespace detail
 
     @return         rBuf;
  */
-COMPHELPER_DLLPUBLIC inline OStringBuffer& truncateToLength(
-    OStringBuffer& rBuffer, sal_Int32 nLength) SAL_THROW(())
+inline OStringBuffer& truncateToLength(
+    OStringBuffer& rBuffer, sal_Int32 nLength)
 {
     return detail::truncateToLength(rBuffer, nLength);
 }
 
-COMPHELPER_DLLPUBLIC inline OUStringBuffer& truncateToLength(
-    OUStringBuffer& rBuffer, sal_Int32 nLength) SAL_THROW(())
+inline OUStringBuffer& truncateToLength(
+    OUStringBuffer& rBuffer, sal_Int32 nLength)
 {
     return detail::truncateToLength(rBuffer, nLength);
 }
@@ -294,16 +262,16 @@ namespace detail
 
     @return         rBuf;
  */
-COMPHELPER_DLLPUBLIC inline OStringBuffer& padToLength(
+inline OStringBuffer& padToLength(
     OStringBuffer& rBuffer, sal_Int32 nLength,
-    sal_Char cFill = '\0') SAL_THROW(())
+    sal_Char cFill = '\0')
 {
     return detail::padToLength(rBuffer, nLength, cFill);
 }
 
-COMPHELPER_DLLPUBLIC inline OUStringBuffer& padToLength(
+inline OUStringBuffer& padToLength(
     OUStringBuffer& rBuffer, sal_Int32 nLength,
-    sal_Unicode cFill = '\0') SAL_THROW(())
+    sal_Unicode cFill = '\0')
 {
     return detail::padToLength(rBuffer, nLength, cFill);
 }
@@ -433,35 +401,44 @@ COMPHELPER_DLLPUBLIC bool isdigitAsciiString(const OString &rString);
  */
 COMPHELPER_DLLPUBLIC bool isdigitAsciiString(const OUString &rString);
 
-COMPHELPER_DLLPUBLIC inline bool isdigitAscii(sal_Unicode c)
+inline bool isdigitAscii(sal_Unicode c)
 {
     return ((c >= '0') && (c <= '9'));
 }
 
-COMPHELPER_DLLPUBLIC inline bool isxdigitAscii(sal_Unicode c)
+inline bool isxdigitAscii(sal_Unicode c)
 {
     return isdigitAscii(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
 }
 
-COMPHELPER_DLLPUBLIC inline bool islowerAscii(sal_Unicode c)
+inline bool islowerAscii(sal_Unicode c)
 {
     return ((c >= 'a') && (c <= 'z'));
 }
 
-COMPHELPER_DLLPUBLIC inline bool isupperAscii(sal_Unicode c)
+inline bool isupperAscii(sal_Unicode c)
 {
     return ((c >= 'A') && (c <= 'Z'));
 }
 
-COMPHELPER_DLLPUBLIC inline bool isalphaAscii(sal_Unicode c)
+inline bool isalphaAscii(sal_Unicode c)
 {
     return islowerAscii(c) || isupperAscii(c);
 }
 
-COMPHELPER_DLLPUBLIC inline bool isalnumAscii(sal_Unicode c)
+inline bool isalnumAscii(sal_Unicode c)
 {
     return isalphaAscii(c) || isdigitAscii(c);
 }
+
+/** Compare two strings containing software version numbers
+
+    Inspired by the GNU strverscmp(), but there is no guarantee that the exact
+    same semantics are used, or that the semantics are stable between LibreOffice versions.
+
+    @return -1, 0 or 1
+*/
+COMPHELPER_DLLPUBLIC int compareVersionStrings(const OUString& a, const OUString& b);
 
 } }
 

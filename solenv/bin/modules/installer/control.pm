@@ -70,7 +70,7 @@ sub check_system_path
     # All platforms: zip
     # Windows only: "msiinfo.exe", "msidb.exe", "uuidgen.exe", "makecab.exe", "msitran.exe", "expand.exe" for msi database and packaging
 
-    if ($ENV{'CROSS_COMPILING'} eq 'YES')
+    if ($ENV{'CROSS_COMPILING'} eq 'TRUE')
     {
         # we build our own msi* etc. tools when cross-compiling
         $ENV{'PATH'} .= $installer::globals::pathseparator . $ENV{'WORKDIR_FOR_BUILD'} . '/LinkTarget/Executable';
@@ -265,8 +265,12 @@ sub check_system_environment
     my $error = 0;
 
     my @environmentvariables = qw(
-        WORK_STAMP
-        OUTPATH
+        LIBO_VERSION_MAJOR
+        LIBO_VERSION_MINOR
+        CPUNAME
+        OS
+        COM
+        PLATFORMID
         LOCAL_OUT
         LOCAL_COMMON_OUT
         WORKDIR
@@ -275,7 +279,7 @@ sub check_system_environment
 
     for my $key ( @environmentvariables )
     {
-        $variables{$key} = $ENV{$key} || "";
+        $variables{$key} = defined($ENV{$key}) ? $ENV{$key} : "";
 
         if ( $variables{$key} eq "" )
         {
@@ -476,7 +480,6 @@ sub set_addsystemintegration
 
     if ( $installer::globals::languagepack ) { $installer::globals::addsystemintegration = 0; }
     if ( $installer::globals::helppack ) { $installer::globals::addsystemintegration = 0; }
-    if (( $installer::globals::packageformat eq "native" ) || ( $installer::globals::packageformat eq "portable" )) { $installer::globals::addsystemintegration = 0; }
 
     my $infoline = "Value of \$installer::globals::addsystemintegration: $installer::globals::addsystemintegration\n";
     push( @installer::globals::globallogfileinfo, $infoline);

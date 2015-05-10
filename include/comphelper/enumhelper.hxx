@@ -30,114 +30,92 @@
 #include <osl/mutex.hxx>
 #include <comphelper/comphelperdllapi.h>
 
-//.........................................................................
 namespace comphelper
 {
-//.........................................................................
 
-    namespace starcontainer     = ::com::sun::star::container;
-    namespace staruno           = ::com::sun::star::uno;
-    namespace starlang          = ::com::sun::star::lang;
-
-//==================================================================
-//= OEnumerationLock
-//==================================================================
 struct OEnumerationLock
 {
     public:
         ::osl::Mutex m_aLock;
 };
 
-//==================================================================
-//= OEnumerationByName
-//==================================================================
 /** provides an com.sun.star.container::XEnumeration access based
     on an object implementing the com.sun.star.container::XNameAccess interface
 */
 class COMPHELPER_DLLPUBLIC OEnumerationByName : private OEnumerationLock
-                         , public ::cppu::WeakImplHelper2< starcontainer::XEnumeration ,
-                                                           starlang::XEventListener    >
+                         , public ::cppu::WeakImplHelper2< css::container::XEnumeration ,
+                                                           css::lang::XEventListener    >
 {
-    staruno::Sequence< OUString >                m_aNames;
+    css::uno::Sequence< OUString >                m_aNames;
     sal_Int32                                           m_nPos;
-    staruno::Reference< starcontainer::XNameAccess >    m_xAccess;
-    sal_Bool                                            m_bListening;
+    css::uno::Reference< css::container::XNameAccess >    m_xAccess;
+    bool                                            m_bListening;
 
 public:
-    OEnumerationByName(const staruno::Reference< starcontainer::XNameAccess >& _rxAccess);
-    OEnumerationByName(const staruno::Reference< starcontainer::XNameAccess >& _rxAccess,
-                       const staruno::Sequence< OUString >&             _aNames  );
+    OEnumerationByName(const css::uno::Reference< css::container::XNameAccess >& _rxAccess);
+    OEnumerationByName(const css::uno::Reference< css::container::XNameAccess >& _rxAccess,
+                       const css::uno::Sequence< OUString >&             _aNames  );
     virtual ~OEnumerationByName();
 
-    virtual sal_Bool SAL_CALL hasMoreElements(  ) throw(staruno::RuntimeException);
-    virtual staruno::Any SAL_CALL nextElement(  )
-        throw(starcontainer::NoSuchElementException, starlang::WrappedTargetException, staruno::RuntimeException);
+    virtual sal_Bool SAL_CALL hasMoreElements(  ) throw(css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual css::uno::Any SAL_CALL nextElement(  )
+        throw(css::container::NoSuchElementException, css::lang::WrappedTargetException, css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
-    virtual void SAL_CALL disposing(const starlang::EventObject& aEvent) throw(staruno::RuntimeException);
+    virtual void SAL_CALL disposing(const css::lang::EventObject& aEvent) throw(css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
 private:
     COMPHELPER_DLLPRIVATE void impl_startDisposeListening();
     COMPHELPER_DLLPRIVATE void impl_stopDisposeListening();
 };
 
-//==================================================================
-//= OEnumerationByIndex
-//==================================================================
 /** provides an com.sun.star.container::XEnumeration access based
     on an object implementing the com.sun.star.container::XNameAccess interface
 */
 class COMPHELPER_DLLPUBLIC OEnumerationByIndex : private OEnumerationLock
-                          , public ::cppu::WeakImplHelper2< starcontainer::XEnumeration ,
-                                                            starlang::XEventListener    >
+                          , public ::cppu::WeakImplHelper2< css::container::XEnumeration ,
+                                                            css::lang::XEventListener    >
 {
     sal_Int32                                         m_nPos;
-    staruno::Reference< starcontainer::XIndexAccess > m_xAccess;
-    sal_Bool                                          m_bListening;
+    css::uno::Reference< css::container::XIndexAccess > m_xAccess;
+    bool                                          m_bListening;
 
 public:
-    OEnumerationByIndex(const staruno::Reference< starcontainer::XIndexAccess >& _rxAccess);
+    OEnumerationByIndex(const css::uno::Reference< css::container::XIndexAccess >& _rxAccess);
     virtual ~OEnumerationByIndex();
 
-    virtual sal_Bool SAL_CALL hasMoreElements(  ) throw(staruno::RuntimeException);
-    virtual staruno::Any SAL_CALL nextElement(  )
-        throw(starcontainer::NoSuchElementException, starlang::WrappedTargetException, staruno::RuntimeException);
+    virtual sal_Bool SAL_CALL hasMoreElements(  ) throw(css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual css::uno::Any SAL_CALL nextElement(  )
+        throw(css::container::NoSuchElementException, css::lang::WrappedTargetException, css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
-    virtual void SAL_CALL disposing(const starlang::EventObject& aEvent) throw(staruno::RuntimeException);
+    virtual void SAL_CALL disposing(const css::lang::EventObject& aEvent) throw(css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
 private:
     COMPHELPER_DLLPRIVATE void impl_startDisposeListening();
     COMPHELPER_DLLPRIVATE void impl_stopDisposeListening();
 };
 
-//==================================================================
-//= OAnyEnumeration
-//==================================================================
 /** provides an com.sun.star.container::XEnumeration
     for an outside set vector of Any's.
 
 */
 class COMPHELPER_DLLPUBLIC OAnyEnumeration : private OEnumerationLock
-                                           , public  ::cppu::WeakImplHelper1< starcontainer::XEnumeration >
+                                           , public  ::cppu::WeakImplHelper1< css::container::XEnumeration >
 {
     sal_Int32                         m_nPos;
-    staruno::Sequence< staruno::Any > m_lItems;
+    css::uno::Sequence< css::uno::Any > m_lItems;
 
 public:
-    OAnyEnumeration(const staruno::Sequence< staruno::Any >& lItems);
+    OAnyEnumeration(const css::uno::Sequence< css::uno::Any >& lItems);
     virtual ~OAnyEnumeration();
 
-    virtual sal_Bool SAL_CALL hasMoreElements(  ) throw(staruno::RuntimeException);
-    virtual staruno::Any SAL_CALL nextElement(  )
-        throw(starcontainer::NoSuchElementException, starlang::WrappedTargetException, staruno::RuntimeException);
+    virtual sal_Bool SAL_CALL hasMoreElements(  ) throw(css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+    virtual css::uno::Any SAL_CALL nextElement(  )
+        throw(css::container::NoSuchElementException, css::lang::WrappedTargetException, css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
 };
 
-//.........................................................................
 }
-//... namespace comphelper .......................................................
 
 #endif // INCLUDED_COMPHELPER_ENUMHELPER_HXX
-
-
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

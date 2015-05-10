@@ -7,8 +7,13 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-#gb_LinkTarget_LDFLAGS += \
-        -Wl,-z,defs \
+gb__LinkTarget_LDFLAGS_zdefs := -Wl,-z,defs
+ifeq ($(COM_GCC_IS_CLANG),TRUE)
+ifneq ($(filter -fsanitize=%,$(CC)),)
+gb__LinkTarget_LDFLAGS_zdefs :=
+endif
+endif
+gb_LinkTarget_LDFLAGS += $(gb__LinkTarget_LDFLAGS_zdefs)
 
 include $(GBUILDDIR)/platform/unxgcc.mk
 

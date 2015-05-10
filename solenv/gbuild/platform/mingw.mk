@@ -36,26 +36,18 @@ gb_CFLAGS += \
 	-Wdeclaration-after-statement \
 	-fno-strict-aliasing \
 
-# For -Wno-non-virtual-dtor see <http://markmail.org/message/664jsoqe6n6smy3b>
-# "Re: [dev] warnings01: -Wnon-virtual-dtor" message to dev@openoffice.org from
-# Feb 1, 2006:
 gb_CXXFLAGS := \
 	$(gb_CXXFLAGS_COMMON) \
 	-Wno-ctor-dtor-privacy \
-	-Wno-non-virtual-dtor \
 	-Wreturn-type \
 	-Wshadow \
 	-Wuninitialized \
 	-fno-strict-aliasing \
-
+	-std=gnu++0x \
 
 ifneq ($(SYSBASE),)
 gb_CXXFLAGS += --sysroot=$(SYSBASE)
 gb_CFLAGS += --sysroot=$(SYSBASE)
-endif
-
-ifeq ($(HAVE_CXX11),TRUE)
-gb_CXXFLAGS += -std=gnu++0x
 endif
 
 # At least sal defines its own __main, which would cause DLLs linking against
@@ -65,7 +57,6 @@ gb_LinkTarget_LDFLAGS := \
 	-Wl,--exclude-symbols,__main \
 	-Wl,--enable-stdcall-fixup \
 	-Wl,--enable-runtime-pseudo-reloc-v2 \
-	$(SOLARLIB) \
 
 ifeq ($(MINGW_GCCLIB_EH),YES)
 gb_LinkTarget_LDFLAGS += -shared-libgcc
@@ -129,7 +120,7 @@ $(call gb_Helper_abbreviate_dirs,\
 		-Wl$(COMMA)-Map$(COMMA)$(WORKDIR)/LinkTarget/$(2).map \
 		-Wl$(COMMA)--out-implib$(COMMA)$(ILIBTARGET) \
 		-o $(1) \
-		$(if $(findstring s,$(MAKEFLAGS)),> /dev/null))
+		$(if $(findstring s,$(MAKEFLAGS)),> /dev/null)))
 endef
 
 define gb_LinkTarget__command_staticlinklibrary
@@ -153,6 +144,8 @@ endef
 
 define gb_LinkTarget_use_system_win32_libs
 $(call gb_LinkTarget_add_libs,$(1),$(foreach lib,$(2),-l$(patsubst oldnames,moldname,$(lib))))
+$(if $(call gb_LinkTarget__is_merged,$(1)),\
+	$(call gb_LinkTarget_add_libs,$(call gb_Library_get_linktarget,merged),$(foreach lib,$(2),-l$(patsubst oldnames,moldname,$(lib)))))
 endef
 
 gb_LinkTarget_get_mapfile = \
@@ -265,6 +258,8 @@ define gb_Library_get_ilibfilename
 $(patsubst $(1):%,%,$(filter $(1):%,$(gb_Library_ILIBFILENAMES)))
 endef
 
+gb_Library_get_sdk_link_dir = $(INSTDIR)/$(SDKDIRNAME)/lib
+
 gb_Library_get_sdk_link_lib = $(gb_Library_get_ilib_target)
 
 # Executable class
@@ -308,8 +303,6 @@ $(call gb_Helper_abbreviate_dirs,\
 		-o $(1) \
 		$(RCFILE) )
 endef
-
-gb_WinResTarget_WinResTarget_platform :=
 
 $(eval $(call gb_Helper_make_dep_targets,\
 	WinResTarget \

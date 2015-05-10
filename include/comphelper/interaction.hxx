@@ -30,37 +30,37 @@
 #include <com/sun/star/task/XInteractionRequest.hpp>
 #include <comphelper/comphelperdllapi.h>
 
-//.........................................................................
+
 namespace comphelper
 {
-//.........................................................................
 
-    //=========================================================================
+
+
     //= OInteractionSelect
-    //=========================================================================
+
     /** base class for concrete XInteractionContinuation implementations.<p/>
         Instances of the classes maintain a flag indicating if the handler was called.
     */
     class OInteractionSelect
     {
-        sal_Bool    m_bSelected : 1;    /// indicates if the select event occurred
+        bool    m_bSelected : 1;    /// indicates if the select event occurred
 
     protected:
-        OInteractionSelect() : m_bSelected(sal_False) { }
+        OInteractionSelect() : m_bSelected(false) { }
 
     public:
         /// determines whether or not this handler was selected
-        sal_Bool    wasSelected() const { return m_bSelected; }
+        bool    wasSelected() const { return m_bSelected; }
         /// resets the state to "not selected", so you may reuse the handler
-        void        reset() { m_bSelected = sal_False; }
+        void        reset() { m_bSelected = false; }
 
     protected:
-        void    implSelected() { m_bSelected = sal_True; }
+        void    implSelected() { m_bSelected = true; }
     };
 
-    //=========================================================================
+
     //= OInteraction
-    //=========================================================================
+
     /** template for instantiating concret interaction handlers<p/>
         the template argument must eb an interface derived from XInteractionContinuation
     */
@@ -73,39 +73,39 @@ namespace comphelper
         OInteraction() { }
 
     // XInteractionContinuation
-        virtual void SAL_CALL select(  ) throw(::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL select(  ) throw(::com::sun::star::uno::RuntimeException) SAL_OVERRIDE;
     };
 
-    //.........................................................................
+
     template <class INTERACTION>
     void SAL_CALL OInteraction< INTERACTION >::select(  ) throw(::com::sun::star::uno::RuntimeException)
     {
         implSelected();
     }
 
-    //=========================================================================
+
     //= OInteractionApprove
-    //=========================================================================
+
     typedef OInteraction< ::com::sun::star::task::XInteractionApprove > OInteractionApprove;
 
-    //=========================================================================
+
     //= OInteractionDispprove
-    //=========================================================================
+
     typedef OInteraction< ::com::sun::star::task::XInteractionDisapprove >  OInteractionDisapprove;
 
-    //=========================================================================
+
     //= OInteractionAbort
-    //=========================================================================
+
     typedef OInteraction< ::com::sun::star::task::XInteractionAbort >   OInteractionAbort;
 
-    //=========================================================================
+
     //= OInteractionRetry
-    //=========================================================================
+
     typedef OInteraction< ::com::sun::star::task::XInteractionRetry >   OInteractionRetry;
 
-    //=========================================================================
+
     //= OInteractionPassword
-    //=========================================================================
+
     class COMPHELPER_DLLPUBLIC OInteractionPassword : public OInteraction< ::com::sun::star::task::XInteractionPassword >
     {
     public:
@@ -119,16 +119,16 @@ namespace comphelper
         }
 
         // XInteractionPassword
-        virtual void SAL_CALL setPassword( const OUString& _Password ) throw (::com::sun::star::uno::RuntimeException);
-        virtual OUString SAL_CALL getPassword(  ) throw (::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL setPassword( const OUString& _Password ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual OUString SAL_CALL getPassword(  ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
     private:
         OUString m_sPassword;
     };
 
-    //=========================================================================
+
     //= OInteractionRequest
-    //=========================================================================
+
     typedef ::cppu::WeakImplHelper1 <   ::com::sun::star::task::XInteractionRequest
                                     >   OInteractionRequest_Base;
     /** implements an interaction request (com.sun.star.task::XInteractionRequest)<p/>
@@ -148,12 +148,12 @@ namespace comphelper
         void addContinuation(const ::com::sun::star::uno::Reference< ::com::sun::star::task::XInteractionContinuation >& _rxContinuation);
 
     // XInteractionRequest
-        virtual ::com::sun::star::uno::Any SAL_CALL getRequest(  ) throw(::com::sun::star::uno::RuntimeException);
-        virtual ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Reference< ::com::sun::star::task::XInteractionContinuation > > SAL_CALL getContinuations(  ) throw(::com::sun::star::uno::RuntimeException);
+        virtual ::com::sun::star::uno::Any SAL_CALL getRequest(  ) throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Reference< ::com::sun::star::task::XInteractionContinuation > > SAL_CALL getContinuations(  ) throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     };
-//.........................................................................
+
 }   // namespace comphelper
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_INTERACTION_HXX
 

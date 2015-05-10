@@ -21,15 +21,10 @@
 
 #include <sal/config.h>
 
-#include <vector>
-#include <map>
-
 #include <stack>
-#include <set>
 
 #include <math.h>
 #include <functional>
-
 
 #include <rtl/ustring.hxx>
 #include <rtl/ustrbuf.hxx>
@@ -37,20 +32,11 @@
 #include <com/sun/star/beans/PropertyValue.hpp>
 #include <com/sun/star/beans/NamedValue.hpp>
 
-//... namespace comphelper ................................................
 namespace comphelper
 {
-//.........................................................................
 
-//========================================================================
 // comparison functors
 
-//------------------------------------------------------------------------
-struct UStringLess : public ::std::binary_function< OUString, OUString, bool>
-{
-    bool operator() (const OUString& x, const OUString& y) const { return x < y ? true : false;}      // construct prevents a MSVC6 warning
-};
-//------------------------------------------------------------------------
 struct UStringMixLess : public ::std::binary_function< OUString, OUString, bool>
 {
     bool m_bCaseSensitive;
@@ -59,54 +45,27 @@ public:
     bool operator() (const OUString& x, const OUString& y) const
     {
         if (m_bCaseSensitive)
-            return rtl_ustr_compare(x.getStr(), y.getStr()) < 0 ? true : false;
+            return rtl_ustr_compare(x.getStr(), y.getStr()) < 0;
         else
-            return rtl_ustr_compareIgnoreAsciiCase(x.getStr(), y.getStr()) < 0 ? true : false;
+            return rtl_ustr_compareIgnoreAsciiCase(x.getStr(), y.getStr()) < 0;
     }
 
     bool isCaseSensitive() const {return m_bCaseSensitive;}
 };
-//------------------------------------------------------------------------
-struct UStringEqual
-{
-    sal_Bool operator() (const OUString& lhs, const OUString& rhs) const { return lhs.equals( rhs );}
-};
 
-//------------------------------------------------------------------------
-struct UStringIEqual
+class UStringMixEqual: public std::binary_function<OUString, OUString, bool>
 {
-    sal_Bool operator() (const OUString& lhs, const OUString& rhs) const { return lhs.equalsIgnoreAsciiCase( rhs );}
-};
-
-//------------------------------------------------------------------------
-class UStringMixEqual
-{
-    sal_Bool m_bCaseSensitive;
+    bool m_bCaseSensitive;
 
 public:
-    UStringMixEqual(sal_Bool bCaseSensitive = sal_True):m_bCaseSensitive(bCaseSensitive){}
-    sal_Bool operator() (const OUString& lhs, const OUString& rhs) const
+    UStringMixEqual(bool bCaseSensitive = true):m_bCaseSensitive(bCaseSensitive){}
+    bool operator() (const OUString& lhs, const OUString& rhs) const
     {
         return m_bCaseSensitive ? lhs.equals( rhs ) : lhs.equalsIgnoreAsciiCase( rhs );
     }
-    sal_Bool isCaseSensitive() const {return m_bCaseSensitive;}
+    bool isCaseSensitive() const {return m_bCaseSensitive;}
 };
-//------------------------------------------------------------------------
-class TStringMixEqualFunctor : public ::std::binary_function< OUString,OUString,bool>
-{
-    sal_Bool m_bCaseSensitive;
 
-public:
-    TStringMixEqualFunctor(sal_Bool bCaseSensitive = sal_True)
-        :m_bCaseSensitive(bCaseSensitive)
-    {}
-    bool operator() (const OUString& lhs, const OUString& rhs) const
-    {
-        return !!(m_bCaseSensitive ? lhs.equals( rhs ) : lhs.equalsIgnoreAsciiCase( rhs ));
-    }
-    sal_Bool isCaseSensitive() const {return m_bCaseSensitive;}
-};
-//------------------------------------------------------------------------
 class TPropertyValueEqualFunctor : public ::std::binary_function< ::com::sun::star::beans::PropertyValue,OUString,bool>
 {
 public:
@@ -117,7 +76,7 @@ public:
         return !!(lhs.Name == rhs);
     }
 };
-//------------------------------------------------------------------------
+
 class TNamedValueEqualFunctor : public ::std::binary_function< ::com::sun::star::beans::NamedValue,OUString,bool>
 {
 public:
@@ -128,24 +87,8 @@ public:
         return !!(lhs.Name == rhs);
     }
 };
-//------------------------------------------------------------------------
-class UStringMixHash
-{
-    sal_Bool m_bCaseSensitive;
 
-public:
-    UStringMixHash(sal_Bool bCaseSensitive = sal_True):m_bCaseSensitive(bCaseSensitive){}
-    size_t operator() (const OUString& rStr) const
-    {
-        return m_bCaseSensitive ? rStr.hashCode() : rStr.toAsciiUpperCase().hashCode();
-    }
-    sal_Bool isCaseSensitive() const {return m_bCaseSensitive;}
-};
-
-//=====================================================================
-//= OInterfaceCompare
-//=====================================================================
-/** is stl-compliant structure for comparing Reference&lt; &lt;iface&gt; &gt; instances
+/** STL-compliant structure for comparing Reference&lt; &lt;iface&gt; &gt; instances
 */
 template < class IAFCE >
 struct OInterfaceCompare
@@ -181,7 +124,6 @@ inline mem_fun1_t<_Tp,_Arg> mem_fun(void (_Tp::*__f)(_Arg))
     return mem_fun1_t<_Tp,_Arg>(__f);
 }
 
-//.........................................................................
 /** output iterator that appends OUStrings into an OUStringBuffer.
  */
 class OUStringBufferAppender :
@@ -210,7 +152,6 @@ private:
     OUStringBuffer & m_rBuffer;
 };
 
-//.........................................................................
 /** algorithm similar to std::copy, but inserts a separator between elements.
  */
 template< typename ForwardIter, typename OutputIter, typename T >
@@ -234,39 +175,7 @@ OutputIter intersperse(
     return out;
 }
 
-//.........................................................................
 }
-//... namespace comphelper ................................................
-
-//==================================================================
-// consistently defining stl-types
-//==================================================================
-
-#define DECLARE_STL_ITERATORS(classname)                            \
-    typedef classname::iterator         classname##Iterator;        \
-    typedef classname::const_iterator   Const##classname##Iterator  \
-
-#define DECLARE_STL_MAP(keytype, valuetype, comparefct, classname)  \
-    typedef std::map< keytype, valuetype, comparefct >  classname;  \
-    DECLARE_STL_ITERATORS(classname)                                \
-
-#define DECLARE_STL_STDKEY_MAP(keytype, valuetype, classname)               \
-    DECLARE_STL_MAP(keytype, valuetype, std::less< keytype >, classname)    \
-
-#define DECLARE_STL_VECTOR(valuetyp, classname)     \
-    typedef std::vector< valuetyp >     classname;  \
-    DECLARE_STL_ITERATORS(classname)                \
-
-#define DECLARE_STL_USTRINGACCESS_MAP(valuetype, classname)                 \
-    DECLARE_STL_MAP(OUString, valuetype, ::comphelper::UStringLess, classname)   \
-
-#define DECLARE_STL_STDKEY_SET(valuetype, classname)    \
-    typedef ::std::set< valuetype > classname;          \
-    DECLARE_STL_ITERATORS(classname)                    \
-
-#define DECLARE_STL_SET(valuetype, comparefct, classname)               \
-    typedef ::std::set< valuetype, comparefct > classname;  \
-    DECLARE_STL_ITERATORS(classname)                        \
 
 #endif // INCLUDED_COMPHELPER_STL_TYPES_HXX
 

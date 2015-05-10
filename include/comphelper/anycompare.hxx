@@ -30,14 +30,14 @@
 #include <functional>
 #include <memory>
 
-//......................................................................................................................
+
 namespace comphelper
 {
-//......................................................................................................................
 
-    //==================================================================================================================
+
+
     //= IKeyPredicateLess
-    //==================================================================================================================
+
     class SAL_NO_VTABLE IKeyPredicateLess
     {
     public:
@@ -45,9 +45,9 @@ namespace comphelper
         virtual ~IKeyPredicateLess() {}
     };
 
-    //==================================================================================================================
+
     //= LessPredicateAdapter
-    //==================================================================================================================
+
     struct LessPredicateAdapter : public ::std::binary_function< ::com::sun::star::uno::Any, ::com::sun::star::uno::Any, bool >
     {
         LessPredicateAdapter( const IKeyPredicateLess& _predicate )
@@ -67,14 +67,14 @@ namespace comphelper
         LessPredicateAdapter(); // never implemented
     };
 
-    //==================================================================================================================
+
     //= ScalarPredicateLess
-    //==================================================================================================================
+
     template< typename SCALAR >
     class ScalarPredicateLess : public IKeyPredicateLess
     {
     public:
-        virtual bool isLess( ::com::sun::star::uno::Any const & _lhs, ::com::sun::star::uno::Any const & _rhs ) const
+        virtual bool isLess( ::com::sun::star::uno::Any const & _lhs, ::com::sun::star::uno::Any const & _rhs ) const SAL_OVERRIDE
         {
             SCALAR lhs(0), rhs(0);
             if  (   !( _lhs >>= lhs )
@@ -85,13 +85,13 @@ namespace comphelper
         }
     };
 
-    //==================================================================================================================
+
     //= StringPredicateLess
-    //==================================================================================================================
+
     class StringPredicateLess : public IKeyPredicateLess
     {
     public:
-        virtual bool isLess( ::com::sun::star::uno::Any const & _lhs, ::com::sun::star::uno::Any const & _rhs ) const
+        virtual bool isLess( ::com::sun::star::uno::Any const & _lhs, ::com::sun::star::uno::Any const & _rhs ) const SAL_OVERRIDE
         {
             OUString lhs, rhs;
             if  (   !( _lhs >>= lhs )
@@ -102,9 +102,9 @@ namespace comphelper
         }
     };
 
-    //==================================================================================================================
+
     //= StringCollationPredicateLess
-    //==================================================================================================================
+
     class StringCollationPredicateLess : public IKeyPredicateLess
     {
     public:
@@ -113,7 +113,7 @@ namespace comphelper
         {
         }
 
-        virtual bool isLess( ::com::sun::star::uno::Any const & _lhs, ::com::sun::star::uno::Any const & _rhs ) const
+        virtual bool isLess( ::com::sun::star::uno::Any const & _lhs, ::com::sun::star::uno::Any const & _rhs ) const SAL_OVERRIDE
         {
             OUString lhs, rhs;
             if  (   !( _lhs >>= lhs )
@@ -127,13 +127,13 @@ namespace comphelper
         ::com::sun::star::uno::Reference< ::com::sun::star::i18n::XCollator > const m_collator;
     };
 
-    //==================================================================================================================
+
     //= TypePredicateLess
-    //==================================================================================================================
+
     class TypePredicateLess : public IKeyPredicateLess
     {
     public:
-        virtual bool isLess( ::com::sun::star::uno::Any const & _lhs, ::com::sun::star::uno::Any const & _rhs ) const
+        virtual bool isLess( ::com::sun::star::uno::Any const & _lhs, ::com::sun::star::uno::Any const & _rhs ) const SAL_OVERRIDE
         {
             ::com::sun::star::uno::Type lhs, rhs;
             if  (   !( _lhs >>= lhs )
@@ -144,9 +144,9 @@ namespace comphelper
         }
     };
 
-    //==================================================================================================================
+
     //= EnumPredicateLess
-    //==================================================================================================================
+
     class EnumPredicateLess : public IKeyPredicateLess
     {
     public:
@@ -155,7 +155,7 @@ namespace comphelper
         {
         }
 
-        virtual bool isLess( ::com::sun::star::uno::Any const & _lhs, ::com::sun::star::uno::Any const & _rhs ) const
+        virtual bool isLess( ::com::sun::star::uno::Any const & _lhs, ::com::sun::star::uno::Any const & _rhs ) const SAL_OVERRIDE
         {
             sal_Int32 lhs(0), rhs(0);
             if  (   !::cppu::enum2int( lhs, _lhs )
@@ -171,13 +171,13 @@ namespace comphelper
         ::com::sun::star::uno::Type const   m_enumType;
     };
 
-    //==================================================================================================================
+
     //= InterfacePredicateLess
-    //==================================================================================================================
+
     class InterfacePredicateLess : public IKeyPredicateLess
     {
     public:
-        virtual bool isLess( ::com::sun::star::uno::Any const & _lhs, ::com::sun::star::uno::Any const & _rhs ) const
+        virtual bool isLess( ::com::sun::star::uno::Any const & _lhs, ::com::sun::star::uno::Any const & _rhs ) const SAL_OVERRIDE
         {
             if  (   ( _lhs.getValueTypeClass() != ::com::sun::star::uno::TypeClass_INTERFACE )
                 ||  ( _rhs.getValueTypeClass() != ::com::sun::star::uno::TypeClass_INTERFACE )
@@ -190,9 +190,9 @@ namespace comphelper
         }
     };
 
-    //==================================================================================================================
+
     //= getStandardLessPredicate
-    //==================================================================================================================
+
     /** creates a default IKeyPredicateLess instance for the given UNO type
         @param i_type
             the type for which a predicate instance should be created
@@ -204,15 +204,15 @@ namespace comphelper
             a default implementation of IKeyPredicateLess, which is able to compare values of the given type. If no
             such default implementation is known for the given type, then <NULL/> is returned.
     */
-    ::std::auto_ptr< IKeyPredicateLess > COMPHELPER_DLLPUBLIC
+    ::std::unique_ptr< IKeyPredicateLess > COMPHELPER_DLLPUBLIC
         getStandardLessPredicate(
             ::com::sun::star::uno::Type const & i_type,
             ::com::sun::star::uno::Reference< ::com::sun::star::i18n::XCollator > const & i_collator
         );
 
-//......................................................................................................................
+
 } // namespace comphelper
-//......................................................................................................................
+
 
 #endif // INCLUDED_COMPHELPER_ANYCOMPARE_HXX
 

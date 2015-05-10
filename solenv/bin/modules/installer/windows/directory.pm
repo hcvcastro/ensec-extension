@@ -62,9 +62,9 @@ sub overwrite_programfilesfolder
 {
     my ( $allvariables ) = @_;
 
-    if ( $allvariables->{'PROGRAMFILESFOLDERNAME'} )
+    if (( $allvariables->{'64BITPRODUCT'} ) && ( $allvariables->{'64BITPRODUCT'} == 1 ))
     {
-        $installer::globals::programfilesfolder = $allvariables->{'PROGRAMFILESFOLDERNAME'};
+        $installer::globals::programfilesfolder = "ProgramFiles64Folder";
     }
 }
 
@@ -117,7 +117,7 @@ sub make_short_dir_version
     $shortstring =~ s/^\s*\_//;
 
     # Setting unique ID to each directory
-    # No counter allowed, process must be absolute reproducable due to patch creation process.
+    # No counter allowed, process must be absolute reproducible due to patch creation process.
 
     # chomp(my $id = `echo $longstring_save | md5sum | sed -e "s/ .*//g"`);  # Very, very slow
     # my $subid = substr($id, 0, 9); # taking only the first 9 digits
@@ -506,9 +506,6 @@ sub add_root_directories
         $oneline = "SHAREPOINTPATH\tTARGETDIR\t.\n";
         push(@{$directorytableref}, $oneline);
     }
-
-    $oneline = "$installer::globals::systemfolder\tTARGETDIR\t.\n";
-    push(@{$directorytableref}, $oneline);
 
     my $localtemplatefoldername = $installer::globals::templatefoldername;
     my $directorytableentry = $localtemplatefoldername;

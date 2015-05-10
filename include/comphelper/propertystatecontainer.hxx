@@ -29,14 +29,14 @@
 
 #include <map>
 
-//.........................................................................
+
 namespace comphelper
 {
-//.........................................................................
 
-    //=====================================================================
+
+
     //= OPropertyStateContainer
-    //=====================================================================
+
     typedef ::cppu::ImplHelper1 <   ::com::sun::star::beans::XPropertyState
                                 >   OPropertyStateContainer_TBase;
 
@@ -57,14 +57,14 @@ namespace comphelper
         */
         OPropertyStateContainer( ::cppu::OBroadcastHelper&  _rBHelper );
 
-        // ................................................................
-        // XPropertyState
-        virtual ::com::sun::star::beans::PropertyState SAL_CALL getPropertyState( const OUString& PropertyName ) throw (::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException);
-        virtual ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyState > SAL_CALL getPropertyStates( const ::com::sun::star::uno::Sequence< OUString >& aPropertyName ) throw (::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException);
-        virtual void SAL_CALL setPropertyToDefault( const OUString& PropertyName ) throw (::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException);
-        virtual ::com::sun::star::uno::Any SAL_CALL getPropertyDefault( const OUString& aPropertyName ) throw (::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException);
 
-        // ................................................................
+        // XPropertyState
+        virtual ::com::sun::star::beans::PropertyState SAL_CALL getPropertyState( const OUString& PropertyName ) throw (::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyState > SAL_CALL getPropertyStates( const ::com::sun::star::uno::Sequence< OUString >& aPropertyName ) throw (::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual void SAL_CALL setPropertyToDefault( const OUString& PropertyName ) throw (::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual ::com::sun::star::uno::Any SAL_CALL getPropertyDefault( const OUString& aPropertyName ) throw (::com::sun::star::beans::UnknownPropertyException, ::com::sun::star::lang::WrappedTargetException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+
+
         // own overridables
         // these are the impl-methods for the XPropertyState members - they are implemented already by this class,
         // but you may want to override them for whatever reasons (for instance, if your derived class
@@ -75,14 +75,14 @@ namespace comphelper
             <p>Already implemented by this base class, no need to override</p>
             @precond <arg>_nHandle</arg> is a valid property handle
         */
-        virtual ::com::sun::star::beans::PropertyState  getPropertyStateByHandle( sal_Int32 _nHandle );
+        ::com::sun::star::beans::PropertyState  getPropertyStateByHandle( sal_Int32 _nHandle );
 
         /** set the property denoted by the given handle to it's default value
 
             <p>Already implemented by this base class, no need to override</p>
             @precond <arg>_nHandle</arg> is a valid property handle
         */
-        virtual void                                    setPropertyToDefaultByHandle( sal_Int32 _nHandle );
+        void                                    setPropertyToDefaultByHandle( sal_Int32 _nHandle );
 
         /** get the default value for the property denoted by the given handle
 
@@ -93,7 +93,7 @@ namespace comphelper
 
     protected:
         // XInterface
-        virtual ::com::sun::star::uno::Any SAL_CALL queryInterface( const ::com::sun::star::uno::Type& _rType ) throw (::com::sun::star::uno::RuntimeException);
+        virtual ::com::sun::star::uno::Any SAL_CALL queryInterface( const ::com::sun::star::uno::Type& _rType ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
         // XTypeProvider
         DECLARE_XTYPEPROVIDER( )
 
@@ -102,12 +102,12 @@ namespace comphelper
 
             @throw UnknownPropertyException if the given name is not a registered property
         */
-        sal_Int32   getHandleForName( const OUString& _rPropertyName ) SAL_THROW( ( ::com::sun::star::beans::UnknownPropertyException ) );
+        sal_Int32   getHandleForName( const OUString& _rPropertyName );
     };
 
-//.........................................................................
+
 }   // namespace comphelper
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_PROPERTYSTATECONTAINER_HXX
 

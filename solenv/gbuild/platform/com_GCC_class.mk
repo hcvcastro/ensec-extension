@@ -42,24 +42,25 @@ endef
 
 # CObject class
 
-# $(call gb_CObject__command,object,relative-source,source,dep-file)
-define gb_CObject__command
-$(call gb_Output_announce,$(2).c,$(true),C  ,3)
+# $(call gb_CObject__command_pattern,object,flags,source,dep-file,compiler-plugins)
+define gb_CObject__command_pattern
 $(call gb_Helper_abbreviate_dirs,\
 	mkdir -p $(dir $(1)) $(dir $(4)) && cd $(SRCDIR) && \
-	$(if $(COMPILER_PLUGINS),$(gb_COMPILER_PLUGINS_SETUP)) \
-	$(gb_CC) \
+	$(if $(5),$(gb_COMPILER_PLUGINS_SETUP)) \
+	$(if $(filter %.c %.m,$(3)), $(gb_CC), $(gb_CXX)) \
 		$(DEFS) \
 		$(gb_LTOFLAGS) \
 		$(if $(VISIBILITY),,$(gb_VISIBILITY_FLAGS)) \
 		$(if $(WARNINGS_NOT_ERRORS),,$(gb_CFLAGS_WERROR)) \
-		$(if $(COMPILER_PLUGINS),$(gb_COMPILER_PLUGINS)) \
-		$(T_CFLAGS) $(T_CFLAGS_APPEND) \
+		$(if $(5),$(gb_COMPILER_PLUGINS)) \
+		$(2) \
+		$(if $(EXTERNAL_CODE),$(gb_CXXFLAGS_Wundef),$(gb_DEFS_INTERNAL)) \
 		-c $(3) \
 		-o $(1) \
 		$(call gb_cxx_dep_generation_options,$(1),$(4)) \
 		-I$(dir $(3)) \
 		$(INCLUDE) \
+		$(PCHFLAGS) \
 		$(call gb_cxx_dep_copy,$(4)) \
 		)
 endef
@@ -72,36 +73,32 @@ $(call gb_Helper_abbreviate_dirs,\
         ICECC=no CCACHE_DISABLE=1 \
 	$(gb_CC) \
 		$(DEFS) \
+		$(gb_LTOFLAGS) \
+		$(if $(VISIBILITY),,$(gb_VISIBILITY_FLAGS)) \
+		$(if $(WARNINGS_NOT_ERRORS),,$(gb_CFLAGS_WERROR)) \
+		$(gb_COMPILER_PLUGINS) \
 		$(T_CFLAGS) $(T_CFLAGS_APPEND) \
+		$(if $(EXTERNAL_CODE),$(gb_CXXFLAGS_Wundef),$(gb_DEFS_INTERNAL)) \
 		-c $(2) \
 		-I$(dir $(2)) \
 		$(INCLUDE) \
-		$(gb_COMPILER_PLUGINS) \
 		)
 endef
-
-# CxxObject class
-
-# $(call gb_CxxObject__command,object,relative-source,source,dep-file)
-define gb_CxxObject__command
-$(call gb_Output_announce,$(2).cxx,$(true),CXX,3)
+define gb_ObjCObject__tool_command
+$(call gb_Output_announce,$(1).m,$(true),OCC,3)
 $(call gb_Helper_abbreviate_dirs,\
-	mkdir -p $(dir $(1)) $(dir $(4)) && cd $(SRCDIR) && \
-	$(if $(COMPILER_PLUGINS),$(gb_COMPILER_PLUGINS_SETUP)) \
-	$(gb_CXX) \
+        ICECC=no CCACHE_DISABLE=1 \
+	$(gb_CC) \
 		$(DEFS) \
 		$(gb_LTOFLAGS) \
 		$(if $(VISIBILITY),,$(gb_VISIBILITY_FLAGS)) \
-		$(if $(WARNINGS_NOT_ERRORS),,$(gb_CXXFLAGS_WERROR)) \
-		$(if $(COMPILER_PLUGINS),$(gb_COMPILER_PLUGINS)) \
-		$(T_CXXFLAGS) $(T_CXXFLAGS_APPEND) \
-		-c $(3) \
-		-o $(1) \
-		$(call gb_cxx_dep_generation_options,$(1),$(4)) \
-		-I$(dir $(3)) \
+		$(if $(WARNINGS_NOT_ERRORS),,$(gb_CFLAGS_WERROR)) \
+		$(gb_COMPILER_PLUGINS) \
+		$(T_OBJCFLAGS) $(T_OBJCFLAGS_APPEND) \
+		$(if $(EXTERNAL_CODE),$(gb_CXXFLAGS_Wundef),$(gb_DEFS_INTERNAL)) \
+		-c $(2) \
+		-I$(dir $(2)) \
 		$(INCLUDE) \
-		$(PCHFLAGS) \
-		$(call gb_cxx_dep_copy,$(4)) \
 		)
 endef
 
@@ -113,50 +110,33 @@ $(call gb_Helper_abbreviate_dirs,\
         ICECC=no CCACHE_DISABLE=1 \
 	$(gb_CXX) \
 		$(DEFS) \
+		$(gb_LTOFLAGS) \
+		$(if $(VISIBILITY),,$(gb_VISIBILITY_FLAGS)) \
+		$(if $(WARNINGS_NOT_ERRORS),,$(gb_CFLAGS_WERROR)) \
+		$(gb_COMPILER_PLUGINS) \
 		$(T_CXXFLAGS) $(T_CXXFLAGS_APPEND) \
+		$(if $(EXTERNAL_CODE),$(gb_CXXFLAGS_Wundef),$(gb_DEFS_INTERNAL)) \
 		-c $(2) \
 		-I$(dir $(2)) \
 		$(INCLUDE) \
-		$(gb_COMPILER_PLUGINS) \
 		)
 endef
-
-# ObjCxxObject class
-
-define gb_ObjCxxObject__command
-$(call gb_Output_announce,$(2).mm,$(true),OCX,3)
+define gb_ObjCxxObject__tool_command
+$(call gb_Output_announce,$(1).mm,$(true),OCX,3)
 $(call gb_Helper_abbreviate_dirs,\
-	mkdir -p $(dir $(1)) $(dir $(4)) && \
+        ICECC=no CCACHE_DISABLE=1 \
 	$(gb_CXX) \
 		$(DEFS) \
-		$(if $(VISIBILITY),,$(gb_VISIBILITY_FLAGS)) \
-		$(if $(WARNINGS_NOT_ERRORS),,$(gb_CXXFLAGS_WERROR)) \
-		$(T_OBJCXXFLAGS) $(T_OBJCXXFLAGS_APPEND) \
-		-c $(3) \
-		-o $(1) \
-		-MMD -MT $(1) \
-		-MP -MF $(4) \
-		-I$(dir $(3)) \
-		$(INCLUDE))
-endef
-
-# ObjCObject class
-
-define gb_ObjCObject__command
-$(call gb_Output_announce,$(2).m,$(true),OCC,3)
-$(call gb_Helper_abbreviate_dirs,\
-	mkdir -p $(dir $(1)) $(dir $(4)) && \
-	$(gb_CC) \
-		$(DEFS) \
+		$(gb_LTOFLAGS) \
 		$(if $(VISIBILITY),,$(gb_VISIBILITY_FLAGS)) \
 		$(if $(WARNINGS_NOT_ERRORS),,$(gb_CFLAGS_WERROR)) \
-		$(T_OBJCFLAGS) $(T_OBJCFLAGS_APPEND) \
-		-c $(3) \
-		-o $(1) \
-		-MMD -MT $(1) \
-		-MP -MF $(4) \
-		-I$(dir $(3)) \
-		$(INCLUDE))
+		$(gb_COMPILER_PLUGINS) \
+		$(T_OBJCXXFLAGS) $(T_OBJCXXFLAGS_APPEND) \
+		$(if $(EXTERNAL_CODE),$(gb_CXXFLAGS_Wundef),$(gb_DEFS_INTERNAL)) \
+		-c $(2) \
+		-I$(dir $(2)) \
+		$(INCLUDE) \
+		)
 endef
 
 define gb_SrsPartTarget__command_dep
@@ -191,6 +171,7 @@ $(call gb_Helper_abbreviate_dirs,\
 		$(4) $(5) \
 		$(gb_COMPILERDEPFLAGS) \
 		$(if $(VISIBILITY),,$(gb_VISIBILITY_FLAGS)) \
+		$(if $(EXTERNAL_CODE),$(gb_CXXFLAGS_Wundef),$(gb_DEFS_INTERNAL)) \
 		$(6) \
 		$(call gb_cxx_dep_generation_options,$(1),$(call gb_PrecompiledHeader_get_dep_target,$(2))) \
 		-c $(patsubst %.cxx,%.hxx,$(3)) \
@@ -212,6 +193,7 @@ endef
 # ExternalProject class
 
 gb_ExternalProject_use_autoconf :=
+gb_ExternalProject_use_nmake :=
 
 # StaticLibrary class
 
@@ -221,7 +203,7 @@ gb_StaticLibrary_StaticLibrary_platform :=
 
 gb_LinkTarget_get_linksearchpath_for_layer = \
 	-L$(WORKDIR)/LinkTarget/StaticLibrary \
-	-L$(INSTDIR)/$(SDKDIRNAME)/lib \
+	-L$(call gb_Library_get_sdk_link_dir) \
 	$(foreach layer,\
 		$(subst +, ,$(patsubst $(1):%.,%,\
 			$(filter $(1):%.,$(gb_LinkTarget_LAYER_LINKPATHS)))),\
@@ -230,5 +212,15 @@ gb_LinkTarget_get_linksearchpath_for_layer = \
 
 
 gb_ICU_PRECOMMAND := $(call gb_Helper_extend_ld_path,$(WORKDIR_FOR_BUILD)/UnpackedTarball/icu/source/lib)
+
+# UIConfig class
+
+# Mac OS X sort(1) cannot read a response file
+define gb_UIConfig__command
+$(call gb_Helper_abbreviate_dirs,\
+	sort -u $(UI_IMAGELISTS) /dev/null > $@ \
+)
+
+endef
 
 # vim: set noet sw=4 ts=4:

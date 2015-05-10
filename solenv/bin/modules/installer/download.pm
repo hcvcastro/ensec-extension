@@ -299,13 +299,17 @@ sub get_downloadname_productname
 {
     my ($allvariables) = @_;
 
-    my $start = "LibreOffice";
+    my $start = "";
 
     if ( $allvariables->{'PRODUCTNAME'} eq "LibreOffice" ) { $start = "LibreOffice"; }
 
-    if ( $allvariables->{'PRODUCTNAME'} eq "LibreOfficeDev" ) { $start = "LibreOfficeDev"; }
+    elsif ( $allvariables->{'PRODUCTNAME'} eq "LibreOfficeDev" ) { $start = "LibreOfficeDev"; }
 
-    if ( $allvariables->{'PRODUCTNAME'} eq "OxygenOffice" ) { $start = "OOOP"; }
+    elsif ( $allvariables->{'PRODUCTNAME'} eq "OxygenOffice" ) { $start = "OOOP"; }
+
+    elsif ( $allvariables->{'PRODUCTNAME'} eq "" ) { $start = "LibreOffice"; }
+
+    else  { $start = $allvariables->{'PRODUCTNAME'}; }
 
     return $start;
 }
@@ -356,7 +360,7 @@ sub get_download_platformname
     }
     else
     {
-        $platformname = $installer::globals::compiler;
+        $platformname = $installer::globals::os;
     }
 
     return $platformname;
@@ -370,19 +374,7 @@ sub get_download_architecture
 {
     my $arch = "";
 
-    if ( $installer::globals::compiler =~ /unxlngi/ )
-    {
-        $arch = "x86";
-    }
-    elsif ( $installer::globals::compiler =~ /unxlngppc/ )
-    {
-        $arch = "PPC";
-    }
-    elsif ( $installer::globals::compiler =~ /unxlngx/ )
-    {
-        $arch = "x86-64";
-    }
-    elsif ( $installer::globals::issolarissparcbuild )
+    if ( $installer::globals::issolarissparcbuild )
     {
         $arch = "Sparc";
     }
@@ -401,11 +393,19 @@ sub get_download_architecture
             $arch = "x86";
         }
     }
-    elsif ( $installer::globals::compiler =~ /^unxmacxi/ )
+    elsif ( $installer::globals::cpuname eq 'INTEL' )
     {
         $arch = "x86";
     }
-    elsif ( $installer::globals::compiler =~ /^unxmacxx/ )
+    elsif ( $installer::globals::cpuname eq 'POWERPC' )
+    {
+        $arch = "PPC";
+    }
+    elsif ( $installer::globals::cpuname eq 'POWERPC64' )
+    {
+        $arch = "PPC";
+    }
+    elsif ( $installer::globals::cpuname eq 'X86_64' )
     {
         $arch = "x86-64";
     }
@@ -584,8 +584,7 @@ sub resolve_variables_in_downloadname
     elsif ( $installer::globals::issolarissparcbuild ) { $os = "solsparc"; }
     elsif ( $installer::globals::issolarisx86build ) { $os = "solia"; }
     elsif ( $installer::globals::islinuxbuild ) { $os = "linux"; }
-    elsif ( $installer::globals::compiler =~ /unxmacxi/ ) { $os = "macosxi"; }
-    elsif ( $installer::globals::compiler =~ /unxmacxx/ ) { $os = "macosxx"; }
+    elsif ( $installer::globals::platformid eq 'macosx_x86_64' ) { $os = "macosxx"; }
     else { $os = ""; }
     $downloadname =~ s/\{os\}/$os/;
 

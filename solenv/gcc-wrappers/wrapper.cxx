@@ -15,12 +15,15 @@
 
 #define BUFLEN 2048
 
-string getexe(string exename) {
+string getexe(string exename, bool maybeempty) {
     char* cmdbuf;
     size_t cmdlen;
     _dupenv_s(&cmdbuf,&cmdlen,exename.c_str());
     if(!cmdbuf) {
-        cout << "Error " << exename << " not defined. Did you forget to source the enviroment?" << endl;
+        if (maybeempty) {
+            return string();
+        }
+        cout << "Error " << exename << " not defined. Did you forget to source the environment?" << endl;
         exit(1);
     }
     string command(cmdbuf);
@@ -108,13 +111,15 @@ string processccargs(vector<string> rawargs) {
             }
             else
             {
-                cerr << "unknonwn -o argument - please adapt gcc-wrapper for \""
+                cerr << "unknown -o argument - please adapt gcc-wrapper for \""
                      << (*i) << "\"";
                 exit(1);
             }
         }
-        else if(*i == "-g")
+        else if(*i == "-g") {
             args.append("-Zi");
+            args.append(" -FS");
+        }
         else if(!(*i).compare(0,2,"-D")) {
             // need to re-escape strings for preprocessor
             for(size_t pos=(*i).find("\"",0); pos!=string::npos; pos=(*i).find("\"",pos)) {
@@ -181,6 +186,11 @@ int startprocess(string command, string args) {
         command=command.substr(0,pos+strlen("ccache"))+".exe";
     }
 
+    if (args[0] != ' ')
+    {
+        args.insert(0, " "); // lpCommandLine *must* start with space!
+    }
+
     //cerr << "CMD= " << command << " " << args << endl;
 
     // Commandline may be modified by CreateProcess
@@ -192,7 +202,7 @@ int startprocess(string command, string args) {
         NULL, // Thread Handle not Inheritable
         TRUE, // Handles are Inherited
         0, // No creation flags
-        NULL, // Enviroment for process
+        NULL, // Environment for process
         NULL, // Use same starting directory
         &si, // Startup Info
         &pi) // Process Information

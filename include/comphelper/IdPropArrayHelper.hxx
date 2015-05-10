@@ -19,11 +19,14 @@
 #ifndef INCLUDED_COMPHELPER_IDPROPARRAYHELPER_HXX
 #define INCLUDED_COMPHELPER_IDPROPARRAYHELPER_HXX
 
+#include <sal/config.h>
+
+#include <map>
+
 #include <cppuhelper/component.hxx>
 #include <osl/mutex.hxx>
 #include <cppuhelper/interfacecontainer.hxx>
 #include <osl/diagnose.h>
-#include <comphelper/stl_types.hxx>
 #include <rtl/instance.hxx>
 #include <cppuhelper/propshlp.hxx>
 
@@ -31,9 +34,9 @@ namespace cppu { class IPropertyArrayHelper; }
 
 namespace comphelper
 {
-    //************************************************************
+
     //  OIdPropertyArrayUsageHelper
-    //************************************************************
+
     template <typename TYPE> struct OIdPropertyArrayUsageHelperMutex
             : public rtl::Static< ::osl::Mutex, OIdPropertyArrayUsageHelperMutex<TYPE> > {};
 
@@ -62,7 +65,7 @@ namespace comphelper
         }
 
         /** call this in the getInfoHelper method of your derived class. The method returns the array helper of the
-            class, which is created if neccessary.
+            class, which is created if necessary.
         */
         ::cppu::IPropertyArrayHelper* getArrayHelper(sal_Int32 nId);
 
@@ -79,14 +82,14 @@ namespace comphelper
         virtual ::cppu::IPropertyArrayHelper* createArrayHelper(sal_Int32 nId) const = 0;
     };
 
-    //------------------------------------------------------------------
+
     template<class TYPE>
     sal_Int32                       OIdPropertyArrayUsageHelper< TYPE >::s_nRefCount    = 0;
 
     template<class TYPE>
     OIdPropertyArrayMap*            OIdPropertyArrayUsageHelper< TYPE >::s_pMap = NULL;
 
-    //------------------------------------------------------------------
+
     template <class TYPE>
     OIdPropertyArrayUsageHelper<TYPE>::OIdPropertyArrayUsageHelper()
     {
@@ -97,7 +100,7 @@ namespace comphelper
         ++s_nRefCount;
     }
 
-    //------------------------------------------------------------------
+
     template <class TYPE>
     ::cppu::IPropertyArrayHelper* OIdPropertyArrayUsageHelper<TYPE>::getArrayHelper(sal_Int32 nId)
     {

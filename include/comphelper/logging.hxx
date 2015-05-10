@@ -26,18 +26,17 @@
 #include <com/sun/star/logging/XLogHandler.hpp>
 #include <com/sun/star/logging/LogLevel.hpp>
 
-#include <boost/shared_ptr.hpp>
 #include <boost/optional.hpp>
+#include <memory>
 
-//........................................................................
 namespace comphelper
 {
-//........................................................................
 
-    //====================================================================
+
+
     //= string conversions, employed by the templatized log* members of
     //= EventLogger
-    //====================================================================
+
 
     namespace log { namespace convert
     {
@@ -57,13 +56,14 @@ namespace comphelper
         inline OUString convertLogArgToString( sal_Int32   _nValue ) { return OUString::number( _nValue ); }
         inline OUString convertLogArgToString( sal_Int16   _nValue ) { return OUString::number( _nValue ); }
         inline OUString convertLogArgToString( sal_Unicode _nValue ) { return OUString( _nValue ); }
-        inline OUString convertLogArgToString( sal_Bool    _nValue ) { return OUString::boolean( _nValue ); }
+        inline OUString convertLogArgToString( bool    _bValue ) { return OUString::boolean( _bValue ); }
+        void convertLogArgToString(sal_Bool) SAL_DELETED_FUNCTION;
 
     } } // namespace log::convert
 
-    //====================================================================
+
     //= EventLogger
-    //====================================================================
+
     class EventLogger_Impl;
     typedef ::boost::optional< OUString >    OptionalString;
 
@@ -92,7 +92,7 @@ namespace comphelper
     class COMPHELPER_DLLPUBLIC EventLogger
     {
     protected:
-        ::boost::shared_ptr< EventLogger_Impl > m_pImpl;
+        std::shared_ptr< EventLogger_Impl > m_pImpl;
 
     public:
         /** creates an <code>EventLogger</code> instance working with a css.logging.XLogger
@@ -115,7 +115,7 @@ namespace comphelper
         /// determines whether an event with the given level would be logged
         bool        isLoggable( const sal_Int32 _nLogLevel ) const;
 
-        //----------------------------------------------------------------
+
         //- XLogger::log equivalents/wrappers
         //- string messages
 
@@ -208,7 +208,7 @@ namespace comphelper
             return false;
         }
 
-        //----------------------------------------------------------------
+
         //- XLogger::log equivalents/wrappers
         //- ASCII messages
 
@@ -301,7 +301,7 @@ namespace comphelper
             return false;
         }
 
-        //----------------------------------------------------------------
+
         //- XLogger::logp equivalents/wrappers
         //- string messages
 
@@ -394,7 +394,7 @@ namespace comphelper
             return false;
         }
 
-        //----------------------------------------------------------------
+
         //- XLogger::logp equivalents/wrappers
         //- ASCII messages
 
@@ -502,9 +502,9 @@ namespace comphelper
                     ) const;
     };
 
-    //====================================================================
+
     //= ResourceBasedEventLogger
-    //====================================================================
+
     struct ResourceBasedEventLogger_Data;
     /** extends the EventLogger class with functionality to load log messages from
         a resource bundle.
@@ -512,7 +512,7 @@ namespace comphelper
     class COMPHELPER_DLLPUBLIC ResourceBasedEventLogger : public EventLogger
     {
     private:
-        ::boost::shared_ptr< ResourceBasedEventLogger_Data >    m_pData;
+        std::shared_ptr< ResourceBasedEventLogger_Data >    m_pData;
 
     public:
         /** creates a resource based event logger
@@ -532,7 +532,7 @@ namespace comphelper
             const sal_Char* _pAsciiLoggerName = NULL
         );
 
-        //----------------------------------------------------------------
+
         //- XLogger::log equivalents/wrappers
         //- resource IDs
 
@@ -625,7 +625,7 @@ namespace comphelper
             return false;
         }
 
-        //----------------------------------------------------------------
+
         //- XLogger::logp equivalents/wrappers
         //- resource IDs
 
@@ -717,9 +717,9 @@ namespace comphelper
         OUString impl_loadStringMessage_nothrow( const sal_Int32 _nMessageResID ) const;
     };
 
-//........................................................................
+
 } // namespace comphelper
-//........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_LOGGING_HXX
 

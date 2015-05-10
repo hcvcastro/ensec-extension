@@ -13,19 +13,25 @@ $(eval $(call gb_Library_use_external,xmlscript,boost_headers))
 
 $(eval $(call gb_Library_set_componentfile,xmlscript,xmlscript/util/xmlscript))
 
+$(eval $(call gb_Library_use_sdk_api,xmlscript))
+
+$(eval $(call gb_Library_use_libraries,xmlscript,\
+    comphelper \
+    cppu \
+    cppuhelper \
+    sal \
+    tl \
+	i18nlangtag \
+	$(gb_UWINAPI) \
+))
+
 $(eval $(call gb_Library_set_include,xmlscript,\
     -I$(SRCDIR)/xmlscript/source/inc \
-	-I$(dir $(call gb_CustomTarget_get_target,sdkapi/sdkapi))   \
-	-I$(OO_SDK_HOME)/include \
     $$(INCLUDE) \
 ))
 
 $(eval $(call gb_Library_add_defs,xmlscript,\
     -DXMLSCRIPT_DLLIMPLEMENTATION \
-))
-
-$(eval $(call gb_Library_add_ldflags,xmlscript,\
-    $(SNAKE_LIBS) \
 ))
 
 $(eval $(call gb_Library_set_precompiled_header,xmlscript,$(SRCDIR)/xmlscript/inc/pch/precompiled_xmlscript))

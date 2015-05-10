@@ -107,8 +107,11 @@ public:
     static LanguageType resolveSystemLanguageByScriptType( LanguageType nLang, sal_Int16 nType );
 
 
-    /** Whether locale has a Right-To-Left orientation. */
+    /** Whether locale has a Right-To-Left orientation for text. */
     static bool isRightToLeft( LanguageType nLang );
+
+    /** Whether locale has a Right-To-Left orientation for math. */
+    static bool isRightToLeftMath( LanguageType nLang );
 
     /** Whether locale is a CJK locale */
     static bool isCJK( LanguageType nLang );
@@ -169,6 +172,9 @@ public:
     static LanguageType getReplacementForObsoleteLanguage( LanguageType nLang,
             bool bUserInterfaceSelection = false );
 
+    /** Whether locale is legacy, i.e. country ot confederation doesn't exist anymore. */
+    static bool isLegacy( LanguageType nLang );
+
 
     /** @ATTENTION: these are _ONLY_ to be called by the application's
         configuration! */
@@ -177,7 +183,7 @@ public:
     static void setConfiguredComplexFallback( LanguageType nLang );
     static void setConfiguredAsianFallback( LanguageType nLang );
 
-// ---------------------------------------------------------------------------
+
 
     /** Encapsulated methods that shall only be accessed through
         class LanguageTag.
@@ -194,7 +200,7 @@ public:
         I18NLANGTAG_DLLPRIVATE static void setConfiguredSystemLanguage( LanguageType nLang );
     };
 
-// ---------------------------------------------------------------------------
+
 
     struct LanguagetagMapping
     {
@@ -210,7 +216,7 @@ public:
      */
     static ::std::vector< LanguagetagMapping > getDefinedLanguagetags();
 
-// ---------------------------------------------------------------------------
+
 
     /** Encapsulated conversion methods used by LanguageTag and conversions,
         not to be used by anything else.

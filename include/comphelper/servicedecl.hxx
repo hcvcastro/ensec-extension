@@ -23,7 +23,6 @@
 #include <cppuhelper/implbase1.hxx>
 #include <com/sun/star/uno/XComponentContext.hpp>
 #include <com/sun/star/lang/XServiceInfo.hpp>
-#include <com/sun/star/registry/XRegistryKey.hpp>
 #include <uno/environment.h>
 #include <boost/utility.hpp>
 #include <boost/function.hpp>
@@ -166,15 +165,15 @@ public:
 
     // XServiceInfo
     virtual OUString SAL_CALL getImplementationName()
-        throw (css::uno::RuntimeException) {
+        throw (css::uno::RuntimeException) SAL_OVERRIDE {
         return m_rServiceDecl.getImplementationName();
     }
     virtual sal_Bool SAL_CALL supportsService( OUString const& name )
-        throw (css::uno::RuntimeException) {
+        throw (css::uno::RuntimeException) SAL_OVERRIDE {
         return m_rServiceDecl.supportsService(name);
     }
     virtual css::uno::Sequence< OUString>
-    SAL_CALL getSupportedServiceNames() throw (css::uno::RuntimeException) {
+    SAL_CALL getSupportedServiceNames() throw (css::uno::RuntimeException) SAL_OVERRIDE {
         return m_rServiceDecl.getSupportedServiceNames();
     }
 
@@ -193,6 +192,22 @@ public:
         css::uno::Reference<css::uno::XComponentContext> const& xContext )
         : ServiceImpl_BASE(rServiceDecl, args, xContext) {}
     ServiceImpl(
+        ServiceDecl const& rServiceDecl,
+        css::uno::Reference<css::uno::XComponentContext> const& xContext )
+        : ServiceImpl_BASE(rServiceDecl, xContext) {}
+};
+
+template <typename ImplT>
+class InheritingServiceImpl : public OwnServiceImpl< ImplT >
+{
+typedef OwnServiceImpl< ImplT > ServiceImpl_BASE;
+public:
+    InheritingServiceImpl(
+        ServiceDecl const& rServiceDecl,
+        css::uno::Sequence<css::uno::Any> const& args,
+        css::uno::Reference<css::uno::XComponentContext> const& xContext )
+        : ServiceImpl_BASE(rServiceDecl, args, xContext) {}
+    InheritingServiceImpl(
         ServiceDecl const& rServiceDecl,
         css::uno::Reference<css::uno::XComponentContext> const& xContext )
         : ServiceImpl_BASE(rServiceDecl, xContext) {}
@@ -299,9 +314,27 @@ struct class_ : public serviceimpl_base< detail::ServiceImpl<ImplT_>, WithArgsT 
     explicit class_( PostProcessFuncT const& postProcessFunc ) : baseT( postProcessFunc ) {}
 };
 
-//
+template <typename ImplT_, typename WithArgsT = with_args<false> >
+struct inheritingClass_ : public serviceimpl_base< detail::InheritingServiceImpl<ImplT_>, WithArgsT >
+{
+    typedef serviceimpl_base< detail::InheritingServiceImpl<ImplT_>, WithArgsT > baseT;
+    /** Default ctor.  Implementation class without args, expecting
+        component context as single argument.
+    */
+    inheritingClass_() : baseT() {}
+    template <typename PostProcessFuncT>
+    /** Ctor to pass a post processing function/functor.
+
+        @tpl PostProcessDefaultT let your compiler deduce this
+        @param postProcessFunc function/functor that gets the yet unacquired
+                               ImplT_ pointer returning a
+                               uno::Reference<uno::XInterface>
+    */
+    explicit inheritingClass_( PostProcessFuncT const& postProcessFunc ) : baseT( postProcessFunc ) {}
+};
+
 // component_... helpers with arbitrary service declarations:
-//
+
 
 #define COMPHELPER_SERVICEDECL_getFactory(z_, n_, unused_) \
     if (pRet == 0) \
@@ -312,8 +345,6 @@ struct class_ : public serviceimpl_base< detail::ServiceImpl<ImplT_>, WithArgsT 
     <pre>
         inline void * component_getFactoryHelper(
             sal_Char const* pImplName,
-            ::com::sun::star::lang::XMultiServiceFactory *,
-            ::com::sun::star::registry::XRegistryKey * xRegistryKey,
             ServiceDecl const& s0, ServiceDecl const& s1, ... );
     </pre>
 
@@ -325,8 +356,6 @@ struct class_ : public serviceimpl_base< detail::ServiceImpl<ImplT_>, WithArgsT 
 #define COMPHELPER_SERVICEDECL_make(z_, n_, unused_) \
 inline void * component_getFactoryHelper( \
     sal_Char const* pImplName, \
-    ::com::sun::star::lang::XMultiServiceFactory *, \
-    ::com::sun::star::registry::XRegistryKey *, \
     BOOST_PP_ENUM_PARAMS(n_, ServiceDecl const& s) ) \
 { \
     void * pRet = 0; \
@@ -378,11 +407,9 @@ BOOST_PP_REPEAT_FROM_TO(1, COMPHELPER_SERVICEDECL_COMPONENT_HELPER_MAX_ARGS,
 extern "C" \
 { \
     SAL_DLLPUBLIC_EXPORT void* SAL_CALL compName##_component_getFactory( sal_Char const* pImplName, \
-                                         ::com::sun::star::lang::XMultiServiceFactory*   pServiceManager, \
-                                         ::com::sun::star::registry::XRegistryKey*       pRegistryKey ) \
+                                         void*, void* ) \
     { \
-        return component_getFactoryHelper( pImplName, pServiceManager, \
-                                           pRegistryKey, \
+        return component_getFactoryHelper( pImplName, \
                                            BOOST_PP_SEQ_ENUM(varargs_) ); \
     } \
 }

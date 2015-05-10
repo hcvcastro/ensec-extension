@@ -11,15 +11,15 @@ gb_Rdb__get_install_target = $(INSTROOT)/$(LIBO_ETC_FOLDER)/services/$(1).rdb
 
 define gb_Rdb__command
 $(call gb_Helper_abbreviate_dirs,\
+	RESPONSEFILE=$(call var2file,$(shell $(call gb_MKTEMP)),70,\
+		<list> \
+		$(foreach component,$(COMPONENTS),\
+			<filename>$(call gb_ComponentTarget_get_target,$(component))</filename>) \
+		</list>) && \
 	mkdir -p $(dir $@) && \
-	(\
-		echo '<list>' && \
-		$(foreach component,$(COMPONENTS),echo "<filename>$(call gb_ComponentTarget_get_target,$(component))</filename>" &&) \
-		echo '</list>' \
-	) > $(1).input && \
 	$(call gb_ExternalExecutable_get_command,xsltproc) --nonet -o $(1) \
-		$(SRCDIR)/solenv/bin/packcomponents.xslt $(1).input && \
-	rm $(1).input)
+		$(SRCDIR)/solenv/bin/packcomponents.xslt $$RESPONSEFILE && \
+	rm $$RESPONSEFILE)
 endef
 
 $(call gb_Rdb_get_target,%) :| $(call gb_ExternalExecutable_get_dependencies,xsltproc)
@@ -34,6 +34,7 @@ $(call gb_Rdb_get_clean_target,%) :
 
 define gb_Rdb__Rdb_impl
 $(call gb_Rdb_get_target,$(1)) : COMPONENTS :=
+$(call gb_Rdb_get_target,$(1)) : $(gb_Module_CURRENTMAKEFILE)
 $$(eval $$(call gb_Module_register_target,$(2),$(call gb_Rdb_get_clean_target,$(1))))
 $(call gb_Helper_make_userfriendly_targets,$(1),Rdb,$(2))
 

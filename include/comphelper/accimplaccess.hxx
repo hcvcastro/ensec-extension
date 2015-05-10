@@ -24,20 +24,15 @@
 #include <com/sun/star/lang/XUnoTunnel.hpp>
 #include <comphelper/comphelperdllapi.h>
 
-// forward declaration
 namespace com { namespace sun { namespace star { namespace accessibility {
     class XAccessible;
     class XAccessibleContext;
 }}}}
 
-//.........................................................................
 namespace comphelper
 {
-//.........................................................................
-
-    //=====================================================================
     //= OAccessibleImplementationAccess
-    //=====================================================================
+
     typedef ::cppu::ImplHelper1 <   ::com::sun::star::lang::XUnoTunnel
                                 >   OAccImpl_Base;
     struct OAccImpl_Impl;
@@ -81,18 +76,18 @@ namespace comphelper
         sal_Int64   implGetForeignControlledStates( ) const;
 
         /// sets the accessible parent component
-        virtual void    setAccessibleParent(
+        void setAccessibleParent(
             const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible >& _rxAccParent );
 
         /// sets or resets a bit of the foreign controlled states
-        virtual void    setStateBit( const sal_Int16 _nState, const sal_Bool _bSet );
+        void setStateBit( const sal_Int16 _nState, const bool _bSet );
 
     protected:
         OAccessibleImplementationAccess( );
         virtual ~OAccessibleImplementationAccess( );
 
         // XUnoTunnel
-        virtual sal_Int64 SAL_CALL getSomething( const ::com::sun::star::uno::Sequence< sal_Int8 >& _rIdentifier ) throw (::com::sun::star::uno::RuntimeException);
+        virtual sal_Int64 SAL_CALL getSomething( const ::com::sun::star::uno::Sequence< sal_Int8 >& _rIdentifier ) throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
     public:
         /** tries to access the implementation of an OAccessibleImplementationAccess derivee which is known as
@@ -109,7 +104,6 @@ namespace comphelper
             const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleContext >& _rxComponent
         );
 
-
         /** sets the parent for a derived implementation
 
         @param _rxComponent
@@ -120,22 +114,17 @@ namespace comphelper
             <TRUE/> in case of success, <FALSE/> otherwise. For error condition please look at
             <method>getImplementation</method>.
         */
-        static sal_Bool setAccessibleParent(
+        static bool setAccessibleParent(
             const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessibleContext >& _rxComponent,
             const ::com::sun::star::uno::Reference< ::com::sun::star::accessibility::XAccessible >& _rxNewParent
         );
-
 
     private:
         COMPHELPER_DLLPRIVATE static const ::com::sun::star::uno::Sequence< sal_Int8 > getUnoTunnelImplementationId();
     };
 
-//.........................................................................
-}   // namespace comphelper
-//.........................................................................
-
+} // namespace comphelper
 
 #endif // INCLUDED_COMPHELPER_ACCIMPLACCESS_HXX
-
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

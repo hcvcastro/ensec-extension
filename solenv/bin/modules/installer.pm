@@ -189,7 +189,7 @@ sub run {
     # Checking version of makecab.exe
     ##############################################
 
-    if ( $installer::globals::iswindowsbuild && (!defined($ENV{'CROSS_COMPILING'}) || $ENV{'CROSS_COMPILING'} ne 'YES' || $installer::globals::packageformat eq 'msi')) { installer::control::check_makecab_version(); }
+    if ( $installer::globals::iswindowsbuild && (!defined($ENV{'CROSS_COMPILING'}) || $ENV{'CROSS_COMPILING'} ne 'TRUE' || $installer::globals::packageformat eq 'msi')) { installer::control::check_makecab_version(); }
 
     ##########################################################
     # Getting the include path from the settings in zip list
@@ -1272,7 +1272,7 @@ sub run {
 
         #####################################################################
         # ... creating idt files ...
-        # Only for Windows builds ($installer::globals::compiler is wntmsci)
+        # Only for Windows builds
         #####################################################################
 
         if ( $installer::globals::iswindowsbuild )
@@ -1285,7 +1285,7 @@ sub run {
             # 1. copy all files that need to be stripped locally
             # 2. strip all these files
 
-            if ( $installer::globals::compiler =~ /wntgcci/  || $installer::globals::compiler =~ /wntgccx/ )
+            if ( $installer::globals::com eq 'GCC')
             {
                 installer::windows::strip::strip_binaries($filesinproductlanguageresolvedarrayref, $languagestringref);
             }
@@ -1651,7 +1651,7 @@ sub run {
                 if ( $allvariableshashref->{'OOODOWNLOADNAME'} ) { $$downloadname = installer::download::set_download_filename($languagestringref, $allvariableshashref); }
                 else { $$downloadname = installer::download::resolve_variables_in_downloadname($allvariableshashref, $$downloadname, $languagestringref); }
                 installer::systemactions::rename_one_file( $finalinstalldir . $installer::globals::separator . $installer::globals::shortmsidatabasename, $finalinstalldir . $installer::globals::separator . $$downloadname . ".msi" );
-                if ( defined($ENV{'WINDOWS_BUILD_SIGNING'}) && ($ENV{'WINDOWS_BUILD_SIGNING'} eq 'TRUE') )
+                if ( defined($ENV{'WINDOWS_BUILD_SIGNING'}) && ($ENV{'WINDOWS_BUILD_SIGNING'} eq 'TRUE') && ( $allvariableshashref->{'CREATE_MSP_INSTALLSET'} eq '0'))
                 {
                     my $systemcall = "signtool.exe sign ";
                     if ( defined($ENV{'PFXFILE'}) ) { $systemcall .= "-f $ENV{'PFXFILE'} "; }

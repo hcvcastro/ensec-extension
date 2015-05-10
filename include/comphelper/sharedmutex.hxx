@@ -21,19 +21,16 @@
 #define INCLUDED_COMPHELPER_SHAREDMUTEX_HXX
 
 #include <comphelper/comphelperdllapi.h>
-
 #include <osl/mutex.hxx>
+#include <memory>
 
-#include <boost/shared_ptr.hpp>
-
-//........................................................................
 namespace comphelper
 {
-//........................................................................
 
-    //============================================================
+
+
     //= SharedMutex
-    //============================================================
+
     class COMPHELPER_DLLPUBLIC SharedMutex
     {
     public:
@@ -48,12 +45,12 @@ namespace comphelper
         inline operator ::osl::Mutex& () { return *m_pMutexImpl; }
 
     private:
-        ::boost::shared_ptr< ::osl::Mutex >  m_pMutexImpl;
+        std::shared_ptr< ::osl::Mutex >  m_pMutexImpl;
     };
 
-    //============================================================
+
     //= SharedMutexBase
-    //============================================================
+
     /** sometimes, it's necessary to have an initialized ::osl::Mutex to pass
         to some ctor call of your base class. In this case, you can't hold the
         SharedMutex as member, but you need to move it into another base class,
@@ -77,9 +74,9 @@ namespace comphelper
         mutable SharedMutex m_aMutex;
     };
 
-//........................................................................
+
 } // namespace comphelper
-//........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_SHAREDMUTEX_HXX
 

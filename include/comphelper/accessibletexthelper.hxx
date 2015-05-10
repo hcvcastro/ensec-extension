@@ -29,14 +29,14 @@
 #include <comphelper/comphelperdllapi.h>
 
 
-//..............................................................................
+
 namespace comphelper
 {
-//..............................................................................
 
-    //==============================================================================
+
+
     // OCommonAccessibleText
-    //==============================================================================
+
     /** base class encapsulating common functionality for the helper classes implementing
         the XAccessibleText
     */
@@ -52,17 +52,17 @@ namespace comphelper
 
         ::com::sun::star::uno::Reference < ::com::sun::star::i18n::XBreakIterator >             implGetBreakIterator();
         ::com::sun::star::uno::Reference < ::com::sun::star::i18n::XCharacterClassification >   implGetCharacterClassification();
-        sal_Bool                                implIsValidBoundary( ::com::sun::star::i18n::Boundary& rBoundary, sal_Int32 nLength );
-        virtual sal_Bool                        implIsValidIndex( sal_Int32 nIndex, sal_Int32 nLength );
-        virtual sal_Bool                        implIsValidRange( sal_Int32 nStartIndex, sal_Int32 nEndIndex, sal_Int32 nLength );
+        static bool                      implIsValidBoundary( ::com::sun::star::i18n::Boundary& rBoundary, sal_Int32 nLength );
+        static bool                      implIsValidIndex( sal_Int32 nIndex, sal_Int32 nLength );
+        static bool                      implIsValidRange( sal_Int32 nStartIndex, sal_Int32 nEndIndex, sal_Int32 nLength );
         virtual OUString                 implGetText() = 0;
         virtual ::com::sun::star::lang::Locale  implGetLocale() = 0;
-        virtual void                            implGetSelection( sal_Int32& nStartIndex, sal_Int32& nEndIndex ) = 0;
-        virtual void                            implGetGlyphBoundary( ::com::sun::star::i18n::Boundary& rBoundary, sal_Int32 nIndex );
-        virtual sal_Bool                        implGetWordBoundary( ::com::sun::star::i18n::Boundary& rBoundary, sal_Int32 nIndex );
-        virtual void                            implGetSentenceBoundary( ::com::sun::star::i18n::Boundary& rBoundary, sal_Int32 nIndex );
-        virtual void                            implGetParagraphBoundary( ::com::sun::star::i18n::Boundary& rBoundary, sal_Int32 nIndex );
-        virtual void                            implGetLineBoundary( ::com::sun::star::i18n::Boundary& rBoundary, sal_Int32 nIndex );
+        virtual void                     implGetSelection( sal_Int32& nStartIndex, sal_Int32& nEndIndex ) = 0;
+        void                             implGetGlyphBoundary( ::com::sun::star::i18n::Boundary& rBoundary, sal_Int32 nIndex );
+        bool                             implGetWordBoundary( ::com::sun::star::i18n::Boundary& rBoundary, sal_Int32 nIndex );
+        void                             implGetSentenceBoundary( ::com::sun::star::i18n::Boundary& rBoundary, sal_Int32 nIndex );
+        virtual void                     implGetParagraphBoundary( ::com::sun::star::i18n::Boundary& rBoundary, sal_Int32 nIndex );
+        virtual void                     implGetLineBoundary( ::com::sun::star::i18n::Boundary& rBoundary, sal_Int32 nIndex );
 
         /** non-virtual versions of the methods
         */
@@ -97,9 +97,9 @@ namespace comphelper
     };
 
 
-    //==============================================================================
+
     // OAccessibleTextHelper
-    //==============================================================================
+
 
     typedef ::cppu::ImplHelper1 <   ::com::sun::star::accessibility::XAccessibleText
                                 >   OAccessibleTextHelper_Base;
@@ -123,32 +123,32 @@ namespace comphelper
         DECLARE_XTYPEPROVIDER( )
 
         // XAccessibleText
-        virtual sal_Unicode SAL_CALL getCharacter( sal_Int32 nIndex ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::uno::RuntimeException);
-        virtual sal_Int32 SAL_CALL getCharacterCount() throw (::com::sun::star::uno::RuntimeException);
-        virtual OUString SAL_CALL getSelectedText() throw (::com::sun::star::uno::RuntimeException);
-        virtual sal_Int32 SAL_CALL getSelectionStart() throw (::com::sun::star::uno::RuntimeException);
-        virtual sal_Int32 SAL_CALL getSelectionEnd() throw (::com::sun::star::uno::RuntimeException);
-        virtual OUString SAL_CALL getText() throw (::com::sun::star::uno::RuntimeException);
-        virtual OUString SAL_CALL getTextRange( sal_Int32 nStartIndex, sal_Int32 nEndIndex ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::uno::RuntimeException);
-        virtual ::com::sun::star::accessibility::TextSegment SAL_CALL getTextAtIndex( sal_Int32 nIndex, sal_Int16 aTextType ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::lang::IllegalArgumentException, ::com::sun::star::uno::RuntimeException);
-        virtual ::com::sun::star::accessibility::TextSegment SAL_CALL getTextBeforeIndex( sal_Int32 nIndex, sal_Int16 aTextType ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::lang::IllegalArgumentException, ::com::sun::star::uno::RuntimeException);
-        virtual ::com::sun::star::accessibility::TextSegment SAL_CALL getTextBehindIndex( sal_Int32 nIndex, sal_Int16 aTextType ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::lang::IllegalArgumentException, ::com::sun::star::uno::RuntimeException);
+        virtual sal_Unicode SAL_CALL getCharacter( sal_Int32 nIndex ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual sal_Int32 SAL_CALL getCharacterCount() throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual OUString SAL_CALL getSelectedText() throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual sal_Int32 SAL_CALL getSelectionStart() throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual sal_Int32 SAL_CALL getSelectionEnd() throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual OUString SAL_CALL getText() throw (::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual OUString SAL_CALL getTextRange( sal_Int32 nStartIndex, sal_Int32 nEndIndex ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual ::com::sun::star::accessibility::TextSegment SAL_CALL getTextAtIndex( sal_Int32 nIndex, sal_Int16 aTextType ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::lang::IllegalArgumentException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual ::com::sun::star::accessibility::TextSegment SAL_CALL getTextBeforeIndex( sal_Int32 nIndex, sal_Int16 aTextType ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::lang::IllegalArgumentException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual ::com::sun::star::accessibility::TextSegment SAL_CALL getTextBehindIndex( sal_Int32 nIndex, sal_Int16 aTextType ) throw (::com::sun::star::lang::IndexOutOfBoundsException, ::com::sun::star::lang::IllegalArgumentException, ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
     };
 
-//..............................................................................
+
 }   // namespace comphelper
-//..............................................................................
+
 
 #endif // INCLUDED_COMPHELPER_ACCESSIBLETEXTHELPER_HXX
 
 
-// -----------------------------------------------------------------------------
-//
+
+
 //  OAccessibleTextHelper is a helper class for implementing the
 //  XAccessibleText interface.
-//
+
 //  The following methods have a default implementation:
-//
+
 //      getCharacter
 //      getCharacterCount
 //      getSelectedText
@@ -159,9 +159,9 @@ namespace comphelper
 //      getTextAtIndex
 //      getTextBeforeIndex
 //      getTextBehindIndex
-//
-//  The following methods must be overriden by derived classes:
-//
+
+//  The following methods must be overridden by derived classes:
+
 //      implGetText
 //      implGetLocale
 //      implGetSelection
@@ -172,7 +172,7 @@ namespace comphelper
 //      getIndexAtPoint
 //      setSelection
 //      copyText
-//
-// -----------------------------------------------------------------------------
+
+
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */

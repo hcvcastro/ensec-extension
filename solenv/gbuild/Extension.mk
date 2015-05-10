@@ -71,16 +71,15 @@ $(call gb_Extension__get_preparation_target,%) :
 		mkdir -p $(dir $@) && touch $@)
 
 ifeq ($(strip $(gb_WITH_LANG)),)
-$(call gb_Extension_get_workdir,%)/description.xml :
+$(call gb_Extension_get_workdir,%)/description.xml : $(gb_Helper_LANGSTARGET)
 	$(call gb_Output_announce,$*/description.xml,$(true),CPY,3)
 	$(call gb_Helper_abbreviate_dirs,\
 		mkdir -p $(call gb_Extension_get_workdir,$*) && \
 		cp -f $(LOCATION)/description.xml $@)
 else
-$(call gb_Extension_get_workdir,%)/description.xml : $(gb_Extension_XRMEXDEPS)
+$(call gb_Extension_get_workdir,%)/description.xml : $(gb_Extension_XRMEXDEPS) $(gb_Helper_LANGSTARGET)
 	$(call gb_Output_announce,$*/description.xml,$(true),XRM,3)
-	MERGEINPUT=`$(gb_MKTEMP)` && \
-	echo $(POFILES) > $${MERGEINPUT} && \
+	MERGEINPUT=$(call var2file,$(shell $(gb_MKTEMP)),100,$(POFILES)) && \
 	$(call gb_Helper_abbreviate_dirs,\
 		mkdir -p $(call gb_Extension_get_workdir,$*) && \
 		$(gb_Extension_XRMEXCOMMAND) \
@@ -105,9 +104,10 @@ $(call gb_Extension_get_target,%) : \
 		$(if $(LICENSE),cp -f $(LICENSE) $(call gb_Extension_get_rootdir,$*)/registration &&) \
 		$(if $(and $(gb_Extension_TRANS_LANGS),$(DESCRIPTION)),cp $(foreach lang,$(gb_Extension_TRANS_LANGS),$(call gb_Extension_get_workdir,$*)/description-$(lang).txt) $(call gb_Extension_get_rootdir,$*) &&) \
 		cd $(call gb_Extension_get_rootdir,$*) && \
+		ZIPFILES=$(call var2file,$(shell $(gb_MKTEMP)),500,$(sort $(FILES))) && \
 		$(gb_Extension_ZIPCOMMAND) -rX --filesync --must-match \
 			$(call gb_Extension_get_target,$*) \
-			$(sort $(FILES)))
+			`cat $${ZIPFILES} | tr -d '\r'` && rm $${ZIPFILES})
 
 # set file list and location of manifest and description files
 # register target and clean target
@@ -121,6 +121,7 @@ $(call gb_Extension_get_target,$(1)) : FILES := META-INF description.xml
 $(call gb_Extension_get_target,$(1)) : LICENSE :=
 $(call gb_Extension_get_target,$(1)) : LOCATION := $(SRCDIR)/$(2)
 $(call gb_Extension_get_target,$(1)) : PLATFORM := $(PLATFORMID)
+$(call gb_Extension_get_target,$(1)) : $(SRCDIR)/$(2)/META-INF/manifest.xml
 $(call gb_Extension_get_workdir,$(1))/description.xml : \
 	$(SRCDIR)/$(2)/description.xml
 $(call gb_Extension_get_workdir,$(1))/description.xml :| \
@@ -150,7 +151,7 @@ endef
 # gb_Extension__Extension_deliver extension package-name
 define gb_Extension__Extension_deliver
 $(call gb_GeneratedPackage_GeneratedPackage,$(2),$(dir $(call gb_Extension_get_rootdir,$(1))))
-$(call gb_GeneratedPackage_add_dir,$(2),$(INSTROOT)/share/extensions/$(1),$(notdir $(call gb_Extension_get_rootdir,$(1))))
+$(call gb_GeneratedPackage_add_dir,$(2),$(INSTROOT)/$(LIBO_SHARE_FOLDER)/extensions/$(1),$(notdir $(call gb_Extension_get_rootdir,$(1))))
 
 $(call gb_GeneratedPackage_get_target,$(2)) : $(call gb_Extension_get_target,$(1))
 $(call gb_Extension__get_final_target,$(1)) : $(call gb_GeneratedPackage_get_target,$(2))
@@ -287,7 +288,6 @@ $(call gb_Extension__get_preparation_target,$(1)) \
 
 endef
 
-
 define gb_Extension__localize_properties_onelang
 $(call gb_Extension_get_target,$(1)) : FILES += $(2)
 ifneq ($(filter-out en-US,$(4)),)
@@ -308,12 +308,12 @@ $(call gb_Extension_get_rootdir,$(1))/$(2) : $(3) \
 	$$(call gb_Helper_abbreviate_dirs, \
 		mkdir -p $$(dir $$@) && \
 		$(if $(filter qtz,$(4)), \
-			$(gb_Extension_PROPMERGECOMMAND) -i $$< -o $$@ -m -l $(4) \
+			$(subst $$,$$$$,$(gb_Extension_PROPMERGECOMMAND)) -i $$< -o $$@ -m -l $(4) \
 			, \
 			$(if $(filter-out en-US,$(4)), \
 				MERGEINPUT=`$(gb_MKTEMP)` && \
 				echo $$(POFILE) > $$$${MERGEINPUT} && \
-				$(gb_Extension_PROPMERGECOMMAND) -i $$< -o $$@ -m $$$${MERGEINPUT} -l $(4) && \
+				$(subst $$,$$$$,$(gb_Extension_PROPMERGECOMMAND)) -i $$< -o $$@ -m $$$${MERGEINPUT} -l $(4) && \
 				rm -rf $$$${MERGEINPUT} \
 				, \
 				cp -f $$< $$@ \
@@ -409,18 +409,18 @@ $(call gb_Extension_get_rootdir,$(1))/help/$(5)/$(3) : \
 	$$(call gb_Helper_abbreviate_dirs, \
 		mkdir -p $$(dir $$@) && \
 		$(if $(filter qtz,$(5)), \
-			$(gb_Extension_TREEXCOMMAND) -i $$< -o $$@ -l $(5) -m \
+			$(subst $$,$$$$,$(gb_Extension_TREEXCOMMAND)) -i $$< -o $$@ -l $(5) -m \
 				-r $$(call gb_Extension_get_workdir,$(1))/help/$(5)/$(6) \
 			, \
 			$(if $(filter-out en-US,$(5)), \
 				MERGEINPUT=`$(gb_MKTEMP)` && \
 				echo $$(POFILE) > $$$${MERGEINPUT} && \
-				$(gb_Extension_TREEXCOMMAND) -i $$< -o $$@ -l $(5) \
+				$(subst $$,$$$$,$(gb_Extension_TREEXCOMMAND)) -i $$< -o $$@ -l $(5) \
 					-m $$$${MERGEINPUT} \
 					-r $$(call gb_Extension_get_workdir,$(1))/help/$(5)/$(6) && \
 				rm -rf $$$${MERGEINPUT} \
 				, \
-				$(gb_Extension_TREEXCOMMAND) -i $$< -o $$@ -l $(5) \
+				$(subst $$,$$$$,$(gb_Extension_TREEXCOMMAND)) -i $$< -o $$@ -l $(5) \
 					-r $$(call gb_Extension_get_workdir,$(1))/help/$(5)/$(6) \
 			) \
 		) \

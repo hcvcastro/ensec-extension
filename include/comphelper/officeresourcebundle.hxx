@@ -27,21 +27,21 @@
 
 #include <memory>
 
-//........................................................................
+
 namespace comphelper
 {
-//........................................................................
 
-    //====================================================================
+
+
     //= OfficeResourceBundle
-    //====================================================================
+
     class ResourceBundle_Impl;
     /** wraps the com::sun::star::resource::OfficeResourceAccess service
     */
     class COMPHELPER_DLLPUBLIC OfficeResourceBundle
     {
     private:
-        ::std::auto_ptr< ResourceBundle_Impl >  m_pImpl;
+        ::std::unique_ptr< ResourceBundle_Impl >  m_pImpl;
 
     public:
         /** constructs a resource bundle with the resource bundle given as 8-bit ASCII name
@@ -85,9 +85,9 @@ namespace comphelper
         bool            hasString( sal_Int32 _resourceId ) const;
     };
 
-//........................................................................
+
 } // namespace comphelper
-//........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_OFFICERESOURCEBUNDLE_HXX
 

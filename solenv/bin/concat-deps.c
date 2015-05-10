@@ -74,6 +74,8 @@
 #include <unistd.h>
 #endif
 
+#include <config_options.h>
+
 /* modes */
 #ifdef __windows
 #define FILE_O_RDONLY     _O_RDONLY
@@ -187,7 +189,7 @@ void* data = NULL;
  * this is a simplified implementation that
  * is _not_ thread safe.
  */
-struct pool* pool_create(int size_elem, int primary, int secondary)
+static struct pool* pool_create(int size_elem, int primary, int secondary)
 {
 struct pool* pool;
 
@@ -210,7 +212,7 @@ struct pool* pool;
 
 }
 
-void pool_destroy(struct pool* pool)
+static void pool_destroy(struct pool* pool)
 {
 void* extent;
 void* next;
@@ -590,6 +592,11 @@ off_t       size = -1;
     return size;
 }
 
+#if !ENABLE_RUNTIME_OPTIMIZATIONS
+static void * file_load_buffers[100000];
+static size_t file_load_buffer_count = 0;
+#endif
+
 static char* file_load(const char* name, off_t* size, int* return_rc)
 {
 off_t local_size = 0;
@@ -604,12 +611,26 @@ int fd;
         size = &local_size;
     }
     *size = file_get_size(name, &rc);
-    if (!rc)
+    if (!rc && *size >= 0)
     {
         fd = open(name, FILE_O_RDONLY | FILE_O_BINARY);
         if (!(fd == -1))
         {
             buffer = malloc((size_t)(*size + 1));
+#if !ENABLE_RUNTIME_OPTIMIZATIONS
+            if (buffer != NULL)
+            {
+                if (file_load_buffer_count == 100000)
+                {
+                    free(buffer);
+                    buffer = NULL;
+                }
+                else
+                {
+                    file_load_buffers[file_load_buffer_count++] = buffer;
+                }
+            }
+#endif
             if (buffer == NULL)
             {
                 rc = ENOMEM;
@@ -888,11 +909,6 @@ char last_ns = 0;
 off_t size;
 
     buffer = file_load(fn, &size, &rc);
-    /* Note: yes we are going to leak 'buffer'
-     * this is on purpose, to avoid cloning the 'key' out of it
-     * and our special 'hash' just store the pointer to the key
-     * inside of buffer, hence it need to remain allocated
-     */
     if(!rc)
     {
         base = cursor_out = cursor = end = buffer;
@@ -1060,6 +1076,12 @@ off_t size;
             }
         }
     }
+    /* Note: yes we are going to leak 'buffer'
+     * this is on purpose, to avoid cloning the 'key' out of it and our special
+     * 'hash' just store the pointer to the key inside of buffer, hence it need
+     * to remain allocated
+     * coverity[leaked_storage] - this is on purpose
+     */
     return rc;
 }
 
@@ -1089,7 +1111,7 @@ off_t in_list_size = 0;
 char* in_list;
 char* in_list_cursor;
 char* in_list_base;
-struct hash* dep_hash;
+struct hash* dep_hash = 0;
 const char *env_str;
 
     if(argc < 2)
@@ -1116,7 +1138,9 @@ const char *env_str;
         /* extract filename of dep file from a 'space' separated list */
         while(*in_list_cursor)
         {
-            if(*in_list_cursor == ' ' || *in_list_cursor == '\n')
+            /* the input here may contain Win32 \r\n EOL */
+            if(*in_list_cursor == ' '
+                || *in_list_cursor == '\n' || *in_list_cursor == '\r')
             {
                 *in_list_cursor = 0;
                 if(in_list_base < in_list_cursor)
@@ -1149,6 +1173,13 @@ const char *env_str;
                 dep_hash->collisions, dep_hash->memcmp, dep_hash->cost);
 #endif
     }
+#if !ENABLE_RUNTIME_OPTIMIZATIONS
+    hash_destroy(dep_hash);
+    for (size_t i = 0; i != file_load_buffer_count; ++i)
+    {
+        free(file_load_buffers[i]);
+    }
+#endif
     return rc;
 }
 

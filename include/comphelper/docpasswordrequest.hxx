@@ -30,7 +30,7 @@ namespace comphelper {
 class AbortContinuation;
 class PasswordContinuation;
 
-// ============================================================================
+
 
 /** Selects which UNO document password request type to use. */
 enum DocPasswordRequestType
@@ -39,7 +39,7 @@ enum DocPasswordRequestType
     DocPasswordRequestType_MS           /// Uses the com.sun.star.task.DocumentMSPasswordRequest request.
 };
 
-// ============================================================================
+
 
 class COMPHELPER_DLLPUBLIC SimplePasswordRequest :
         public cppu::WeakImplHelper1<css::task::XInteractionRequest>
@@ -48,23 +48,22 @@ public:
     explicit    SimplePasswordRequest( com::sun::star::task::PasswordRequestMode eMode );
     virtual     ~SimplePasswordRequest();
 
-    sal_Bool            isPassword() const;
+    bool            isPassword() const;
 
     OUString     getPassword() const;
 
 private:
     // XInteractionRequest
-    virtual ::com::sun::star::uno::Any SAL_CALL getRequest() throw( ::com::sun::star::uno::RuntimeException );
-    virtual ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Reference< ::com::sun::star::task::XInteractionContinuation > > SAL_CALL getContinuations() throw( ::com::sun::star::uno::RuntimeException );
+    virtual ::com::sun::star::uno::Any SAL_CALL getRequest() throw( ::com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
+    virtual ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Reference< ::com::sun::star::task::XInteractionContinuation > > SAL_CALL getContinuations() throw( ::com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
 
 private:
     ::com::sun::star::uno::Any      maRequest;
     ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Reference< ::com::sun::star::task::XInteractionContinuation > > maContinuations;
-    AbortContinuation *             mpAbort;
     PasswordContinuation *          mpPassword;
 };
 
-// ============================================================================
+
 
 /** Implements the task.XInteractionRequest interface for requesting a password
     string for a document.
@@ -77,29 +76,28 @@ public:
                             DocPasswordRequestType eType,
                             ::com::sun::star::task::PasswordRequestMode eMode,
                             const OUString& rDocumentName,
-                            sal_Bool bPasswordToModify = sal_False );
+                            bool bPasswordToModify = false );
     virtual             ~DocPasswordRequest();
 
-    sal_Bool            isPassword() const;
+    bool            isPassword() const;
 
     OUString     getPassword() const;
 
     OUString     getPasswordToModify() const;
-    sal_Bool            getRecommendReadOnly() const;
+    bool            getRecommendReadOnly() const;
 
 private:
     // XInteractionRequest
-    virtual ::com::sun::star::uno::Any SAL_CALL getRequest() throw( ::com::sun::star::uno::RuntimeException );
-    virtual ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Reference< ::com::sun::star::task::XInteractionContinuation > > SAL_CALL getContinuations() throw( ::com::sun::star::uno::RuntimeException );
+    virtual ::com::sun::star::uno::Any SAL_CALL getRequest() throw( ::com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
+    virtual ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Reference< ::com::sun::star::task::XInteractionContinuation > > SAL_CALL getContinuations() throw( ::com::sun::star::uno::RuntimeException, std::exception ) SAL_OVERRIDE;
 
 private:
     ::com::sun::star::uno::Any      maRequest;
     ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Reference< ::com::sun::star::task::XInteractionContinuation > > maContinuations;
-    AbortContinuation *             mpAbort;
     PasswordContinuation *          mpPassword;
 };
 
-// ============================================================================
+
 
 } // namespace comphelper
 

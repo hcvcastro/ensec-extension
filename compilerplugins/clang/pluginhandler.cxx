@@ -9,6 +9,7 @@
  *
  */
 
+#include "compat.hxx"
 #include "pluginhandler.hxx"
 
 #include <clang/Frontend/CompilerInstance.h>
@@ -38,11 +39,11 @@ namespace loplugin
 
 struct PluginData
     {
-    Plugin* (*create)( CompilerInstance&, Rewriter& );
+    Plugin* (*create)( const Plugin::InstantiationData& );
     Plugin* object;
     const char* optionName;
-    bool isRewriter;
     bool isPPCallback;
+    bool byDefault;
     };
 
 const int MAX_PLUGINS = 100;
@@ -55,7 +56,7 @@ PluginHandler::PluginHandler( CompilerInstance& compiler, const vector< string >
     , rewriter( compiler.getSourceManager(), compiler.getLangOpts())
     , scope( "mainfile" )
     {
-    bool wasPlugin = false;
+    set< string > rewriters;
     for( vector< string >::const_iterator it = args.begin();
          it != args.end();
          ++it )
@@ -63,13 +64,9 @@ PluginHandler::PluginHandler( CompilerInstance& compiler, const vector< string >
         if( it->size() >= 2 && (*it)[ 0 ] == '-' && (*it)[ 1 ] == '-' )
             handleOption( it->substr( 2 ));
         else
-            {
-            createPlugin( *it );
-            wasPlugin = true;
-            }
+            rewriters.insert( *it );
         }
-    if( !wasPlugin )
-        createPlugin( "" ); // = all non-rewriters
+    createPlugins( rewriters );
     pluginObjectsCreated = true;
     }
 
@@ -100,46 +97,71 @@ void PluginHandler::handleOption( const string& option )
                 report( DiagnosticsEngine::Fatal, "unknown scope %0 (no such module directory)" ) << scope;
             }
         }
+    else if( option.substr( 0, 14 ) == "warnings-only=" )
+        {
+        warningsOnly = option.substr(14);
+        }
     else
         report( DiagnosticsEngine::Fatal, "unknown option %0" ) << option;
     }
 
-void PluginHandler::createPlugin( const string& name )
+void PluginHandler::createPlugins( set< string > rewriters )
     {
     for( int i = 0;
          i < pluginCount;
          ++i )
         {
-        if( name.empty())  // no plugin given -> create non-writer plugins
-            {
-            if( !plugins[ i ].isRewriter )
-                plugins[ i ].object = plugins[ i ].create( compiler, rewriter );
-            }
-        else if( plugins[ i ].optionName == name )
-            {
-            plugins[ i ].object = plugins[ i ].create( compiler, rewriter );
-            return;
-            }
+        if( rewriters.erase( plugins[i].optionName ) != 0 )
+            plugins[ i ].object = plugins[ i ].create( Plugin::InstantiationData { plugins[ i ].optionName, *this, compiler, &rewriter } );
+        else if( plugins[ i ].byDefault )
+            plugins[ i ].object = plugins[ i ].create( Plugin::InstantiationData { plugins[ i ].optionName, *this, compiler, NULL } );
         }
-    if( !name.empty())
-        report( DiagnosticsEngine::Fatal, "unknown plugin tool %0" ) << name;
+    for( auto r: rewriters )
+        report( DiagnosticsEngine::Fatal, "unknown plugin tool %0" ) << r;
     }
 
-void PluginHandler::registerPlugin( Plugin* (*create)( CompilerInstance&, Rewriter& ), const char* optionName, bool isRewriter, bool isPPCallback )
+void PluginHandler::registerPlugin( Plugin* (*create)( const Plugin::InstantiationData& ), const char* optionName, bool isPPCallback, bool byDefault )
     {
     assert( !pluginObjectsCreated );
     assert( pluginCount < MAX_PLUGINS );
     plugins[ pluginCount ].create = create;
     plugins[ pluginCount ].object = NULL;
     plugins[ pluginCount ].optionName = optionName;
-    plugins[ pluginCount ].isRewriter = isRewriter;
     plugins[ pluginCount ].isPPCallback = isPPCallback;
+    plugins[ pluginCount ].byDefault = byDefault;
     ++pluginCount;
+    }
+
+DiagnosticBuilder PluginHandler::report( DiagnosticsEngine::Level level, const char* plugin, StringRef message, CompilerInstance& compiler,
+    SourceLocation loc )
+    {
+    DiagnosticsEngine& diag = compiler.getDiagnostics();
+    // Do some mappings (e.g. for -Werror) that clang does not do for custom messages for some reason.
+    if( level == DiagnosticsEngine::Warning && diag.getWarningsAsErrors() && (plugin == nullptr || plugin != warningsOnly))
+        level = DiagnosticsEngine::Error;
+    if( level == DiagnosticsEngine::Error && diag.getErrorsAsFatal())
+        level = DiagnosticsEngine::Fatal;
+    string fullMessage = ( message + " [loplugin" ).str();
+    if( plugin )
+        {
+        fullMessage += ":";
+        fullMessage += plugin;
+        }
+    fullMessage += "]";
+    if( loc.isValid())
+        return diag.Report( loc, compat::getCustomDiagID(diag, level, fullMessage) );
+    else
+        return diag.Report( compat::getCustomDiagID(diag, level, fullMessage) );
     }
 
 DiagnosticBuilder PluginHandler::report( DiagnosticsEngine::Level level, StringRef message, SourceLocation loc )
     {
-    return Plugin::report( level, message, compiler, loc );
+    return report( level, nullptr, message, compiler, loc );
+    }
+
+bool PluginHandler::addRemoval( SourceLocation loc )
+    {
+    return removals.insert( loc ).second;
     }
 
 void PluginHandler::HandleTranslationUnit( ASTContext& context )
@@ -202,15 +224,16 @@ void PluginHandler::HandleTranslationUnit( ASTContext& context )
         sprintf( filename, "%s.new.%d", modifyFile.c_str(), getpid());
         string error;
         bool ok = false;
-        raw_fd_ostream ostream( filename, error );
+        std::unique_ptr<raw_fd_ostream> ostream(
+            compat::create_raw_fd_ostream(filename, error) );
         if( error.empty())
             {
-            it->second.write( ostream );
-            ostream.close();
-            if( !ostream.has_error() && rename( filename, modifyFile.c_str()) == 0 )
+            it->second.write( *ostream );
+            ostream->close();
+            if( !ostream->has_error() && rename( filename, modifyFile.c_str()) == 0 )
                 ok = true;
             }
-        ostream.clear_error();
+        ostream->clear_error();
         unlink( filename );
         if( !ok )
             report( DiagnosticsEngine::Error, "cannot write modified source to %0 (%1)" ) << modifyFile << error;
@@ -218,17 +241,23 @@ void PluginHandler::HandleTranslationUnit( ASTContext& context )
         }
     }
 
+#if (__clang_major__ == 3 && __clang_minor__ >= 6) || __clang_major__ > 3
+std::unique_ptr<ASTConsumer> LibreOfficeAction::CreateASTConsumer( CompilerInstance& Compiler, StringRef )
+    {
+    return make_unique<PluginHandler>( Compiler, _args );
+    }
+#else
 ASTConsumer* LibreOfficeAction::CreateASTConsumer( CompilerInstance& Compiler, StringRef )
     {
     return new PluginHandler( Compiler, _args );
     }
+#endif
 
 bool LibreOfficeAction::ParseArgs( const CompilerInstance&, const vector< string >& args )
     {
     _args = args;
     return true;
     }
-
 
 static FrontendPluginRegistry::Add< loplugin::LibreOfficeAction > X( "loplugin", "LibreOffice compile check plugin" );
 

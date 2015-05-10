@@ -24,20 +24,20 @@
 #include <cppuhelper/implbase1.hxx>
 #include <comphelper/comphelperdllapi.h>
 
-//=========================================================================
-//= property helper classes
-//=========================================================================
 
-//.........................................................................
+//= property helper classes
+
+
+
 namespace comphelper
 {
-//.........................................................................
+
 
     class OPropertyChangeMultiplexer;
 
-    //==================================================================
+
     //= OPropertyChangeListener
-    //==================================================================
+
     /// simple listener adapter for property sets
     class COMPHELPER_DLLPUBLIC OPropertyChangeListener
     {
@@ -51,8 +51,10 @@ namespace comphelper
             : m_pAdapter(NULL), m_rMutex(_rMutex) { }
         virtual ~OPropertyChangeListener();
 
-        virtual void _propertyChanged(const ::com::sun::star::beans::PropertyChangeEvent& _rEvent) throw( ::com::sun::star::uno::RuntimeException) = 0;
-        virtual void _disposing(const ::com::sun::star::lang::EventObject& _rSource) throw( ::com::sun::star::uno::RuntimeException);
+        virtual void _propertyChanged(const ::com::sun::star::beans::PropertyChangeEvent& _rEvent)
+            throw (css::uno::RuntimeException, std::exception) = 0;
+        virtual void _disposing(const ::com::sun::star::lang::EventObject& _rSource)
+            throw( ::com::sun::star::uno::RuntimeException, std::exception);
 
     protected:
         /** If the derivee also owns the mutex which we know as reference, then call this within your
@@ -64,9 +66,9 @@ namespace comphelper
         void    setAdapter( OPropertyChangeMultiplexer* _pAdapter );
     };
 
-    //==================================================================
+
     //= OPropertyChangeMultiplexer
-    //==================================================================
+
     /// multiplexer for property changes
     class COMPHELPER_DLLPUBLIC OPropertyChangeMultiplexer   :public cppu::WeakImplHelper1< ::com::sun::star::beans::XPropertyChangeListener>
     {
@@ -75,19 +77,19 @@ namespace comphelper
          ::com::sun::star::uno::Reference< ::com::sun::star::beans::XPropertySet>   m_xSet;
         OPropertyChangeListener*                    m_pListener;
         sal_Int32                                   m_nLockCount;
-        sal_Bool                                    m_bListening        : 1;
-        sal_Bool                                    m_bAutoSetRelease   : 1;
+        bool                                    m_bListening        : 1;
+        bool                                    m_bAutoSetRelease   : 1;
 
 
         virtual ~OPropertyChangeMultiplexer();
     public:
-        OPropertyChangeMultiplexer(OPropertyChangeListener* _pListener, const  ::com::sun::star::uno::Reference< ::com::sun::star::beans::XPropertySet>& _rxSet, sal_Bool _bAutoReleaseSet = sal_True);
+        OPropertyChangeMultiplexer(OPropertyChangeListener* _pListener, const  ::com::sun::star::uno::Reference< ::com::sun::star::beans::XPropertySet>& _rxSet, bool _bAutoReleaseSet = true);
 
     // XEventListener
-        virtual void SAL_CALL disposing( const  ::com::sun::star::lang::EventObject& Source ) throw( ::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL disposing( const  ::com::sun::star::lang::EventObject& Source ) throw( ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
     // XPropertyChangeListener
-        virtual void SAL_CALL propertyChange( const  ::com::sun::star::beans::PropertyChangeEvent& evt ) throw( ::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL propertyChange( const  ::com::sun::star::beans::PropertyChangeEvent& evt ) throw( ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         /// incremental lock
         void        lock();
@@ -100,9 +102,9 @@ namespace comphelper
         void dispose();
     };
 
-//.........................................................................
+
 }   // namespace comphelper
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_PROPMULTIPLEX_HXX
 

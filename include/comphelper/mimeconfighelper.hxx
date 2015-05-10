@@ -32,6 +32,8 @@
 #include <comphelper/comphelperdllapi.h>
 
 
+enum class SfxFilterFlags;
+
 namespace comphelper {
 
 class COMPHELPER_DLLPUBLIC MimeConfigurationHelper
@@ -73,7 +75,7 @@ public:
                         const ::com::sun::star::uno::Sequence< sal_Int8 >& aClassID,
                         const ::com::sun::star::uno::Reference< ::com::sun::star::container::XNameAccess >& xObjectProps );
 
-    sal_Bool GetVerbByShortcut( const OUString& aVerbShortcut,
+    bool GetVerbByShortcut( const OUString& aVerbShortcut,
                                 ::com::sun::star::embed::VerbDescriptor& aDescriptor );
 
     OUString GetExplicitlyRegisteredObjClassID( const OUString& aMediaType );
@@ -106,14 +108,14 @@ public:
 
     OUString UpdateMediaDescriptorWithFilterName(
                         ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyValue >& aMediaDescr,
-                        sal_Bool bIgnoreType );
+                        bool bIgnoreType );
     OUString UpdateMediaDescriptorWithFilterName(
                         ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyValue >& aMediaDescr,
                         ::com::sun::star::uno::Sequence< ::com::sun::star::beans::NamedValue >& aObject );
 #ifdef WNT
-    sal_Int32 GetFilterFlags( const OUString& aFilterName );
+    SfxFilterFlags GetFilterFlags( const OUString& aFilterName );
 
-    sal_Bool AddFilterNameCheckOwnFile(
+    bool AddFilterNameCheckOwnFile(
                         ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyValue >& aMediaDescr );
 #endif
 
@@ -124,10 +126,10 @@ public:
     static ::com::sun::star::uno::Sequence< ::com::sun::star::beans::PropertyValue > SearchForFilter(
                         const ::com::sun::star::uno::Reference< ::com::sun::star::container::XContainerQuery >& xFilterQuery,
                         const ::com::sun::star::uno::Sequence< ::com::sun::star::beans::NamedValue >& aSearchRequest,
-                        sal_Int32 nMustFlags,
-                        sal_Int32 nDontFlags );
+                        SfxFilterFlags nMustFlags,
+                        SfxFilterFlags nDontFlags );
 
-    static sal_Bool ClassIDsEqual( const ::com::sun::star::uno::Sequence< sal_Int8 >& aClassID1,
+    static bool ClassIDsEqual( const ::com::sun::star::uno::Sequence< sal_Int8 >& aClassID1,
                         const ::com::sun::star::uno::Sequence< sal_Int8 >& aClassID2 );
     static ::com::sun::star::uno::Sequence< sal_Int8 > GetSequenceClassID( sal_uInt32 n1, sal_uInt16 n2, sal_uInt16 n3,
                                                 sal_uInt8 b8, sal_uInt8 b9, sal_uInt8 b10, sal_uInt8 b11,

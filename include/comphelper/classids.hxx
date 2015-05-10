@@ -115,7 +115,7 @@
 
 #define SO3_SWGLOB_CLASSID SO3_SWGLOB_CLASSID_60
 
-//---------------------------------------------------
+
 
 /*
  * StarCalc
@@ -310,7 +310,6 @@
 
 /* aktuell */
 
-#define SO3_SIM_CLASSID  SO3_SIM_CLASSID_50
 
 /***************************************************
 * StarMath
@@ -375,10 +374,6 @@
 #define SO3_IFRAME_CLASSID \
     0x1a8a6701, 0xde58, 0x11cf, \
     0x89, 0xca, 0x0, 0x80, 0x29, 0xe4, 0xb0, 0xb1
-
-#define SO3_GLOBAL_CLASSID \
-     0x475198a8, 0x694c, 0x4bd8, \
-    0xb0, 0x2f, 0xd9, 0xb7, 0x6b, 0xcf, 0x31, 0x28
 
 #define SO3_RPT_CLASSID_90 \
     0xd7896d52, 0xb7af, 0x4820, \

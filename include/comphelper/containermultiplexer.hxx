@@ -25,15 +25,15 @@
 #include <osl/mutex.hxx>
 #include <comphelper/comphelperdllapi.h>
 
-//.........................................................................
+
 namespace comphelper
 {
-//.........................................................................
+
 
     class OContainerListenerAdapter;
-    //=====================================================================
+
     //= OContainerListener
-    //=====================================================================
+
     /** a non-UNO container listener
         <p>Useful if you have a non-refcountable class which should act as container listener.<br/>
         In this case, derive this class from OContainerListener, and create an adapter
@@ -50,18 +50,26 @@ namespace comphelper
         OContainerListener(::osl::Mutex& _rMutex);
         virtual ~OContainerListener();
 
-        virtual void _elementInserted( const ::com::sun::star::container::ContainerEvent& _rEvent ) throw(::com::sun::star::uno::RuntimeException);
-        virtual void _elementRemoved( const ::com::sun::star::container::ContainerEvent& _Event ) throw(::com::sun::star::uno::RuntimeException);
-        virtual void _elementReplaced( const ::com::sun::star::container::ContainerEvent& _rEvent ) throw(::com::sun::star::uno::RuntimeException);
-        virtual void _disposing(const ::com::sun::star::lang::EventObject& _rSource) throw( ::com::sun::star::uno::RuntimeException);
+        virtual void _elementInserted( const ::com::sun::star::container::ContainerEvent& _rEvent )
+            throw (::com::sun::star::uno::RuntimeException,
+                   std::exception);
+        virtual void _elementRemoved( const ::com::sun::star::container::ContainerEvent& _Event )
+            throw (::com::sun::star::uno::RuntimeException,
+                   std::exception);
+        virtual void _elementReplaced( const ::com::sun::star::container::ContainerEvent& _rEvent )
+            throw (::com::sun::star::uno::RuntimeException,
+                   std::exception);
+        virtual void _disposing(const ::com::sun::star::lang::EventObject& _rSource)
+            throw (::com::sun::star::uno::RuntimeException,
+                   std::exception);
 
     protected:
         void setAdapter(OContainerListenerAdapter* _pAdapter);
     };
 
-    //=====================================================================
+
     //= OContainerListenerAdapter
-    //=====================================================================
+
     class COMPHELPER_DLLPUBLIC OContainerListenerAdapter
             :public cppu::WeakImplHelper1< ::com::sun::star::container::XContainerListener >
     {
@@ -80,12 +88,12 @@ namespace comphelper
             const  ::com::sun::star::uno::Reference< ::com::sun::star::container::XContainer >& _rxContainer);
 
         // XEventListener
-        virtual void SAL_CALL disposing( const  ::com::sun::star::lang::EventObject& Source ) throw( ::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL disposing( const  ::com::sun::star::lang::EventObject& Source ) throw( ::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         // XContainerListener
-        virtual void SAL_CALL elementInserted( const ::com::sun::star::container::ContainerEvent& Event ) throw(::com::sun::star::uno::RuntimeException);
-        virtual void SAL_CALL elementRemoved( const ::com::sun::star::container::ContainerEvent& Event ) throw(::com::sun::star::uno::RuntimeException);
-        virtual void SAL_CALL elementReplaced( const ::com::sun::star::container::ContainerEvent& Event ) throw(::com::sun::star::uno::RuntimeException);
+        virtual void SAL_CALL elementInserted( const ::com::sun::star::container::ContainerEvent& Event ) throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual void SAL_CALL elementRemoved( const ::com::sun::star::container::ContainerEvent& Event ) throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
+        virtual void SAL_CALL elementReplaced( const ::com::sun::star::container::ContainerEvent& Event ) throw(::com::sun::star::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
         // locking the multiplexer
         sal_Int32   locked() const { return m_nLockCount; }
@@ -97,9 +105,9 @@ namespace comphelper
                     getContainer() const { return m_xContainer; }
     };
 
-//.........................................................................
+
 }   // namespace dbaui
-//.........................................................................
+
 
 #endif // INCLUDED_COMPHELPER_CONTAINERMULTIPLEXER_HXX
 

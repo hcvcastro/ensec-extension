@@ -34,20 +34,20 @@ private:
     static const sal_Int32 HANDLE_INTERACTIVEIOEXCEPTION       = 0;
     static const sal_Int32 HANDLE_UNSUPPORTEDDATASINKEXCEPTION = 1;
 
-    sal_Bool m_bUsed;
-    sal_Bool m_bHandledByMySelf;
-    sal_Bool m_bHandledByInternalHandler;
+    bool m_bUsed;
+    bool m_bHandledByMySelf;
+    bool m_bHandledByInternalHandler;
 
 public:
     StillReadWriteInteraction(const com::sun::star::uno::Reference< com::sun::star::task::XInteractionHandler >& xHandler);
 
     void resetInterceptions();
     void resetErrorStates();
-    sal_Bool wasWriteError();
+    bool wasWriteError() { return (m_bUsed && m_bHandledByMySelf);}
 
 private:
     virtual ucbhelper::InterceptedInteraction::EInterceptionState intercepted(const ::ucbhelper::InterceptedInteraction::InterceptedRequest&                         aRequest,
-        const ::com::sun::star::uno::Reference< ::com::sun::star::task::XInteractionRequest >& xRequest);
+        const ::com::sun::star::uno::Reference< ::com::sun::star::task::XInteractionRequest >& xRequest) SAL_OVERRIDE;
 
 };
 }

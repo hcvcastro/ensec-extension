@@ -12,29 +12,41 @@ import six
 
 from libreoffice.util import printing
 
-class SvArrayPrinter(object):
-    '''Prints macro-declared arrays from svl module'''
+class ItemSetPrinter(object):
+    '''Prints SfxItemSets'''
 
     def __init__(self, typename, value):
         self.typename = typename
         self.value = value
 
     def to_string(self):
-        if int(self.value['nA']):
-            return "%s of length %d" % (self.typename, self.value['nA'])
-        else:
-            return "empty " + self.typename
+        whichranges = self.which_ranges()
+        return "SfxItemSet of pool %s with parent %s and Which ranges: %s" \
+                % (self.value['m_pPool'], self.value['m_pParent'], whichranges)
+
+    def which_ranges(self):
+        whichranges = self.value['m_pWhichRanges']
+        index = 0
+        whiches = []
+        while (whichranges[index]):
+            whiches.append((int(whichranges[index]), int(whichranges[index+1])))
+            index = index + 2
+        return whiches
 
     def children(self):
-        return self._iterator(self.value['pData'], self.value['nA'])
-
-    def display_hint(self):
-        return 'array'
+        whichranges = self.which_ranges()
+        size = 0
+        whichids = []
+        for (whichfrom, whichto) in whichranges:
+            size += whichto - whichfrom + 1
+            whichids += [which for which in range(whichfrom, whichto+1)]
+        return self._iterator(self.value['m_pItems'], size, whichids)
 
     class _iterator(six.Iterator):
 
-        def __init__(self, data, count):
+        def __init__(self, data, count, whichids):
             self.data = data
+            self.whichids = whichids
             self.count = count
             self.pos = 0
             self._check_invariant()
@@ -46,49 +58,24 @@ class SvArrayPrinter(object):
             if self.pos == self.count:
                 raise StopIteration()
 
-            pos = self.pos
-            elem = self.data[pos]
+            which = self.whichids[self.pos]
+            elem = self.data[self.pos]
             self.pos = self.pos + 1
 
             self._check_invariant()
-            return (str(pos), elem)
+            if (elem == -1):
+                elem = "(Invalid)"
+            elif (elem != 0):
+                # let's try how well that works...
+                elem = elem.cast(elem.dynamic_type).dereference()
+            return (str(which), elem)
 
         def _check_invariant(self):
             assert self.count >= 0
-            if self.count > 0:
-                assert self.data
+            assert self.data
             assert self.pos >= 0
             assert self.pos <= self.count
-
-    @staticmethod
-    def query(type):
-        if type.code == gdb.TYPE_CODE_REF:
-            type = type.target()
-        type = type.unqualified().strip_typedefs()
-
-        if not type.tag:
-            return False
-
-        ushort = gdb.lookup_type('sal_uInt16')
-        conforming = True
-        for field in type.fields():
-            if field.name == 'pData':
-                conforming = field.type.code == gdb.TYPE_CODE_PTR
-            elif field.name == 'nFree':
-                conforming = field.type == ushort
-            elif field.name == 'nA':
-                conforming = field.type == ushort
-            else:
-                conforming = False
-            if not conforming:
-                return False
-
-        try:
-            gdb.lookup_type('FnForEach_' + type.tag)
-        except RuntimeError:
-            return False
-
-        return True
+            assert len(self.whichids) == self.count
 
 printer = None
 
@@ -97,8 +84,7 @@ def build_pretty_printers():
 
     printer = printing.Printer("libreoffice/svl")
 
-    # macro-based arrays from svl module
-    printer.add('SvArray', SvArrayPrinter, SvArrayPrinter.query)
+    printer.add('SfxItemSet', ItemSetPrinter)
 
 def register_pretty_printers(obj):
     printing.register_pretty_printer(printer, obj)

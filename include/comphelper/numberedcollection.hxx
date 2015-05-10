@@ -30,17 +30,17 @@
 #include <cppuhelper/basemutex.hxx>
 #include <cppuhelper/weakref.hxx>
 #include <cppuhelper/implbase1.hxx>
-
+#include <boost/functional/hash.hpp>
+#include <unordered_map>
 #include <vector>
-#include <boost/unordered_map.hpp>
 
 
 namespace comphelper{
 
-/** @short  defines a collection of UNO components, where every component will get it's own unique number.
+/** @short  defines a collection of UNO components, where every component will get its own unique number.
 
     @descr  Such number will be unique at runtime only ... but it supports fragmentation.
-            Note: This collection uses weak refrences only to know her components.
+            Note: This collection uses weak references only to know her components.
             So lifetime of thise components must be controlled outside.
 
     @threadsafe
@@ -48,7 +48,7 @@ namespace comphelper{
 class COMPHELPER_DLLPUBLIC NumberedCollection : private ::cppu::BaseMutex
                                               , public  ::cppu::WeakImplHelper1< css::frame::XUntitledNumbers >
 {
-    //-------------------------------------------
+
     // types, const
     private:
 
@@ -58,7 +58,7 @@ class COMPHELPER_DLLPUBLIC NumberedCollection : private ::cppu::BaseMutex
             ::sal_Int32 nNumber;
         };
 
-        typedef ::boost::unordered_map<
+        typedef std::unordered_map<
                     long                    ,
                     TNumberedItem           ,
                     ::boost::hash< long >     ,
@@ -66,21 +66,21 @@ class COMPHELPER_DLLPUBLIC NumberedCollection : private ::cppu::BaseMutex
 
         typedef ::std::vector< long > TDeadItemList;
 
-    //-------------------------------------------
+
     // interface
     public:
 
-        //---------------------------------------
+
         /** @short  lightweight constructor.
          */
         NumberedCollection();
 
-        //---------------------------------------
-        /** @short  free all internaly used resources.
+
+        /** @short  free all internally used resources.
          */
         virtual ~NumberedCollection();
 
-        //---------------------------------------
+
         /** set an outside component which uses this container and must be set
             as source of all broadcasted messages, exceptions.
 
@@ -94,7 +94,7 @@ class COMPHELPER_DLLPUBLIC NumberedCollection : private ::cppu::BaseMutex
          */
         void setOwner (const css::uno::Reference< css::uno::XInterface >& xOwner);
 
-        //---------------------------------------
+
         /** set the localized prefix to be used for untitled components.
 
             Localization has to be done outside. This container will return
@@ -106,41 +106,41 @@ class COMPHELPER_DLLPUBLIC NumberedCollection : private ::cppu::BaseMutex
          */
         void setUntitledPrefix(const OUString& sPrefix);
 
-        //---------------------------------------
+
         /** @see css.frame.XUntitledNumbers */
         virtual ::sal_Int32 SAL_CALL leaseNumber(const css::uno::Reference< css::uno::XInterface >& xComponent)
             throw (css::lang::IllegalArgumentException,
-                   css::uno::RuntimeException         );
+                   css::uno::RuntimeException, std::exception         ) SAL_OVERRIDE;
 
-        //---------------------------------------
+
         /** @see css.frame.XUntitledNumbers */
         virtual void SAL_CALL releaseNumber(::sal_Int32 nNumber)
             throw (css::lang::IllegalArgumentException,
-                   css::uno::RuntimeException         );
+                   css::uno::RuntimeException, std::exception         ) SAL_OVERRIDE;
 
-        //---------------------------------------
+
         /** @see css.frame.XUntitledNumbers */
         virtual void SAL_CALL releaseNumberForComponent(const css::uno::Reference< css::uno::XInterface >& xComponent)
             throw (css::lang::IllegalArgumentException,
-                   css::uno::RuntimeException         );
+                   css::uno::RuntimeException, std::exception         ) SAL_OVERRIDE;
 
-        //---------------------------------------
+
         /** @see css.frame.XUntitledNumbers */
         virtual OUString SAL_CALL getUntitledPrefix()
-            throw (css::uno::RuntimeException);
+            throw (css::uno::RuntimeException, std::exception) SAL_OVERRIDE;
 
-    //-------------------------------------------
+
     // internal
     private:
 
-        //---------------------------------------
+
         /** @short  trys to find an unique number not already used within this collection.
 
-            @descr  It reuses the smalles number which isnt used by any component
+            @descr  It reuses the smalles number which isn't used by any component
                     of this collection. (fragmentation!) If collection is full (means there
                     is no free number) the special value INVALID_NUMBER will be returned.
 
-            @note   Those method cant be called within a multithreaded environment ..
+            @note   Those method can't be called within a multithreaded environment ..
                     Because such number wont be "reserved" for the calli of these method
                     it can happen that two calls returns the same number (reasoned by the fact that first calli
                     doesn't used the returned number already.
@@ -152,10 +152,10 @@ class COMPHELPER_DLLPUBLIC NumberedCollection : private ::cppu::BaseMutex
          */
         ::sal_Int32 impl_searchFreeNumber ();
 
-        void impl_cleanUpDeadItems (      TNumberedItemHash& lItems    ,
-                                    const TDeadItemList&     lDeadItems);
+        static void impl_cleanUpDeadItems (      TNumberedItemHash& lItems    ,
+                                           const TDeadItemList&     lDeadItems);
 
-    //-------------------------------------------
+
     // member
     private:
 

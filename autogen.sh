@@ -1,4 +1,18 @@
 :
+#
+# This script checks various configure parameters and uses three files:
+#   * autogen.input (ro)
+#   * autogen.lastrun (rw)
+#   * autogen.lastrun.bak (rw)
+#
+# If _no_ parmeters:
+#   Read args from autogen.input or autogen.lastrun
+# Else
+#   Backup autogen.lastrun as autogen.lastrun.bak
+#   Write autogen.lastrun with new commandline args
+#
+# Run configure with checked args
+#
     eval 'exec perl -S $0 ${1+"$@"}'
         if 0;
 
@@ -63,15 +77,16 @@ sub read_args($)
     open ($fh, $file) || die "can't open file: $file";
     while (<$fh>) {
         chomp();
+        s/\s+$//;
         # migrate from the old system
         if ( substr($_, 0, 1) eq "'" ) {
-            print "Migrating options from the old autogen.lastrun format, using:\n";
+            print STDERR "Migrating options from the old autogen.lastrun format, using:\n";
             my @opts;
             @opts = split(/'/);
             foreach my $opt (@opts) {
                 if ( substr($opt, 0, 1) eq "-" ) {
                     push @lst, $opt;
-                    print "  $opt\n";
+                    print STDERR "  $opt\n";
                 }
             }
         } elsif ( substr($_, 0, 1) eq "#" ) {
@@ -101,6 +116,9 @@ sub invalid_distro($$)
     closedir ($dirh);
 }
 
+# Avoid confusing "aclocal: error: non-option arguments are not accepted: '.../m4'." error message.
+die "\$src_path must not contain spaces, but it is '$src_path'." if ($src_path =~ / /);
+
 # Alloc $ACLOCAL to specify which aclocal to use
 $aclocal = $ENV{ACLOCAL} ? $ENV{ACLOCAL} : 'aclocal';
 
@@ -121,7 +139,22 @@ if ($src_path ne $build_path)
 {
     system ("ln -sf $src_path/configure.ac configure.ac");
     system ("ln -sf $src_path/g g");
-    system ("ln -sf $src_path/configure-ensec configure-ensec");
+    my @modules = <$src_path/*/Makefile>;
+    foreach my $module (@modules)
+    {
+        my $dir = basename (dirname ($module));
+        mkdir ($dir);
+        system ("ln -sf $src_path/$dir/Makefile $dir/Makefile");
+    }
+    my @external_modules = <$src_path/external/*/Makefile>;
+    mkdir ("external");
+    system ("ln -sf $src_path/external/Module_external.mk external/");
+    foreach my $module (@external_modules)
+    {
+        my $dir = basename (dirname ($module));
+        mkdir ("external/$dir");
+        system ("ln -sf $src_path/external/$dir/Makefile external/$dir/Makefile");
+    }
 }
 system ("$aclocal $aclocal_flags") && die "Failed to run aclocal";
 unlink ("configure");
@@ -131,6 +164,10 @@ die "Failed to generate the configure script" if (! -f "configure");
 # Handle help arguments first, so we don't clobber autogen.lastrun
 for my $arg (@ARGV) {
     if ($arg =~ /^(--help|-h|-\?)$/) {
+        print STDERR "autogen.sh - libreoffice configuration helper\n";
+        print STDERR "   --clean        forcibly re-generate configuration\n";
+        print STDERR "   --best-effort  don't fail on un-known configure with/enable options\n";
+        print STDERR "\nOther arguments passed directly to configure:\n\n";
         system ("./configure --help");
         exit;
     }
@@ -143,18 +180,38 @@ my $lastrun = "autogen.lastrun";
 
 if (!@ARGV) {
     if (-f $input) {
-        warn "Ignoring $lastrun, using $input.\n" if (-f $lastrun);
+        if (-f $lastrun) {
+            print STDERR <<WARNING;
+********************************************************************
+*
+*   Reading $input and ignoring $lastrun!
+*   Consider removing $lastrun to get rid of this warning.
+*
+********************************************************************
+WARNING
+        }
         @cmdline_args = read_args ($input);
     } elsif (-f $lastrun) {
         print STDERR "Reading $lastrun. Please rename it to $input to avoid this message.\n";
         @cmdline_args = read_args ($lastrun);
     }
 } else {
+    if (-f $input) {
+        print STDERR <<WARNING;
+********************************************************************
+*
+*   Using commandline arguments and ignoring $input!
+*
+********************************************************************
+WARNING
+    }
     @cmdline_args = @ARGV;
 }
 
 my @args;
 my $default_config = "$src_path/distro-configs/default.conf";
+my $option_checking = 'fatal';
+
 if (-f $default_config) {
     print STDERR "Reading default config file: $default_config.\n";
     push @args, read_args ($default_config);
@@ -169,6 +226,8 @@ for my $arg (@cmdline_args) {
         } else {
             push @args, read_args ($config);
         }
+    } elsif ($arg =~ m/--best-effort$/) {
+        $option_checking = 'warn';
     } else {
         push @args, $arg;
     }
@@ -203,36 +262,10 @@ if (defined $ENV{NOCONFIGURE}) {
             close ($fh);
         }
     }
-
-    my $line;
-    my $oo_sdk_home_name="";
-    my $oo_sdk_home_value="";
-
-    print "Running ./configure-ensec with '" . join ("' '", @args), "'\n";
-   
-    open(PIPE, "./configure-ensec @args |"); 
-    while ( $line = <PIPE>  ) {
-        chomp($line);
-        print "$line\n";
-        if ($line =~ /^OO_SDK_HOME=*/) {
-            ($oo_sdk_home_name, $oo_sdk_home_value)=split /=/ , $line;
-        }
-    }
-    close(PIPE);
-
-#    my @output=`./configure-ensec @args`;
-#    foreach $line (@output) {
-#        chomp($line);
-#        if ($line =~ /^OO_SDK_HOME=*/) {
-#            ($oo_sdk_home_name, $oo_sdk_home_value)=split /=/ , $line;
-#        }
-#    }
-
     push @args, "--srcdir=$src_path";
-    push @args, "--enable-option-checking=fatal";
+    push @args, "--enable-option-checking=$option_checking";
 
-    $ENV{OO_SDK_HOME}="$oo_sdk_home_value";
-    print "Running $line ./configure with '" . join ("' '", @args), "'\n";
+    print "Running ./configure with '" . join ("' '", @args), "'\n";
     system ("./configure", @args) && die "Error running configure";
 }
 

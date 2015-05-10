@@ -17,6 +17,9 @@
 #   the License at http://www.apache.org/licenses/LICENSE-2.0 .
 #
 
+# to avoid flashing windows during tests
+export VCL_HIDE_WINDOWS=1
+
 gb_SDKDIR := $(MACOSX_SDK_PATH)
 
 include $(GBUILDDIR)/platform/com_GCC_defs.mk
@@ -43,47 +46,23 @@ gb_CFLAGS := \
 	-fno-strict-aliasing \
     #-Wshadow \ break in compiler headers already
 
-# For -Wno-non-virtual-dtor see <http://markmail.org/message/664jsoqe6n6smy3b>
-# "Re: [dev] warnings01: -Wnon-virtual-dtor" message to dev@openoffice.org from
-# Feb 1, 2006:
 gb_CXXFLAGS := \
 	$(gb_CXXFLAGS_COMMON) \
 	-fPIC \
+	-Woverloaded-virtual \
 	-Wno-ctor-dtor-privacy \
-	-Wno-non-virtual-dtor \
 	-fno-strict-aliasing \
 	-fsigned-char \
-	$(if $(filter TRUE,$(COM_GCC_IS_CLANG)),$(CXXFLAGS_CXX11),-malign-natural) \
+	$(CXXFLAGS_CXX11)
 
 	#-Wshadow \ break in compiler headers already
 	#-fsigned-char \ might be removed?
-	#-malign-natural \ might be removed?
-
-# Without this I get struct/class clashes for "complex" when compiling
-# some source files in vcl, at least with the 10.7 SDK.
-ifneq ($(filter 1070,$(MACOSX_SDK_VERSION)),)
-gb_COMPILERDEFS += \
-		-DBOOST_DETAIL_NO_CONTAINER_FWD \
-
-endif
-
-ifneq ($(filter 1060,$(MACOSX_SDK_VERSION)),)
-gb_COMPILERNOOPTFLAGS := -O0 -fstrict-overflow
-
-endif
-
-ifeq ($(HAVE_GCC_NO_LONG_DOUBLE),TRUE)
-gb_CXXFLAGS += -Wno-long-double
-endif
 
 # these are to get g++ to switch to Objective-C++ mode
 # (see toolkit module for a case where it is necessary to do it this way)
 gb_OBJCXXFLAGS := -x objective-c++ -fobjc-exceptions
 
 gb_OBJCFLAGS := -x objective-c -fobjc-exceptions
-
-gb_LinkTarget_LDFLAGS := \
-	$(SOLARLIB) \
 
 # LinkTarget class
 
@@ -127,6 +106,9 @@ endef
 # as we would need to sign those separately anyway, we do it for the
 # gbuild-built ones, too, after an app bundle has been constructed, in
 # the solenv/bin/macosx-codesign-app-bundle script.
+# And the soffice executable needs to be signed last in
+# macosx-codesign-app-bundle, as codesign would fail complaining that other
+# parts of the app have not yet been signed:
 
 define gb_LinkTarget__command_dynamiclink
 $(call gb_Helper_abbreviate_dirs,\
@@ -134,7 +116,6 @@ $(call gb_Helper_abbreviate_dirs,\
 		$(if $(filter Executable,$(TARGETTYPE)),$(gb_Executable_TARGETTYPEFLAGS)) \
 		$(if $(filter Bundle,$(TARGETTYPE)),$(gb_Bundle_TARGETTYPEFLAGS)) \
 		$(if $(filter Library CppunitTest,$(TARGETTYPE)),$(gb_Library_TARGETTYPEFLAGS)) \
-		$(if $(filter Library,$(TARGETTYPE)),$(gb_Library_LTOFLAGS)) \
 		$(subst \d,$$,$(RPATH)) \
 		$(T_LDFLAGS) \
 		$(patsubst lib%.dylib,-l%,$(patsubst %.$(gb_Library_UDK_MAJORVER),%,$(foreach lib,$(LINKED_LIBS),$(call gb_Library_get_filename,$(lib))))) \
@@ -156,17 +137,15 @@ $(call gb_Helper_abbreviate_dirs,\
 		$(PERL) $(SRCDIR)/solenv/bin/macosx-change-install-names.pl shl $(LAYER) $(1) &&) \
 	$(if $(MACOSX_CODESIGNING_IDENTITY), \
 		$(if $(filter Executable,$(TARGETTYPE)), \
-			(codesign --identifier=$(MACOSX_BUNDLE_IDENTIFIER).$(notdir $(1)) --sign $(MACOSX_CODESIGNING_IDENTITY) --force $(1) || true) &&)) \
+			$(if $(filter-out $(call gb_Executable_get_target,soffice_bin),$(1)), \
+				codesign --identifier=$(MACOSX_BUNDLE_IDENTIFIER).$(notdir $(1)) --sign $(MACOSX_CODESIGNING_IDENTITY) --force $(1) &&))) \
 	$(if $(filter Library,$(TARGETTYPE)),\
 		otool -l $(1) | grep -A 5 LC_ID_DYLIB \
 			> $(WORKDIR)/LinkTarget/$(2).exports.tmp && \
 		$(NM) -g -P $(1) | cut -d' ' -f1-2 | grep -v U$$ \
 			>> $(WORKDIR)/LinkTarget/$(2).exports.tmp && \
-		if cmp -s $(WORKDIR)/LinkTarget/$(2).exports.tmp $(WORKDIR)/LinkTarget/$(2).exports; \
-			then rm $(WORKDIR)/LinkTarget/$(2).exports.tmp; \
-			else mv $(WORKDIR)/LinkTarget/$(2).exports.tmp $(WORKDIR)/LinkTarget/$(2).exports && \
-				touch -r $(1) $(WORKDIR)/LinkTarget/$(2).exports; \
-		fi &&) \
+		$(call gb_Helper_replace_if_different_and_touch,$(WORKDIR)/LinkTarget/$(2).exports.tmp, \
+			$(WORKDIR)/LinkTarget/$(2).exports,$(1)) &&) \
 	:)
 endef
 
@@ -194,6 +173,8 @@ endef
 
 define gb_LinkTarget_use_system_darwin_frameworks
 $(call gb_LinkTarget_add_libs,$(1),$(foreach fw,$(2),-framework $(fw)))
+$(if $(call gb_LinkTarget__is_merged,$(1)),\
+  $(call gb_LinkTarget_add_libs,$(call gb_Library_get_linktarget,merged),$(foreach fw,$(2),-framework $(fw))))
 endef
 
 
@@ -245,6 +226,8 @@ $(call gb_LinkTarget_get_target,$(2)) : LAYER := $(call gb_Library_get_layer,$(1
 endef
 
 gb_Library__set_soversion_script_platform = $(gb_Library__set_soversion_script)
+
+gb_Library_get_sdk_link_dir = $(WORKDIR)/LinkTarget/Library
 
 gb_Library_get_sdk_link_lib = $(gb_Library_get_versionlink_target)
 
@@ -324,7 +307,7 @@ gb_PythonTest_PRECOMMAND := $(gb_PythonTest_PRECOMMAND):$(WORKDIR)/UnpackedTarba
 
 define gb_Module_DEBUGRUNCOMMAND
 OFFICESCRIPT=$$($(gb_MKTEMP)) && \
-printf '%s\n' "set args --norestore --nologo '--accept=pipe,name=$(USER);urp;' -env:UserInstallation=$(gb_USER_INSTALLATION)" > $${OFFICESCRIPT} && \
+printf '%s\n' "set args --norestore --nologo '--accept=pipe,name=$(USER);urp;'" > $${OFFICESCRIPT} && \
 gdb -x $${OFFICESCRIPT} $(INSTROOT)/$(LIBO_BIN_FOLDER)/soffice && \
 rm $${OFFICESCRIPT}
 endef
