@@ -94,6 +94,7 @@
 
 
 using namespace ::com::sun::star::uno;
+using namespace ::rtl;
 
 class EnsecProtocolHandler : public cppu::WeakImplHelper4
 <

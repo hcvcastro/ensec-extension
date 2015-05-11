@@ -46,11 +46,16 @@ if test -f "$OO_OFFICE_HOME/ure/bin/regview";
 then
     AC_MSG_RESULT([yes])
 else
-    if test -f "$OO_OFFICE_HOME/program/regview";
+    if test -f "$OO_OFFICE_HOME/ure-link/bin/regview";
     then
         AC_MSG_RESULT([yes])        
     else
-       AC_MSG_ERROR([file regview not found in $OO_OFFICE_HOME/ure/bin/regview or $OO_OFFICE_HOME/program/regview])
+        if test -f "$OO_OFFICE_HOME/program/regview";
+        then
+               AC_MSG_RESULT([yes])        
+        else
+               AC_MSG_ERROR([file regview not found in $OO_OFFICE_HOME/ure/bin/regview or $OO_OFFICE_HOME/program/regview])
+        fi
     fi
 fi
 
@@ -86,12 +91,18 @@ then
     AC_MSG_RESULT([yes])
     OO_SDK_URE_TYPES=$OO_OFFICE_HOME/ure/share/misc/types.rdb
 else
-    if test -f "$OO_OFFICE_HOME/program/types.rdb";
+    if test -f "$OO_OFFICE_HOME/ure-link/share/misc/types.rdb";
     then
-        AC_MSG_RESULT([yes])        
-        OO_SDK_URE_TYPES=$OO_OFFICE_HOME/program/types.rdb
+        AC_MSG_RESULT([yes])
+        OO_SDK_URE_TYPES=$OO_OFFICE_HOME/ure-link/share/misc/types.rdb
     else
-       AC_MSG_ERROR([file types.rdb not found in $OO_OFFICE_HOME/ure/share/misc/types.rdb or $OO_OFFICE_HOME/program/types.rdb])
+        if test -f "$OO_OFFICE_HOME/program/types.rdb";
+        then
+                AC_MSG_RESULT([yes])        
+                OO_SDK_URE_TYPES=$OO_OFFICE_HOME/program/types.rdb
+        else
+                AC_MSG_ERROR([file types.rdb not found in $OO_OFFICE_HOME/ure/share/misc/types.rdb or $OO_OFFICE_HOME/program/types.rdb])
+        fi
     fi
 fi
 
