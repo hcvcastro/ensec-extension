@@ -700,7 +700,6 @@ $(eval $(call gb_Helper_register_libraries,EXTENSIONLIBS, \
 	active_native \
 	mysqlc \
 	passive_native \
-	ensec-component \
 ))
 
 ifneq ($(ENABLE_JAVA),)
@@ -911,6 +910,10 @@ $(eval $(call gb_ExternalExecutable_register_executables,\
 	ucpp \
 	xmllint \
 	xsltproc \
+))
+
+ $(eval $(call gb_Helper_register_libraries,EXTENSIONLIBS, \
+	ensec-component \
 ))
 
 # vim: set noet sw=4 ts=4:

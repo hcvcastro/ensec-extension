@@ -14,7 +14,7 @@ $(eval $(call gb_Package_use_custom_target,ensec-package,sdkapi/sdkappi))
 $(eval $(call gb_Package_set_outdir,ensec-package,$(INSTDIR)))
 
 $(warning $(notdir $(call gb_Extension_get_target,ensec-extension)))
-$(eval $(call gb_Package_add_files,ensec-package,component,\
+$(eval $(call gb_Package_add_files,ensec-package,ensec,\
 	$(notdir $(call gb_Extension_get_target,ensec-extension)) \
 ))
 

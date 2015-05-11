@@ -20,9 +20,9 @@ $(eval $(call gb_Module_add_targets,libreoffice,\
 ))
 endif
 
-#$(eval $(call gb_Module_add_targets,libreoffice,\
-#	CustomTarget_sdkapi \
-#))
+$(eval $(call gb_Module_add_targets,libreoffice,\
+	CustomTarget_sdkapi \
+))
 
 $(eval $(call gb_Module_add_moduledirs,libreoffice,\
 	basegfx \

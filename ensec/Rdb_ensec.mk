@@ -10,7 +10,7 @@
 $(eval $(call gb_Rdb_Rdb,ensec-rdb))
 
 $(eval $(call gb_Rdb_add_components,ensec-rdb,\
-	component/util/ensec-component \
+	ensec/util/ensec-component \
 ))
 
 # vim: set noet sw=4 ts=4:

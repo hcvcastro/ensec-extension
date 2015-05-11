@@ -7,9 +7,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-$(eval $(call gb_Module_Module,ensec-module))
+$(eval $(call gb_Module_Module,ensec))
 
-$(eval $(call gb_Module_add_targets,ensec-module,\
+$(eval $(call gb_Module_add_targets,ensec,\
 	Library_ensec \
 	Rdb_ensec  \
 	Extension_ensec \
