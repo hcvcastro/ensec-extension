@@ -489,8 +489,44 @@ void SAL_CALL UpdateHandler::actionPerformed( const awt::ActionEvent& rEvent ) t
                 strEstudiante;
 
             strDebug = OUStringToOString(strUpdate, RTL_TEXTENCODING_UTF8);
-            xUpdate->executeUpdate( strUpdate );
+            if ( !xUpdate->executeUpdate( strUpdate ) )
+            {
+                strInsert = OUString(RTL_CONSTASCII_USTRINGPARAM("INSERT INTO NOTA VALUES ( NULL,")) +
+                    OUString::number(mnGestion) + OUString(RTL_CONSTASCII_USTRINGPARAM(", '")) +
+                    mstrAsignatura + OUString(RTL_CONSTASCII_USTRINGPARAM("', ")) +
+                    OUString::number(mnPeriodo) + OUString(RTL_CONSTASCII_USTRINGPARAM(", ")) ;
+
+                xControl.set (xControlContainer->getControl( xRow->getString(1) + OUString(RTL_CONSTASCII_USTRINGPARAM("_label"))),
+                    uno::UNO_QUERY );
+                xFixedText.set ( xControl, uno::UNO_QUERY );
+                if ( xControl.is() && xFixedText.is() ) {
+                    xPropFixedText.set ( xControl->getModel() , uno::UNO_QUERY );
+                    xPropFixedText->getPropertyValue(OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strTag;
+                    strInsert += strTag + OUString(RTL_CONSTASCII_USTRINGPARAM(", ")) ;
+                }
+
+                xControl.set (xControlContainer->getControl(OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante"))),
+                              uno::UNO_QUERY );
+                xFixedText.set ( xControl, uno::UNO_QUERY );
+                if ( xControl.is() && xFixedText.is() ) {
+                    xPropFixedText.set ( xControl->getModel() , uno::UNO_QUERY );
+                    xPropFixedText->getPropertyValue(OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strTag;
+                    strInsert += strTag + OUString(RTL_CONSTASCII_USTRINGPARAM(", ")) ;
+                }
+
+                // 7 Fecha
+                strInsert += OUString(RTL_CONSTASCII_USTRINGPARAM("NULL, "));
+
+                xControl.set (xControlContainer->getControl( xRow->getString(1)),
+                              uno::UNO_QUERY );
+                xText.set ( xControl, uno::UNO_QUERY );
+                if ( xControl.is() && xText.is() ) {
+                    strTag = xText->getText();
+                    strInsert += strTag + OUString(RTL_CONSTASCII_USTRINGPARAM(" )"));
+                }
             
+                xUpdate->executeUpdate( strInsert );
+            }
         }
         xButton->setLabel(OUString(RTL_CONSTASCII_USTRINGPARAM("Done")));
         xPropButton->setPropertyValue(OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), uno::makeAny(sal_False));
