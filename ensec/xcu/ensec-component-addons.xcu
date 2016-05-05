@@ -33,7 +33,7 @@
 	  <value>ENSEC</value>
 	</prop>
 	<node oor:name="Submenu">
-	  <node oor:name="bolivia.shell.ensec.submenu.Calendario" oor:op="replace">      
+	  <node oor:name="bolivia.shell.ensec.submenu.Calendario" oor:op="replace">
 	    <prop oor:name="URL" oor:type="xs:string">
 	      <value>bolivia@shell.ensec:Calendario</value>
 	    </prop>
@@ -49,7 +49,7 @@
 	      <value>Calendario Reporte ...</value>
 	    </prop>
 	  </node>
-	  <node oor:name="bolivia.shell.ensec.submenu.Notas" oor:op="replace">      
+	  <node oor:name="bolivia.shell.ensec.submenu.Notas" oor:op="replace">
 	    <prop oor:name="URL" oor:type="xs:string">
 	      <value>bolivia@shell.ensec:Notas</value>
 	    </prop>
@@ -57,7 +57,7 @@
 	      <value>Notas ...</value>
 	    </prop>
 	  </node>
-	  <node oor:name="bolivia.shell.ensec.submenu.NotasReporte" oor:op="replace">      
+	  <node oor:name="bolivia.shell.ensec.submenu.NotasReporte" oor:op="replace">
 	    <prop oor:name="URL" oor:type="xs:string">
 	      <value>bolivia@shell.ensec:ReporteNotas</value>
 	    </prop>
@@ -65,7 +65,7 @@
 	      <value>Notas Reporte...</value>
 	    </prop>
 	  </node>
-	  <node oor:name="bolivia.shell.ensec.submenu.NotasAnualReporte" oor:op="replace">      
+	  <node oor:name="bolivia.shell.ensec.submenu.NotasAnualReporte" oor:op="replace">
 	    <prop oor:name="URL" oor:type="xs:string">
 	      <value>bolivia@shell.ensec:ReporteAnualNotas</value>
 	    </prop>
@@ -73,7 +73,15 @@
 	      <value>Notas Anual Reporte...</value>
 	    </prop>
 	  </node>
-	  <node oor:name="bolivia.shell.ensec.submenu.NotasSheet" oor:op="replace">      
+	  <node oor:name="bolivia.shell.ensec.submenu.NotasInscriptos" oor:op="replace">
+	    <prop oor:name="URL" oor:type="xs:string">
+	      <value>bolivia@shell.ensec:ReporteInscriptos</value>
+	    </prop>
+	    <prop oor:name="Title" oor:type="xs:string">
+	      <value>Inscriptos...</value>
+	    </prop>
+	  </node>
+	  <node oor:name="bolivia.shell.ensec.submenu.NotasSheet" oor:op="replace">
 	    <prop oor:name="URL" oor:type="xs:string">
 	      <value>bolivia@shell.ensec:SheetNotas</value>
 	    </prop>

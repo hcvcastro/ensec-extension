@@ -118,14 +118,15 @@ protected:
     void openSheet();
     void createForm();
     //    void showMessageBox(const ::rtl::OUString & strMessage);
-    void showMessageBox(const Reference< ::com::sun::star::awt::XToolkit >& rToolkit, 
-                        const Reference< ::com::sun::star::frame::XFrame >& rFrame, 
-                        const ::rtl::OUString& aTitle, 
+    void showMessageBox(const Reference< ::com::sun::star::awt::XToolkit >& rToolkit,
+                        const Reference< ::com::sun::star::frame::XFrame >& rFrame,
+                        const ::rtl::OUString& aTitle,
                         const ::rtl::OUString& aMsgText );
     void generarCronogramaTrabajo();
     void ingresarNotas();
     void reporteNotas();
     void reporteAnualNotas();
+    void reporteInscriptos();
     void sheetNotas();
     void sheetNotas(const Reference< ::com::sun::star::sdbc::XConnection >&,
                     const Reference< ::com::sun::star::sheet::XSpreadsheet >&,
@@ -134,23 +135,23 @@ protected:
                     sal_Int32,
                     const ::rtl::OUString &);
 
-    sal_Int32 sheetNotasHeader ( const Reference< ::com::sun::star::sdbc::XConnection>& , 
+    sal_Int32 sheetNotasHeader ( const Reference< ::com::sun::star::sdbc::XConnection>& ,
                             const Reference< ::com::sun::star::sheet::XSpreadsheet >& ,
-                            sal_Int32,                                         
-                            const ::rtl::OUString& ,                                         
+                            sal_Int32,
+                            const ::rtl::OUString& ,
                                  sal_Int32,
                                  const ::rtl::OUString&);
-    void sheetNotasRow( const Reference< ::com::sun::star::sdbc::XConnection>& , 
+    void sheetNotasRow( const Reference< ::com::sun::star::sdbc::XConnection>& ,
                         const Reference< ::com::sun::star::sheet::XSpreadsheet >& ,
-                        sal_Int32 ,                                         
-                        const ::rtl::OUString& ,                                         
+                        sal_Int32 ,
+                        const ::rtl::OUString& ,
                         sal_Int32 ,
                         sal_Int32 );
 
-    void sheetNotasEstudiante ( const Reference< ::com::sun::star::sdbc::XConnection>& , 
+    void sheetNotasEstudiante ( const Reference< ::com::sun::star::sdbc::XConnection>& ,
                                 const Reference< ::com::sun::star::sheet::XSpreadsheet >& ,
-                                sal_Int32 ,                                         
-                                const ::rtl::OUString& ,                                         
+                                sal_Int32 ,
+                                const ::rtl::OUString& ,
                                 sal_Int32 ,
                                 sal_Int32 ,
                                 sal_Int32 ,
@@ -164,19 +165,22 @@ protected:
     ::rtl::OUString  getAsignatura(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection, sal_Int32 nGestion);
     ::rtl::OUString  getPlantilla(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection);
     sal_Int32 generarEncabezado( const Reference< ::com::sun::star::sdbc::XDataSource >& xDataSource,
-                           const Reference< ::com::sun::star::sheet::XSpreadsheet > & xSheet, 
-                           ::rtl::OUString &  );
+                           const Reference< ::com::sun::star::sheet::XSpreadsheet > & xSheet,
+                           ::rtl::OUString &,
+			   sal_Int32 nGestion  );
     void generarCalendario( const Reference< ::com::sun::star::sdbc::XDataSource >& xDataSource,
                             const Reference< ::com::sun::star::sheet::XSpreadsheetDocument >& xDocSheet,
                             const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet,
                             const ::rtl::OUString &,
-                            sal_Int32 nCalendarRow );
+                            sal_Int32 nCalendarRow,
+			    sal_Int32 nGestion );
     sal_Int32 generarMes( const Reference< ::com::sun::star::sdbc::XDataSource >& xDataSource,
                     const Reference< ::com::sun::star::sheet::XSpreadsheetDocument >& xDocSheet,
                     const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet,
                     const ::rtl::OUString &,
                     sal_Int32 nCalendarRow,
-                    sal_Int32 nMonth );
+                    sal_Int32 nMonth,
+		    sal_Int32 nGestion );
     void generarHeaderRow ( const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet,
                             sal_Int32 nRow );
     void generarRow( const Reference< ::com::sun::star::sheet::XSpreadsheetDocument >& xDocSheet,
@@ -184,8 +188,8 @@ protected:
                      const Reference< ::com::sun::star::sdbc::XRow >& xRow,
                      sal_Int32 nRow );
     Reference< ::com::sun::star::sheet::XSpreadsheetDocument > getDocumentSheet();
-    void mergeMonth( const Reference< ::com::sun::star::sheet::XSpreadsheetDocument >& xDocSheet, 
-                                  const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet, 
+    void mergeMonth( const Reference< ::com::sun::star::sheet::XSpreadsheetDocument >& xDocSheet,
+                                  const Reference< ::com::sun::star::sheet::XSpreadsheet >& xSheet,
                                   sal_Int32 nMonth,
                                   sal_Int32 nStartRow,
                                   sal_Int32 nEndRow
@@ -194,7 +198,7 @@ protected:
     sal_Int32 getPeriodo(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection);
 
 
-    void formularioNotas(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection, 
+    void formularioNotas(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection,
                          sal_Int32 nGetsion,
                          sal_Int32 nPeriodo,
                          ::rtl::OUString&  strAsignatura);
@@ -204,9 +208,9 @@ protected:
     void UpdateCalendar();
     OUString PickCSVFile();
 
-    Reference<com::sun::star::uno::XInterface> 
-    CreateInstance(const OUString& sService) 
-    { 
+    Reference<com::sun::star::uno::XInterface>
+    CreateInstance(const OUString& sService)
+    {
         return mxContext->getServiceManager()->createInstanceWithContext(sService, mxContext);
     }
 
@@ -217,9 +221,9 @@ protected:
     {
         Reference<com::sun::star::awt::XWindowPeer> xWindowPeer( mxFrame->getComponentWindow(), UNO_QUERY_THROW );
         Reference<com::sun::star::awt::XToolkit2> xToolkit( mxToolkit, UNO_QUERY_THROW );
-        Reference<com::sun::star::awt::XMessageBox> xMsgBox ( 
+        Reference<com::sun::star::awt::XMessageBox> xMsgBox (
                 xToolkit->createMessageBox(  xWindowPeer,
-                                             eType, 
+                                             eType,
                                              nButtons,
                                              sTitle,
                                              sMessage), UNO_QUERY_THROW);
@@ -227,55 +231,55 @@ protected:
     }
 
 public:
-    EnsecProtocolHandler(const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XComponentContext > &rxContext) : 
+    EnsecProtocolHandler(const ::com::sun::star::uno::Reference< ::com::sun::star::uno::XComponentContext > &rxContext) :
     mxContext( rxContext ) {}
     ~EnsecProtocolHandler();
 
 
   // XInitialization
-  virtual void SAL_CALL 
+  virtual void SAL_CALL
     initialize( const ::com::sun::star::uno::Sequence< ::com::sun::star::uno::Any >& aArguments )
     throw (::com::sun::star::uno::Exception, ::com::sun::star::uno::RuntimeException);
 
   // XServiceInfo
-  virtual ::rtl::OUString SAL_CALL 
+  virtual ::rtl::OUString SAL_CALL
     getImplementationName(  )
     throw (::com::sun::star::uno::RuntimeException);
 
-  virtual sal_Bool SAL_CALL 
+  virtual sal_Bool SAL_CALL
     supportsService( const ::rtl::OUString& ServiceName )
     throw (::com::sun::star::uno::RuntimeException);
 
-  virtual ::com::sun::star::uno::Sequence< ::rtl::OUString > SAL_CALL 
+  virtual ::com::sun::star::uno::Sequence< ::rtl::OUString > SAL_CALL
     getSupportedServiceNames(  )
     throw (::com::sun::star::uno::RuntimeException);
 
   // XDispatchProvider
-  virtual ::com::sun::star::uno::Reference< ::com::sun::star::frame::XDispatch >  SAL_CALL 
+  virtual ::com::sun::star::uno::Reference< ::com::sun::star::frame::XDispatch >  SAL_CALL
     queryDispatch(const ::com::sun::star::util::URL& aURL,
-		  const ::rtl::OUString& sTargetFrameName, 
+		  const ::rtl::OUString& sTargetFrameName,
 		  sal_Int32 nSearchFlags )
     throw( ::com::sun::star::uno::RuntimeException );
 
 
-  virtual ::com::sun::star::uno::Sequence < ::com::sun::star::uno::Reference< ::com::sun::star::frame::XDispatch > > SAL_CALL 
+  virtual ::com::sun::star::uno::Sequence < ::com::sun::star::uno::Reference< ::com::sun::star::frame::XDispatch > > SAL_CALL
     queryDispatches(const ::com::sun::star::uno::Sequence < ::com::sun::star::frame::DispatchDescriptor >& seqDescriptor )
     throw( ::com::sun::star::uno::RuntimeException );
 
   // XDipatch
-  virtual void SAL_CALL 
-    dispatch( const ::com::sun::star::util::URL& aURL, 
-	      const Sequence < ::com::sun::star::beans::PropertyValue >& lArgs ) 
+  virtual void SAL_CALL
+    dispatch( const ::com::sun::star::util::URL& aURL,
+	      const Sequence < ::com::sun::star::beans::PropertyValue >& lArgs )
     throw (RuntimeException);
 
-  virtual void SAL_CALL 
-    addStatusListener( const Reference< ::com::sun::star::frame::XStatusListener >& xControl, 
-		       const ::com::sun::star::util::URL& aURL ) 
+  virtual void SAL_CALL
+    addStatusListener( const Reference< ::com::sun::star::frame::XStatusListener >& xControl,
+		       const ::com::sun::star::util::URL& aURL )
     throw (RuntimeException);
 
-  virtual void SAL_CALL 
-    removeStatusListener( const Reference< ::com::sun::star::frame::XStatusListener >& xControl, 
-			  const ::com::sun::star::util::URL& aURL ) 
+  virtual void SAL_CALL
+    removeStatusListener( const Reference< ::com::sun::star::frame::XStatusListener >& xControl,
+			  const ::com::sun::star::util::URL& aURL )
     throw (RuntimeException);
 
 };
