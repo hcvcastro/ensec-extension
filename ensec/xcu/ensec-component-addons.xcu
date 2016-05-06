@@ -81,6 +81,14 @@
 	      <value>Inscriptos...</value>
 	    </prop>
 	  </node>
+	  <node oor:name="bolivia.shell.ensec.submenu.Trimestre" oor:op="replace">
+	    <prop oor:name="URL" oor:type="xs:string">
+	      <value>bolivia@shell.ensec:Trimestre</value>
+	    </prop>
+	    <prop oor:name="Title" oor:type="xs:string">
+	      <value>Trimestre...</value>
+	    </prop>
+	  </node>
 	  <node oor:name="bolivia.shell.ensec.submenu.NotasSheet" oor:op="replace">
 	    <prop oor:name="URL" oor:type="xs:string">
 	      <value>bolivia@shell.ensec:SheetNotas</value>

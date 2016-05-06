@@ -241,6 +241,10 @@
 #include <com/sun/star/sdbc/XResultSetUpdate.hpp>
 #endif
 
+#ifndef _COM_SUN_STAR_SDBC_XMULTIPLERESULT_HPP_
+#include <com/sun/star/sdbc/XMultipleResults.hpp>
+#endif
+
 #ifndef _COM_SUN_STAR_SDBC_XROWUPDATE_HPP_
 #include <com/sun/star/sdbc/XRowUpdate.hpp>
 #endif
@@ -910,14 +914,6 @@ EnsecProtocolHandler::getSupportedServiceNames(  )
 // ----------------------------------------------------------------------------------------------------
 // dispatch to process commands
 //
-/*	  <node oor:name="bolivia.shell.ensec.submenu.NotasInscriptos" oor:op="replace">
-	    <prop oor:name="URL" oor:type="xs:string">
-	      <value>bolivia@shell.ensec:ReporteInscriptos</value>
-	    </prop>
-	    <prop oor:name="Title" oor:type="xs:string">
-	      <value>Inscriptos...</value>
-	    </prop>
-	  </node>*/
 
 void SAL_CALL
 EnsecProtocolHandler::dispatch( const util::URL& aURL,
@@ -936,7 +932,10 @@ EnsecProtocolHandler::dispatch( const util::URL& aURL,
       //openSheet();
     }
     else if ( aURL.Path.equalsAsciiL( RTL_CONSTASCII_STRINGPARAM("Notas" ) ) ) {
-      ingresarNotas();
+    	ingresarNotas();
+    }
+    else if ( aURL.Path.equalsAsciiL( RTL_CONSTASCII_STRINGPARAM("Trimestre"))) {
+    	habilitarTrimestre();
     }
     else if ( aURL.Path.equalsAsciiL( RTL_CONSTASCII_STRINGPARAM("ReporteNotas" ) ) ) {
         reporteNotas();
@@ -1584,6 +1583,265 @@ EnsecProtocolHandler::reporteInscriptos()
                      }
 }
 
+
+void
+EnsecProtocolHandler::habilitarTrimestre()
+{
+    // get Data Source ensec
+    Reference<sdbc::XDataSource> xDataSource = getDataSource();
+
+    if (!xDataSource.is()) {
+        showMessageBox (mxToolkit, mxFrame,
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("La base de datos ensec no esta registrado!")));
+        return;
+    }
+
+    Reference<sdbc::XConnection> xConnection ( xDataSource->getConnection( OUString(RTL_CONSTASCII_USTRINGPARAM("")), OUString(RTL_CONSTASCII_USTRINGPARAM(""))), uno::UNO_QUERY_THROW );
+
+
+    // connect database
+    if (!xConnection.is()) {
+        showMessageBox (mxToolkit, mxFrame,
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("No se puede connectar a al base de datos ensec!")));
+        return;
+    }
+
+    // get gestion data
+    sal_Int32 nGestion = getGestion(xConnection);
+    if (nGestion == -1) {
+        showMessageBox (mxToolkit, mxFrame,
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("La gestion no ha sido seleccionado!")));
+        return;
+    }
+
+    // get Asignatura
+    OUString strAsignatura = getAsignatura(xConnection, nGestion);
+    if ( strAsignatura.getLength() == 0) {
+        showMessageBox (mxToolkit, mxFrame,
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("La Asignatura no ha sido seleccionada!")));
+        return;
+    }
+
+    // get periodo data
+    sal_Int32 nPeriodo = getPeriodo(xConnection);
+    if (nPeriodo == -1) {
+        showMessageBox (mxToolkit, mxFrame,
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("El periodo no ha sido seleccionado!")));
+        return;
+    }
+
+    ingresarTrimestre(xConnection, nGestion, nPeriodo, strAsignatura);
+}
+
+void
+EnsecProtocolHandler::ingresarTrimestre(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection,
+                                        sal_Int32 nGestion,
+                                        sal_Int32 nPeriodo,
+                                        ::rtl::OUString& strAsignatura)
+{
+    //SELECT COUNT(*) AS TOTAL FROM EVALUACION WHERE GESTION=2014 AND PERIODO=3 AND ASIGNATURA='BDD-302'
+    OUString strSQL = OUString("SELECT * FROM EVALUACION WHERE GESTION=") +
+        OUString::number(nGestion) +
+        OUString(" AND PERIODO=") +
+        OUString::number(nPeriodo) +
+        OUString(" AND ASIGNATURA='") +
+        strAsignatura +
+        OUString("'");
+
+    Reference<sdbc::XStatement> xStatement ( xConnection->createStatement(), uno::UNO_QUERY);
+    if (!xStatement.is())
+    {
+        showMessageBox (mxToolkit, mxFrame,
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("xConnection->createStatement")));
+        return;
+    }
+
+    Reference<sdbc::XResultSet> xResultSet ( xStatement->executeQuery(strSQL), uno::UNO_QUERY );
+    if (!xResultSet.is())
+    {
+        showMessageBox (mxToolkit, mxFrame,
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+                        OUString(strSQL));
+        return;
+    }
+
+    int nRows = 0;
+    while (xResultSet->next())
+    {
+        nRows++;
+    }
+
+    if (nRows)
+    {
+        showMessageBox (mxToolkit, mxFrame,
+            OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+            OUString(RTL_CONSTASCII_USTRINGPARAM("Las evaluaciones del trimestre fueron asignados")));
+
+        return;
+    }
+
+    try
+    {
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Prácticos', '', 100, 20, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Primer Parcial', '', 100, 15, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Segundo Parcial', '', 100, 15, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Tercer Parcial', '', 100, 15, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Evaluación Oral', '', 5, 5, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Forma Presentación Práctico', '', 5, 5, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Forma Presentación Cuaderno', '', 5, 5, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Organización y Trabajo en Equipo', '', 5, 5, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Participación en Clase', '', 5, 5, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Asistencia', '', 2, 2, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Puntualidad y Responsabilidad', '', 2, 2, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Solidaridad y Compañerismo', '', 2, 2, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Respeto al Docente y Compañeros', '', 2, 2, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Autoevaluación', '', 2, 2, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+    }
+    catch (const sdbc::SQLException& rError)
+    {
+        showMessageBox (mxToolkit, mxFrame,
+            OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+            OUString(rError.Message) + OUString(" ") + strSQL);
+
+        return;
+    }
+
+    showMessageBox (mxToolkit, mxFrame,
+        OUString(RTL_CONSTASCII_USTRINGPARAM("Exito!")),
+        OUString(RTL_CONSTASCII_USTRINGPARAM("Trimestre Registrado")));
+}
 
 void
 EnsecProtocolHandler::ingresarNotas()
@@ -3176,3 +3434,5 @@ EnsecProtocolHandler::removeStatusListener( const Reference< frame::XStatusListe
     xControl.is();
     aURL.Complete.isEmpty();
 }
+
+/* vim:set shiftwidth=4 softtabstop=4 expandtab: */

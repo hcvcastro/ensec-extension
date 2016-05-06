@@ -203,8 +203,11 @@ protected:
                          sal_Int32 nPeriodo,
                          ::rtl::OUString&  strAsignatura);
 
-
-
+    void habilitarTrimestre();
+    void ingresarTrimestre(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection,
+			 sal_Int32 nGestion,
+			 sal_Int32 nPeriodo,
+			 ::rtl::OUString& strAsignatura);
     void UpdateCalendar();
     OUString PickCSVFile();
 
