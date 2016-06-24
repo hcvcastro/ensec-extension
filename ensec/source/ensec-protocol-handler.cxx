@@ -567,7 +567,6 @@ protected:
 
 };
 
-
 void SAL_CALL EditHandler::textChanged(const awt::TextEvent& rEvent) throw( uno::RuntimeException )
 {
     util::Color clrGreenColor = 0x0000FF00;
@@ -716,6 +715,165 @@ void SAL_CALL EditHandler::disposing( const lang::EventObject& /*Source*/ ) thro
 {
   // not interested in
 }
+
+class EstudianteHandler : public EditHandlerBase
+{
+private:
+    Reference <sdbc::XConnection> mxConnection;
+    Reference <awt::XDialog> mxDialog;
+    sal_Int32 mnGestion;
+    sal_Int32 mnPeriodo;
+    OUString mstrAsignatura;
+
+public:
+    EstudianteHandler( const Reference<sdbc::XConnection>& aConnection,
+                    const Reference <awt::XDialog>& aDialog,
+                    sal_Int32 aGestion,
+                    sal_Int32 aPeriodo,
+                    OUString astrAsignatura ) : mxConnection(aConnection), mxDialog(aDialog), mnGestion(aGestion), mnPeriodo(aPeriodo), mstrAsignatura(astrAsignatura) {};
+protected:
+  virtual void SAL_CALL textChanged(const awt::TextEvent& rEvent) throw( uno::RuntimeException )
+  {
+        util::Color clrGreenColor = 0x0000FF00;
+        util::Color clrRedColor = 0x00FF0000;
+        sal_Int32 nIDEstudiante = -1;
+        sal_Int32 nIDInscripcion = -1;
+        bool bNull = false;
+
+        Reference <awt::XControlContainer> xControlContainer ( mxDialog, uno::UNO_QUERY_THROW );
+        Reference <awt::XTextComponent> xText ( rEvent.Source , uno::UNO_QUERY_THROW );
+        Reference <awt::XTextComponent> xEditText;
+        Reference <awt::XFixedText> xFixedText (xControlContainer->getControl(OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante"))), uno::UNO_QUERY_THROW );
+        Reference <awt::XControl> xControl ( xFixedText, uno::UNO_QUERY_THROW );
+        Reference <beans::XPropertySet> xPropTextModel ( xControl->getModel() , uno::UNO_QUERY_THROW );
+        Reference <awt::XFixedText> xFixedIns ( xControlContainer->getControl( OUString(RTL_CONSTASCII_USTRINGPARAM("txtInscrito"))), uno::UNO_QUERY_THROW);
+        Reference <awt::XControl> xCtrlFixedIns ( xFixedIns, uno::UNO_QUERY_THROW );
+        Reference <beans::XPropertySet> xPropFixedIns ( xCtrlFixedIns->getModel(), uno::UNO_QUERY_THROW );
+
+        OUString strSQL = OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT ESTUDIANTE.NOMBRE, ESTUDIANTE.ESTUDIANTE_ID, INSCRIPCION.ESTUDIANTE FROM ESTUDIANTE LEFT OUTER JOIN INSCRIPCION ON INSCRIPCION.GESTION="))
+            + OUString::number(mnGestion)
+            + OUString(RTL_CONSTASCII_USTRINGPARAM(" AND INSCRIPCION.ASIGNATURA='"))
+            + mstrAsignatura
+            + OUString(RTL_CONSTASCII_USTRINGPARAM("' AND INSCRIPCION.ESTUDIANTE = ESTUDIANTE.ESTUDIANTE_ID WHERE "))
+            + OUString(RTL_CONSTASCII_USTRINGPARAM("ESTUDIANTE.NOMBRE LIKE '%"))
+            + xText->getText().toAsciiUpperCase()
+            + OUString(RTL_CONSTASCII_USTRINGPARAM("%'"));
+
+        Reference<sdbc::XStatement> xStatement ( mxConnection->createStatement(), uno::UNO_QUERY_THROW );
+        Reference<sdbc::XResultSet> xResultSet ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
+        Reference<sdbc::XRow> xRow ( xResultSet, uno::UNO_QUERY_THROW );
+
+        OUString strFound = OUString(RTL_CONSTASCII_USTRINGPARAM("ESTUDIANTE NO ENCONTRADO!"));
+        sal_Int32 nCounter = 0;
+
+        while ( xResultSet->next() ) {
+            if ( xResultSet->isFirst())
+                strFound = xRow->getString(1);
+            else
+                strFound += OUString(RTL_CONSTASCII_USTRINGPARAM(" ")) + xRow->getString(1);
+
+            nIDEstudiante = xRow->getInt(2);
+            nIDInscripcion = xRow->getInt(3);
+            bNull = xRow->wasNull();
+            nCounter++;
+        }
+
+        OUString strTag;
+        Reference <awt::XButton> xButton ( xControlContainer->getControl( OUString(RTL_CONSTASCII_USTRINGPARAM("btnInscribir"))), uno::UNO_QUERY_THROW);
+        Reference <awt::XControl> xCtrlButton ( xButton, uno::UNO_QUERY_THROW );
+        Reference <beans::XPropertySet> xPropButton ( xCtrlButton->getModel(), uno::UNO_QUERY_THROW );
+
+        if (nCounter == 1 && bNull) {
+            xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("TextColor")), uno::makeAny(clrGreenColor) );
+            xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), uno::makeAny(strFound));
+            xPropFixedIns->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("TextColor")), uno::makeAny(clrGreenColor) );
+            xPropFixedIns->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(strFound) );
+            xPropButton->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), uno::makeAny(OUString::number(nIDEstudiante)) );
+            xPropButton->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), uno::makeAny( sal_True ) );
+        }
+        else  {
+            xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("TextColor")), uno::makeAny(clrRedColor) );
+            xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), uno::makeAny(OUString()));
+            xPropFixedIns->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("TextColor")), uno::makeAny(clrRedColor) );
+            xPropFixedIns->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(strFound) );
+            xPropButton->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), uno::makeAny(OUString()) );
+            xPropButton->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), uno::makeAny( sal_False ) );
+        }
+        xFixedText->setText(strFound);
+  }
+
+  // XEventListener
+  virtual void SAL_CALL disposing( const lang::EventObject& /*Source*/ ) throw (RuntimeException)
+  {
+
+  }
+};
+
+class InscribirHandler : public ClickHandlerBase
+{
+private:
+    Reference <sdbc::XConnection> mxConnection;
+    Reference <awt::XDialog> mxDialog;
+    sal_Int32 mnGestion;
+    sal_Int32 mnPeriodo;
+    OUString mstrAsignatura;
+
+public:
+    InscribirHandler( const Reference<sdbc::XConnection>& aConnection,
+                    const Reference <awt::XDialog>& aDialog,
+                    sal_Int32 aGestion,
+                    sal_Int32 aPeriodo,
+                    OUString astrAsignatura ) : mxConnection(aConnection), mxDialog(aDialog), mnGestion(aGestion), mnPeriodo(aPeriodo), mstrAsignatura(astrAsignatura) {};
+protected:
+  virtual void SAL_CALL actionPerformed( const awt::ActionEvent& /*rEvent*/ ) throw (RuntimeException)
+  {
+        util::Color clrGreenColor = 0x0000FF00;
+        util::Color clrRedColor = 0x00FF0000;
+        OUString strID;
+        OUString strNombre;
+        Reference <awt::XControlContainer> xControlContainer ( mxDialog, uno::UNO_QUERY_THROW );
+        Reference <awt::XButton> xButton ( xControlContainer->getControl( OUString(RTL_CONSTASCII_USTRINGPARAM("btnInscribir"))), uno::UNO_QUERY_THROW);
+        Reference <awt::XControl> xCtrlButton ( xButton, uno::UNO_QUERY_THROW );
+        Reference <beans::XPropertySet> xPropButton ( xCtrlButton->getModel(), uno::UNO_QUERY_THROW );
+        xPropButton->getPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strID;
+
+        Reference <awt::XFixedText> xFixedText (xControlContainer->getControl(OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante"))), uno::UNO_QUERY_THROW );
+        Reference <awt::XControl> xCtrlFixedText ( xFixedText, uno::UNO_QUERY_THROW );
+        Reference <beans::XPropertySet> xPropFixedText ( xCtrlFixedText->getModel() , uno::UNO_QUERY_THROW );
+        xPropFixedText->getPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Tag"))) >>= strNombre;
+
+        OUString strSQL = OUString("INSERT INTO INSCRIPCION VALUES (") +
+            OUString::number(mnGestion) +
+            OUString(", '") +
+            mstrAsignatura +
+            OUString("', ") +
+            strID +
+            OUString(", NULL, 'ACTIVO')");
+
+        Reference <awt::XFixedText> xFixedIns ( xControlContainer->getControl( OUString(RTL_CONSTASCII_USTRINGPARAM("txtInscrito"))), uno::UNO_QUERY_THROW);
+        Reference <awt::XControl> xCtrlFixedIns ( xFixedIns, uno::UNO_QUERY_THROW );
+        Reference <beans::XPropertySet> xPropFixedIns ( xCtrlFixedIns->getModel(), uno::UNO_QUERY_THROW );
+
+        try
+        {
+            Reference<sdbc::XStatement> xStatement ( mxConnection->createStatement(), uno::UNO_QUERY_THROW );
+            xStatement->execute( strSQL );
+            xPropFixedIns->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("TextColor")), uno::makeAny(clrGreenColor) );
+            xPropFixedIns->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(strID + OUString(" ") + strNombre) );
+        }
+        catch (const sdbc::SQLException& rError)
+        {
+            xPropFixedIns->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("TextColor")), uno::makeAny(clrRedColor) );
+            xPropFixedIns->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(OUString("Error ") + strSQL) );
+        }
+  }
+
+  // XEventListener
+  virtual void SAL_CALL disposing( const lang::EventObject& /*Source*/ ) throw (RuntimeException)
+  {
+
+  }
+};
 
 
 class NotaHandler : public EditHandlerBase
@@ -936,6 +1094,9 @@ EnsecProtocolHandler::dispatch( const util::URL& aURL,
     }
     else if ( aURL.Path.equalsAsciiL( RTL_CONSTASCII_STRINGPARAM("Trimestre"))) {
     	habilitarTrimestre();
+    }
+    else if ( aURL.Path.equalsAsciiL( RTL_CONSTASCII_STRINGPARAM("Inscripcion"))) {
+    	registrarInscripcion();
     }
     else if ( aURL.Path.equalsAsciiL( RTL_CONSTASCII_STRINGPARAM("ReporteNotas" ) ) ) {
         reporteNotas();
@@ -1583,7 +1744,6 @@ EnsecProtocolHandler::reporteInscriptos()
                      }
 }
 
-
 void
 EnsecProtocolHandler::habilitarTrimestre()
 {
@@ -1896,9 +2056,63 @@ EnsecProtocolHandler::ingresarNotas()
     }
 
     formularioNotas( xConnection, nGestion, nPeriodo, strAsignatura );
-
-    //showMessageBox (OUString(RTL_CONSTASCII_USTRINGPARAM("Notas Ingresado! ")) + strAsignatura); // OUString::valueOf(nGestion));
 }
+
+void
+EnsecProtocolHandler::registrarInscripcion()
+{
+    // get Data Source ensec
+    Reference<sdbc::XDataSource> xDataSource = getDataSource();
+
+    if (!xDataSource.is()) {
+        showMessageBox (mxToolkit, mxFrame,
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("La base de datos ensec no esta registrado!")));
+        return;
+    }
+
+    Reference<sdbc::XConnection> xConnection ( xDataSource->getConnection( OUString(RTL_CONSTASCII_USTRINGPARAM("")), OUString(RTL_CONSTASCII_USTRINGPARAM(""))), uno::UNO_QUERY_THROW );
+
+
+    // connect database
+    if (!xConnection.is()) {
+        showMessageBox (mxToolkit, mxFrame,
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("No se puede connectar a al base de datos ensec!")));
+        return;
+    }
+
+
+    // get gestion data
+    sal_Int32 nGestion = getGestion(xConnection);
+    if (nGestion == -1) {
+        showMessageBox (mxToolkit, mxFrame,
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("La gestion no ha sido seleccionado!")));
+        return;
+    }
+
+    // get Asignatura
+    OUString strAsignatura = getAsignatura(xConnection, nGestion);
+    if ( strAsignatura.getLength() == 0) {
+        showMessageBox (mxToolkit, mxFrame,
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("La Asignatura no ha sido seleccionada!")));
+        return;
+    }
+
+    // get periodo data
+    /*sal_Int32 nPeriodo = getPeriodo(xConnection);
+    if (nPeriodo == -1) {
+        showMessageBox (mxToolkit, mxFrame,
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("Error!")),
+                        OUString(RTL_CONSTASCII_USTRINGPARAM("El periodo no ha sido seleccionado!")));
+        return;
+    }*/
+
+    formularioInscripcion( xConnection, nGestion, -1, strAsignatura );
+}
+
 
 void
 EnsecProtocolHandler::generarCronogramaTrabajo()
@@ -2517,12 +2731,9 @@ EnsecProtocolHandler::formularioNotas(const Reference<sdbc::XConnection>& xConne
         xPropTextModel->setPropertyValue(OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(OUString(RTL_CONSTASCII_USTRINGPARAM(" = "))));
         xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), uno::makeAny(OUString::number( xRow->getFloat(7) / xRow->getFloat(6) )));
 
-
         xNameContainer->insertByName(xRow->getString(4) + OUString(RTL_CONSTASCII_USTRINGPARAM("_nota")) , uno::makeAny(xTextModel));
-
         nYPos += nYOffset;
-
-	}
+    }
 
     xTextModel.set (xSMDialog->createInstance(OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))),
                     uno::UNO_QUERY_THROW);
@@ -2633,7 +2844,154 @@ EnsecProtocolHandler::formularioNotas(const Reference<sdbc::XConnection>& xConne
     xDispose->dispose();
 }
 
+void
+EnsecProtocolHandler::formularioInscripcion(const Reference<sdbc::XConnection>& xConnection,
+                                            sal_Int32 nGestion,
+                                            sal_Int32 nPeriodo,
+                                            OUString&  strAsignatura)
+{
+    OUString strTitle;
+    Reference<lang::XMultiComponentFactory> xServiceManager ( mxContext->getServiceManager(), uno::UNO_QUERY_THROW );
+    Reference <uno::XInterface> xDialogModel (xServiceManager->createInstanceWithContext(OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialogModel")), mxContext), uno::UNO_QUERY_THROW );
+    Reference <beans::XPropertySet> xPropDlg ( xDialogModel, uno::UNO_QUERY_THROW );
+    Reference <container::XNameContainer> xNameContainer ( xDialogModel, uno::UNO_QUERY_THROW );
 
+    xPropDlg->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(250)) );
+    xPropDlg->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(200)) );
+    xPropDlg->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Title")), uno::makeAny(OUString(RTL_CONSTASCII_USTRINGPARAM("Formulario Inscripcion"))) );
+
+    Reference<lang::XMultiServiceFactory> xSMDialog ( xDialogModel, uno::UNO_QUERY_THROW);
+
+    // Label
+    Reference<uno::XInterface> xTextModel (xSMDialog->createInstance(OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropTextModel ( xTextModel , uno::UNO_QUERY_THROW );
+
+    strTitle = OUString::number(nGestion) + OUString(RTL_CONSTASCII_USTRINGPARAM(" ")) +
+        strAsignatura + OUString(RTL_CONSTASCII_USTRINGPARAM(" ")) +
+        OUString::number(nPeriodo);
+
+    xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(10)) );
+    xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(70)) );
+    xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(strTitle) );
+    xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(OUString(RTL_CONSTASCII_USTRINGPARAM("txtAsignatura"))) );
+
+    xNameContainer->insertByName(OUString(RTL_CONSTASCII_USTRINGPARAM("txtAsignatura")), uno::makeAny(xTextModel));
+
+    // Edit Ok
+    Reference<uno::XInterface> xEditModel (xSMDialog->createInstance(OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlEditModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropEditModel ( xEditModel , uno::UNO_QUERY_THROW );
+
+    xPropEditModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropEditModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(25)) );
+    xPropEditModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(70)) );
+    xPropEditModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropEditModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(OUString(RTL_CONSTASCII_USTRINGPARAM("editEstudiante"))) );
+
+    xNameContainer->insertByName(OUString(RTL_CONSTASCII_USTRINGPARAM("editEstudiante")), uno::makeAny(xEditModel));
+
+    // Label
+    xTextModel.set (xSMDialog->createInstance(OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), uno::UNO_QUERY_THROW);
+    xPropTextModel.set ( xTextModel , uno::UNO_QUERY_THROW );
+
+    xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(45)) );
+    xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(150)) );
+    xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(strAsignatura) );
+    xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante"))) );
+
+    xNameContainer->insertByName(OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante")), uno::makeAny(xTextModel));
+
+    // GroupBox OK
+    Reference<uno::XInterface> xGroupBoxModel (xSMDialog->createInstance(OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlGroupBoxModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropGroupBoxModel (xGroupBoxModel, uno::UNO_QUERY_THROW);
+
+    xPropGroupBoxModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropGroupBoxModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(55)) );
+    xPropGroupBoxModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(200)) );
+    xPropGroupBoxModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(100)) );
+    xPropGroupBoxModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Name")),
+                                           uno::makeAny(OUString(RTL_CONSTASCII_USTRINGPARAM("containerNotas"))) );
+    xPropGroupBoxModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(OUString(RTL_CONSTASCII_USTRINGPARAM("Inscripcion")))  );
+
+    xNameContainer->insertByName(OUString(RTL_CONSTASCII_USTRINGPARAM("grpNotas")), uno::makeAny(xGroupBoxModel));
+
+    Reference<uno::XInterface> xTxtInscripcionModel (xSMDialog->createInstance(OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlFixedTextModel"))), uno::UNO_QUERY_THROW);
+    xPropTextModel.set (xTxtInscripcionModel , uno::UNO_QUERY_THROW );
+
+    xPropTextModel->setPropertyValue(OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(40)));
+    xPropTextModel->setPropertyValue(OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(65)));
+    xPropTextModel->setPropertyValue(OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(180)));
+    xPropTextModel->setPropertyValue(OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(90)));
+    xPropTextModel->setPropertyValue(OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(OUString(RTL_CONSTASCII_USTRINGPARAM("txtInscrito"))) );
+    xPropTextModel->setPropertyValue(OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(OUString("Esto es una prueba")));
+    //xPropTextModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), uno::makeAny(OUString::number(xRow->getInt(1))));
+
+    xNameContainer->insertByName(OUString(RTL_CONSTASCII_USTRINGPARAM("txtInscrito")), uno::makeAny(xTxtInscripcionModel));
+
+    // Button Inscribir
+    Reference<uno::XInterface> xButtonModel (xSMDialog->createInstance(OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), uno::UNO_QUERY_THROW);
+    Reference <beans::XPropertySet> xPropButtonModel ( xButtonModel , uno::UNO_QUERY_THROW );
+
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35)) );
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(165)) );
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(50)) );
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(OUString(RTL_CONSTASCII_USTRINGPARAM("btnInscribir"))) );
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), uno::makeAny(sal_Int8(0)) );
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(OUString(RTL_CONSTASCII_USTRINGPARAM("Inscribir"))) );
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Tag")), uno::makeAny(OUString(RTL_CONSTASCII_USTRINGPARAM("Inscribir"))));
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), uno::makeAny( sal_False ) );
+
+    xNameContainer->insertByName(OUString(RTL_CONSTASCII_USTRINGPARAM("btnInscribir")), uno::makeAny(xButtonModel));
+
+    // Button Salir
+    xButtonModel.set (xSMDialog->createInstance(OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlButtonModel"))), uno::UNO_QUERY_THROW);
+    xPropButtonModel.set ( xButtonModel , uno::UNO_QUERY_THROW );
+
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("PositionX")), uno::makeAny(sal_Int16(35 + 50 + 5)) );
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("PositionY")), uno::makeAny(sal_Int16(165)) );
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Width")), uno::makeAny(sal_Int16(50)) );
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Height")), uno::makeAny(sal_Int16(14)) );
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Name")), uno::makeAny(OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))) );
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("TabIndex")), uno::makeAny(sal_Int8(0)) );
+    xPropButtonModel->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Label")), uno::makeAny(OUString(RTL_CONSTASCII_USTRINGPARAM("Salir"))) );
+
+    xNameContainer->insertByName(OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK")), uno::makeAny(xButtonModel));
+
+    Reference <uno::XInterface> xDialog (xServiceManager->createInstanceWithContext(OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.UnoControlDialog")), mxContext), uno::UNO_QUERY_THROW );
+
+    Reference <awt::XControl> xControl ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XControlModel> xControlModel ( xDialogModel, uno::UNO_QUERY_THROW );
+    xControl->setModel(xControlModel);
+
+    Reference <awt::XToolkit> xToolkit (xServiceManager->createInstanceWithContext(OUString(RTL_CONSTASCII_USTRINGPARAM("com.sun.star.awt.Toolkit")), mxContext), uno::UNO_QUERY_THROW );
+
+    Reference <awt::XWindow> xWindow ( xControl, uno::UNO_QUERY_THROW );
+    xWindow->setVisible( sal_True );
+    xControl->createPeer( xToolkit, 0 );
+
+    Reference <awt::XControlContainer> xControlContainer ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XButton> xSalir ( xControlContainer->getControl(OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))), uno::UNO_QUERY_THROW );
+    Reference <awt::XButton> xInscribir ( xControlContainer->getControl(OUString(RTL_CONSTASCII_USTRINGPARAM("btnInscribir"))), uno::UNO_QUERY_THROW );
+    Reference <awt::XTextComponent> xEstudiante ( xControlContainer->getControl(OUString(RTL_CONSTASCII_USTRINGPARAM("editEstudiante"))), uno::UNO_QUERY_THROW );
+
+    Reference <awt::XDialog> xDlg ( xDialog, uno::UNO_QUERY_THROW );
+    Reference <awt::XActionListener> xActionSalir( new ClickHandler( xDlg ) );
+    Reference <awt::XTextListener> xActionEstudiante( new EstudianteHandler( xConnection, xDlg, nGestion, nPeriodo, strAsignatura ) );
+    Reference <awt::XActionListener> xActionInscribir( new InscribirHandler( xConnection, xDlg, nGestion, nPeriodo, strAsignatura ) );
+
+    xSalir->addActionListener( xActionSalir );
+    xInscribir->addActionListener( xActionInscribir );
+    xEstudiante->addTextListener( xActionEstudiante );
+
+    xDlg->execute();
+
+    Reference <lang::XComponent> xDispose ( xDialog, uno::UNO_QUERY_THROW );
+    xDispose->dispose();
+}
 
 sal_Int32
 EnsecProtocolHandler::getGestion(const Reference<sdbc::XConnection>& xConnection)
