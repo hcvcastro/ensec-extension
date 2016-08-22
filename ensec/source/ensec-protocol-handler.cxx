@@ -1862,6 +1862,36 @@ EnsecProtocolHandler::ingresarTrimestre(const Reference< ::com::sun::star::sdbc:
             strAsignatura +
             OUString("', ") +
             OUString::number(nPeriodo) +
+            OStringToOUString(", 'Primer Parcial', '', 100, 20, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Segundo Parcial', '', 100, 20, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
+            OStringToOUString(", 'Tercer Parcial', '', 100, 20, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OUString::number(nGestion) +
+            OUString(")");
+
+        xStatement->executeQuery(strSQL);
+
+/*       strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
+            strAsignatura +
+            OUString("', ") +
+            OUString::number(nPeriodo) +
             OStringToOUString(", 'Primer Parcial', '', 100, 15, NULL, ", RTL_TEXTENCODING_UTF8) +
             OUString::number(nGestion) +
             OUString(")");
@@ -1896,13 +1926,13 @@ EnsecProtocolHandler::ingresarTrimestre(const Reference< ::com::sun::star::sdbc:
             OUString::number(nGestion) +
             OUString(")");
 
-        xStatement->executeQuery(strSQL);
+        xStatement->executeQuery(strSQL);*/
 
        strSQL = OUString("INSERT INTO EVALUACION VALUES (NULL, '") +
             strAsignatura +
             OUString("', ") +
             OUString::number(nPeriodo) +
-            OStringToOUString(", 'Forma Presentación Práctico', '', 5, 5, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OStringToOUString(", 'Forma Presentación Práctico', '', 2, 2, NULL, ", RTL_TEXTENCODING_UTF8) +
             OUString::number(nGestion) +
             OUString(")");
 
@@ -1912,7 +1942,7 @@ EnsecProtocolHandler::ingresarTrimestre(const Reference< ::com::sun::star::sdbc:
             strAsignatura +
             OUString("', ") +
             OUString::number(nPeriodo) +
-            OStringToOUString(", 'Forma Presentación Cuaderno', '', 5, 5, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OStringToOUString(", 'Forma Presentación Cuaderno', '', 2, 2, NULL, ", RTL_TEXTENCODING_UTF8) +
             OUString::number(nGestion) +
             OUString(")");
 
@@ -1922,7 +1952,7 @@ EnsecProtocolHandler::ingresarTrimestre(const Reference< ::com::sun::star::sdbc:
             strAsignatura +
             OUString("', ") +
             OUString::number(nPeriodo) +
-            OStringToOUString(", 'Organización y Trabajo en Equipo', '', 5, 5, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OStringToOUString(", 'Organización y Trabajo en Equipo', '', 2, 2, NULL, ", RTL_TEXTENCODING_UTF8) +
             OUString::number(nGestion) +
             OUString(")");
 
@@ -1932,7 +1962,7 @@ EnsecProtocolHandler::ingresarTrimestre(const Reference< ::com::sun::star::sdbc:
             strAsignatura +
             OUString("', ") +
             OUString::number(nPeriodo) +
-            OStringToOUString(", 'Participación en Clase', '', 5, 5, NULL, ", RTL_TEXTENCODING_UTF8) +
+            OStringToOUString(", 'Participación en Clase', '', 4, 4, NULL, ", RTL_TEXTENCODING_UTF8) +
             OUString::number(nGestion) +
             OUString(")");
 
