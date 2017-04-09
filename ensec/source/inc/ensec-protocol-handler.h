@@ -136,6 +136,12 @@ protected:
                     sal_Int32,
                     const ::rtl::OUString &);
 
+    void importCalendar();
+    void importCalendar(const Reference< ::com::sun::star::sdbc::XConnection >&,
+			const sal_Int32,
+			const ::rtl::OUString&,
+			const ::rtl::OUString&);
+
     sal_Int32 sheetNotasHeader ( const Reference< ::com::sun::star::sdbc::XConnection>& ,
                             const Reference< ::com::sun::star::sheet::XSpreadsheet >& ,
                             sal_Int32,
@@ -164,6 +170,9 @@ protected:
 
     Reference< ::com::sun::star::sheet::XSpreadsheet > getCurrentSheet();
     ::rtl::OUString  getAsignatura(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection, sal_Int32 nGestion);
+    ::rtl::OUString  getCalendarAsignatura(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection, sal_Int32 nGestion);
+    ::rtl::OUString  getFileURL();
+
     ::rtl::OUString  getPlantilla(const Reference< ::com::sun::star::sdbc::XConnection >& xConnection);
     sal_Int32 generarEncabezado( const Reference< ::com::sun::star::sdbc::XDataSource >& xDataSource,
                            const Reference< ::com::sun::star::sheet::XSpreadsheet > & xSheet,

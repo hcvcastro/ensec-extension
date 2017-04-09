@@ -105,6 +105,14 @@
 	      <value>Notas Sheet...</value>
 	    </prop>
 	  </node>
+	  <node oor:name="bolivia.shell.ensec.submenu.ImportCalendar" oor:op="replace">
+	    <prop oor:name="URL" oor:type="xs:string">
+	      <value>bolivia@shell.ensec:ImportCalendar</value>
+	    </prop>
+	    <prop oor:name="Title" oor:type="xs:string">
+	      <value>Importar Calendario...</value>
+	    </prop>
+	  </node>
 	</node>
       </node>
     </node>
