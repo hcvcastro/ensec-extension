@@ -26,9 +26,11 @@
  *
  ************************************************************************/
 #include <iostream>
+#include <ctime>
 #include <stdio.h>
 #include "osl/module.hxx"
 #include "cppuhelper/bootstrap.hxx"
+#include <cppuhelper/implbase2.hxx>
 #include <rtl/ustrbuf.hxx>
 #include <com/sun/star/lang/XMultiServiceFactory.hpp>
 #include "ensec-component-export.h"
@@ -322,6 +324,15 @@
 #include <com/sun/star/io/TextInputStream.hpp>
 #endif
 
+#ifndef _COM_SUN_STAR_IO_XPREPAREDSTATEMENT_HPP_
+#include <com/sun/star/sdbc/XPreparedStatement.hpp>
+#endif
+
+#ifndef _COM_SUN_STAR_AWT_KEY_HPP_
+#include <com/sun/star/awt/Key.hpp>
+#endif
+
+
 namespace uno = com::sun::star::uno;
 namespace frame = com::sun::star::frame;
 namespace util = com::sun::star::util;
@@ -347,6 +358,7 @@ typedef uno::Reference<sax::XDocumentHandler> pFuncImportDialogModel (
 
 typedef ::cppu::WeakImplHelper1 <awt::XActionListener> ClickHandlerBase;
 typedef ::cppu::WeakImplHelper1 <awt::XTextListener> EditHandlerBase;
+typedef ::cppu::WeakImplHelper2 <awt::XTextListener, awt::XKeyListener> KeyHandlerBase;
 
 class ClickHandler : public ClickHandlerBase
 {
@@ -565,7 +577,7 @@ void SAL_CALL UpdateHandler::disposing( const lang::EventObject& /*Source*/ ) th
 
 
 
-class EditHandler : public EditHandlerBase
+class EditHandler : public KeyHandlerBase
 {
 private:
     Reference <sdbc::XConnection> mxConnection;
@@ -581,14 +593,35 @@ public:
                  sal_Int32 aPeriodo,
                  OUString astrAsignatura ) : mxConnection(aConnection), mxDialog(aDialog), mnGestion(aGestion), mnPeriodo(aPeriodo), mstrAsignatura(astrAsignatura) {};
 protected:
-  // XTextListener           -> modify setzen
-  virtual void SAL_CALL textChanged(const awt::TextEvent& rEvent) throw( uno::RuntimeException );
-  // XEventListener
-  virtual void SAL_CALL disposing( const lang::EventObject& Source ) throw (RuntimeException);
-
+    // XTextListener           -> modify setzen
+    virtual void SAL_CALL textChanged(const awt::TextEvent& rEvent) throw( uno::RuntimeException );
+    // XEventListener
+    virtual void SAL_CALL disposing( const lang::EventObject& Source ) throw (RuntimeException);
+    // XKeyListener
+    virtual void SAL_CALL keyPressed( const ::css::awt::KeyEvent& e ) throw (RuntimeException);
+    virtual void SAL_CALL keyReleased( const ::css::awt::KeyEvent& e ) throw (RuntimeException);
+    void doSearch();
 };
 
-void SAL_CALL EditHandler::textChanged(const awt::TextEvent& rEvent) throw( uno::RuntimeException )
+void SAL_CALL EditHandler::keyPressed( const ::css::awt::KeyEvent& /*e*/ ) throw (RuntimeException)
+{
+
+}
+
+void SAL_CALL EditHandler::keyReleased( const ::css::awt::KeyEvent& e ) throw (RuntimeException)
+{
+    if (e.KeyCode == awt::Key::RETURN)
+    {
+        doSearch();
+    }
+}
+
+void SAL_CALL EditHandler::textChanged(const awt::TextEvent& /*rEvent*/) throw( uno::RuntimeException )
+{
+
+}
+
+void EditHandler::doSearch()
 {
     util::Color clrGreenColor = 0x0000FF00;
     util::Color clrRedColor = 0x00FF0000;
@@ -597,21 +630,22 @@ void SAL_CALL EditHandler::textChanged(const awt::TextEvent& rEvent) throw( uno:
     bool bNotas = false;
 
     Reference <awt::XControlContainer> xControlContainer ( mxDialog, uno::UNO_QUERY_THROW );
-    Reference <awt::XTextComponent> xText ( rEvent.Source , uno::UNO_QUERY_THROW );
     Reference <awt::XButton> xButton;
     Reference <awt::XTextComponent> xEditText;
+    Reference <awt::XTextComponent> xText ( xControlContainer->getControl(OUString(RTL_CONSTASCII_USTRINGPARAM("editEstudiante"))), uno::UNO_QUERY_THROW );
     Reference <awt::XFixedText> xFixedText (xControlContainer->getControl(OUString(RTL_CONSTASCII_USTRINGPARAM("txtEstudiante"))), uno::UNO_QUERY_THROW );
-
     Reference <awt::XControl> xControl ( xFixedText, uno::UNO_QUERY_THROW );
     Reference <beans::XPropertySet> xPropTextModel ( xControl->getModel() , uno::UNO_QUERY_THROW );
 
-    OUString strSQL = OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT ESTUDIANTE.NOMBRE, ESTUDIANTE.ESTUDIANTE_ID FROM INSCRIPCION INNER JOIN ESTUDIANTE ON INSCRIPCION.GESTION=")) +
+    OUString strSQL = OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT ESTUDIANTE.NOMBRE, ESTUDIANTE.ESTUDIANTE_ID FROM INSCRIPCION INNER JOIN ESTUDIANTE ON INSCRIPCION.ESTUDIANTE = ESTUDIANTE.ESTUDIANTE_ID AND INSCRIPCION.GESTION=")) +
           OUString::number(mnGestion) +
           OUString(RTL_CONSTASCII_USTRINGPARAM(" AND INSCRIPCION.ASIGNATURA='")) +
           mstrAsignatura +
-           OUString(RTL_CONSTASCII_USTRINGPARAM("' AND INSCRIPCION.ESTUDIANTE = ESTUDIANTE.ESTUDIANTE_ID AND ESTUDIANTE.NOMBRE LIKE '%")) +
+           OUString(RTL_CONSTASCII_USTRINGPARAM("' AND ESTUDIANTE.NOMBRE LIKE '%")) +
           xText->getText().toAsciiUpperCase() +
            OUString(RTL_CONSTASCII_USTRINGPARAM("%'"));
+
+    xFixedText->setText(OUString(RTL_CONSTASCII_USTRINGPARAM("Buscando...")));
 
     Reference<sdbc::XStatement> xStatement ( mxConnection->createStatement(), uno::UNO_QUERY_THROW );
     Reference<sdbc::XResultSet> xResultSet ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
@@ -650,25 +684,38 @@ void SAL_CALL EditHandler::textChanged(const awt::TextEvent& rEvent) throw( uno:
                 xEditText->setText( OUString(RTL_CONSTASCII_USTRINGPARAM("0")));
         }
 
-
-        strSQL = OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT EVALUACION.TITULO, NOTA.* FROM NOTA INNER JOIN EVALUACION ON NOTA.EVALUACION=EVALUACION.ID AND NOTA.GESTION=")) +
+        strSQL = OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT EVALUACION.TITULO, NOTA.* FROM NOTA INNER JOIN EVALUACION ON NOTA.GESTION=")) +
             OUString::number(mnGestion) +
-            OUString(RTL_CONSTASCII_USTRINGPARAM(" AND NOTA.ASIGNATURA='")) +
+            OUString(RTL_CONSTASCII_USTRINGPARAM("  AND EVALUACION.GESTION=")) +
+            OUString::number(mnGestion) +
+            OUString(RTL_CONSTASCII_USTRINGPARAM("  AND NOTA.ASIGNATURA='")) +
             mstrAsignatura +
-            OUString(RTL_CONSTASCII_USTRINGPARAM("' AND NOTA.PERIODO =")) +
+            OUString(RTL_CONSTASCII_USTRINGPARAM("' AND EVALUACION.ASIGNATURA='")) +
+            mstrAsignatura +
+            OUString(RTL_CONSTASCII_USTRINGPARAM("' AND NOTA.PERIODO=")) +
             OUString::number(mnPeriodo) +
-            OUString(RTL_CONSTASCII_USTRINGPARAM(" AND NOTA.ESTUDIANTE =")) +
-            OUString::number(nIDEstudiante);
+            OUString(RTL_CONSTASCII_USTRINGPARAM("  AND EVALUACION.PERIODO=")) +
+            OUString::number(mnPeriodo) +
+            OUString(RTL_CONSTASCII_USTRINGPARAM("  AND NOTA.EVALUACION=EVALUACION.ID AND NOTA.ESTUDIANTE='")) +
+            OUString::number(nIDEstudiante) +
+            OUString(RTL_CONSTASCII_USTRINGPARAM("'"));
+
+        std::cout << strSQL << std::endl;
+        int start_s=clock();
 
         //xStatement.set ( mxConnection->createStatement(), uno::UNO_QUERY_THROW );
-        xResultSet.set ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
-        xRow.set ( xResultSet, uno::UNO_QUERY_THROW );
+        //Reference<sdbc::XStatement> xStatement ( mxConnection->createStatement(), uno::UNO_QUERY_THROW );
+        Reference<sdbc::XPreparedStatement> xPrep(mxConnection->prepareStatement(strSQL));
+        Reference<sdbc::XResultSet> xNotaSet ( xPrep->executeQuery(), uno::UNO_QUERY_THROW );
+        int stop_s=clock();
+        std::cout << "time: " << (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000 << std::endl;
+        Reference<sdbc::XRow> xNotaRow ( xNotaSet, uno::UNO_QUERY_THROW );
 
-        while ( xResultSet->next() ) {
+        while ( xNotaSet->next() ) {
             bNotas = true;
-            xEditText.set (xControlContainer->getControl( xRow->getString(1) ), uno::UNO_QUERY );
+            xEditText.set (xControlContainer->getControl( xNotaRow->getString(1) ), uno::UNO_QUERY );
             if ( xEditText.is() )
-                xEditText->setText( OUString::number(xRow->getInt(9)));
+                xEditText->setText( OUString::number(xNotaRow->getInt(9)));
         }
     } else {
         strSQL = OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT TITULO FROM EVALUACION WHERE GESTION=")) +
@@ -753,12 +800,12 @@ public:
                     sal_Int32 aPeriodo,
                     OUString astrAsignatura ) : mxConnection(aConnection), mxDialog(aDialog), mnGestion(aGestion), mnPeriodo(aPeriodo), mstrAsignatura(astrAsignatura) {};
 protected:
-  virtual void SAL_CALL textChanged(const awt::TextEvent& rEvent) throw( uno::RuntimeException )
-  {
+    virtual void SAL_CALL textChanged(const awt::TextEvent& rEvent) throw( uno::RuntimeException )
+    {
         util::Color clrGreenColor = 0x0000FF00;
         util::Color clrRedColor = 0x00FF0000;
         sal_Int32 nIDEstudiante = -1;
-        sal_Int32 nIDInscripcion = -1;
+        /*sal_Int32 nIDInscripcion = -1;*/
         bool bNull = false;
 
         Reference <awt::XControlContainer> xControlContainer ( mxDialog, uno::UNO_QUERY_THROW );
@@ -794,7 +841,7 @@ protected:
                 strFound += OUString(RTL_CONSTASCII_USTRINGPARAM(" ")) + xRow->getString(1);
 
             nIDEstudiante = xRow->getInt(2);
-            nIDInscripcion = xRow->getInt(3);
+            /*nIDInscripcion = xRow->getInt(3);*/
             bNull = xRow->wasNull();
             nCounter++;
         }
@@ -820,13 +867,12 @@ protected:
             xPropButton->setPropertyValue( OUString(RTL_CONSTASCII_USTRINGPARAM("Enabled")), uno::makeAny( sal_False ) );
         }
         xFixedText->setText(strFound);
-  }
+    }
 
-  // XEventListener
-  virtual void SAL_CALL disposing( const lang::EventObject& /*Source*/ ) throw (RuntimeException)
-  {
-
-  }
+    // XEventListener
+    virtual void SAL_CALL disposing( const lang::EventObject& /*Source*/ ) throw (RuntimeException)
+    {
+    }
 };
 
 class InscribirHandler : public ClickHandlerBase
@@ -3041,18 +3087,18 @@ EnsecProtocolHandler::formularioNotas(const Reference<sdbc::XConnection>& xConne
     Reference <awt::XControlContainer> xControlContainer ( xDialog, uno::UNO_QUERY_THROW );
     Reference <awt::XButton> xButton ( xControlContainer->getControl(OUString(RTL_CONSTASCII_USTRINGPARAM("btnOK"))), uno::UNO_QUERY_THROW );
     Reference <awt::XButton> xUpdate ( xControlContainer->getControl(OUString(RTL_CONSTASCII_USTRINGPARAM("btnUpdate"))), uno::UNO_QUERY_THROW );
-    Reference <awt::XTextComponent> xText ( xControlContainer->getControl(OUString(RTL_CONSTASCII_USTRINGPARAM("editEstudiante"))), uno::UNO_QUERY_THROW );
+    Reference <awt::XWindow> xText ( xControlContainer->getControl(OUString(RTL_CONSTASCII_USTRINGPARAM("editEstudiante"))), uno::UNO_QUERY_THROW );
     Reference <awt::XTextComponent> xTextNota;
 
     Reference <awt::XDialog> xDlg ( xDialog, uno::UNO_QUERY_THROW );
     Reference <awt::XActionListener> xEnsureDelete( new ClickHandler( xDlg ) );
     Reference <awt::XTextListener> xNotaHandler( new NotaHandler( xDlg ) );
-    Reference <awt::XTextListener> xTextHandler( new EditHandler( xConnection, xDlg, nGestion, nPeriodo, strAsignatura ) );
+    Reference <awt::XKeyListener> xTextHandler( new EditHandler( xConnection, xDlg, nGestion, nPeriodo, strAsignatura ) );
     Reference <awt::XActionListener> xUpdateHandler( new UpdateHandler( xConnection, xDlg, nGestion, nPeriodo, strAsignatura ) );
 
     xButton->addActionListener( xEnsureDelete );
     xUpdate->addActionListener( xUpdateHandler );
-    xText->addTextListener( xTextHandler );
+    xText->addKeyListener( xTextHandler );
 
     xResultSet.set ( xStatement->executeQuery(strSQL), uno::UNO_QUERY_THROW );
     xRow.set ( xResultSet, uno::UNO_QUERY_THROW );
