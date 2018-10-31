@@ -1870,7 +1870,7 @@ EnsecProtocolHandler::reporteAnualNotas()
     Reference <sdb::XQueryDefinitionsSupplier> xQueryDS ( xDataSource, uno::UNO_QUERY_THROW);
     Reference<beans::XPropertySet> xPropQueryDefinition ( xQueryDS->getQueryDefinitions()->getByName(OUString(RTL_CONSTASCII_USTRINGPARAM("CALCULO_BIMESTRAL_NOTA_FINAL"))), uno::UNO_QUERY_THROW );
 
-    OUString strSQL = OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT ESTUDIANTE.NOMBRE, COALESCE ( PRIMERO.NOTA, 0 ) PRIMERO, COALESCE ( SEGUNDO.NOTA, 0 ) SEGUNDO, COALESCE ( TERCERO.NOTA, 0 ) TERCERO, ( ( COALESCE ( PRIMERO.NOTA, 0 ) + COALESCE ( SEGUNDO.NOTA, 0 ) + COALESCE ( TERCERO.NOTA, 0 ) ) / 3 ) \"NOTA FINAL\" FROM ESTUDIANTE LEFT OUTER JOIN ( SELECT NOTA.GESTION, NOTA.ASIGNATURA, NOTA.PERIODO, NOTA.ESTUDIANTE, SUM( NOTA.NOTA * ( EVALUACION.PONDERACION / EVALUACION.NOTA ) ) NOTA FROM NOTA INNER JOIN EVALUACION ON NOTA.EVALUACION = EVALUACION.ID AND NOTA.GESTION = ")) +
+    OUString strSQL = OUString(RTL_CONSTASCII_USTRINGPARAM("SELECT ESTUDIANTE.NOMBRE, COALESCE ( PRIMERO.NOTA, 0 ) PRIMERO, COALESCE ( SEGUNDO.NOTA, 0 ) SEGUNDO, COALESCE ( TERCERO.NOTA, 0 ) TERCERO, COALESCE ( CUARTO.NOTA, 0 ) CUARTO, ( ( COALESCE ( PRIMERO.NOTA, 0 ) + COALESCE ( SEGUNDO.NOTA, 0 ) + COALESCE ( TERCERO.NOTA, 0 ) +  COALESCE ( CUARTO.NOTA, 0 ) ) / 4 ) \"NOTA FINAL\" FROM ESTUDIANTE LEFT OUTER JOIN ( SELECT NOTA.GESTION, NOTA.ASIGNATURA, NOTA.PERIODO, NOTA.ESTUDIANTE, SUM( NOTA.NOTA * ( EVALUACION.PONDERACION / EVALUACION.NOTA ) ) NOTA FROM NOTA INNER JOIN EVALUACION ON NOTA.EVALUACION = EVALUACION.ID AND NOTA.GESTION = ")) +
           OUString::number(nGestion) +
           OUString(RTL_CONSTASCII_USTRINGPARAM(" AND NOTA.ASIGNATURA = '")) +
           strAsignatura +
@@ -1889,6 +1889,7 @@ EnsecProtocolHandler::reporteAnualNotas()
           OUString(RTL_CONSTASCII_USTRINGPARAM("' AND NOTA.PERIODO = 7 GROUP BY NOTA.GESTION, NOTA.ASIGNATURA, NOTA.PERIODO, NOTA.ESTUDIANTE ) CUARTO ON PRIMERO.ESTUDIANTE = CUARTO.ESTUDIANTE WHERE PRIMERO.GESTION = ")) +
           OUString::number(nGestion);
 
+    //std::cerr << strSQL << std::endl;
 
     xPropQueryDefinition->setPropertyValue(OUString(RTL_CONSTASCII_USTRINGPARAM("Command")), uno::makeAny( strSQL ) );
 
@@ -1896,7 +1897,7 @@ EnsecProtocolHandler::reporteAnualNotas()
     Reference<container::XNameAccess> xContainer ( xReportDS->getReportDocuments(), uno::UNO_QUERY_THROW );
     Reference<frame::XComponentLoader> xLoader ( xReportDS->getReportDocuments(), uno::UNO_QUERY_THROW );
 
-    if ( xContainer->hasElements() && xContainer->hasByName(OUString(RTL_CONSTASCII_USTRINGPARAM("CALCULO_NOTA"))) ) {
+    if ( xContainer->hasElements() && xContainer->hasByName(OUString(RTL_CONSTASCII_USTRINGPARAM("CALCULO_BIMESTRAL_NOTA_FINAL"))) ) {
       Sequence <beans::PropertyValue> aArgs(1);
       aArgs[0].Name = OUString(RTL_CONSTASCII_USTRINGPARAM("ActiveConnection"));
       aArgs[0].Value <<= xConnection;
